@@ -1,0 +1,14 @@
+@GearUp.Api_HostAddress = http://localhost:5037
+
+POST {{GearUp.Api_HostAddress}}/api/clientes
+Content-Type: application/json
+Accept: application/json
+
+{
+  "nome": "Maria da Silva",
+  "documento": "529.982.247-25",
+  "email": "maria@email.com",
+  "telefone": "(11) 99999-9999"
+}
+
+###
