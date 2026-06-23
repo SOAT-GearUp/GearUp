@@ -1,6 +1,7 @@
-using GearUp.Application.Clientes;
 using GearUp.Application.Clientes.Cadastrar;
-using GearUp.Application.Common;
+using GearUp.Application.Clientes.Common.Interfaces;
+using GearUp.Application.Clientes.Exceptions;
+using GearUp.Application.Common.Interfaces;
 using GearUp.Domain.Entities;
 using GearUp.Domain.ValueObjects;
 
@@ -16,7 +17,7 @@ public sealed class CadastrarClienteUseCaseTests
         var useCase = new CadastrarClienteUseCase(repository, unitOfWork);
         var command = CriarCommand();
 
-        var result = await useCase.ExecutarAsync(command, CancellationToken.None);
+        var result = await useCase.CadastrarAsync(command, CancellationToken.None);
 
         Assert.NotEqual(Guid.Empty, result.Id);
         Assert.NotNull(repository.ClienteAdicionado);
@@ -33,7 +34,7 @@ public sealed class CadastrarClienteUseCaseTests
         var command = CriarCommand();
 
         await Assert.ThrowsAsync<ClienteDocumentoDuplicadoException>(
-            () => useCase.ExecutarAsync(command, CancellationToken.None));
+            () => useCase.CadastrarAsync(command, CancellationToken.None));
 
         Assert.Null(repository.ClienteAdicionado);
         Assert.Equal(0, unitOfWork.SaveChangesChamadas);
@@ -50,6 +51,11 @@ public sealed class CadastrarClienteUseCaseTests
         : IClienteRepository
     {
         public Cliente? ClienteAdicionado { get; private set; }
+
+        public Task<Cliente?> ObterAsync(Guid id, CancellationToken cancellationToken) => Task.FromResult<Cliente?>(null);
+        public Task<IReadOnlyList<Cliente>> ListarAsync(CancellationToken cancellationToken) => Task.FromResult<IReadOnlyList<Cliente>>([]);
+        public Task<Veiculo?> ObterVeiculoAsync(Guid id, CancellationToken cancellationToken) => Task.FromResult<Veiculo?>(null);
+        public Task<bool> PlacaExisteAsync(string placa, Guid? ignorarId, CancellationToken cancellationToken) => Task.FromResult(false);
 
         public Task<bool> DocumentoExisteAsync(
             Documento documento,

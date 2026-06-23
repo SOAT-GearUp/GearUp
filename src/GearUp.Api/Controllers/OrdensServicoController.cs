@@ -1,0 +1,136 @@
+using GearUp.Api.Authorization;
+using GearUp.Api.Contracts.Orcamentos;
+using GearUp.Api.Contracts.OrdemServico;
+using GearUp.Application.OrdensServico.Consultar;
+using GearUp.Application.OrdensServico.Criar;
+using GearUp.Application.OrdensServico.Diagnosticos.Iniciar;
+using GearUp.Application.OrdensServico.Diagnosticos.Registrar;
+using GearUp.Application.OrdensServico.Listar;
+using GearUp.Application.OrdensServico.Metricas.ObterTempoMedioExecucao;
+using GearUp.Application.OrdensServico.Orcamentos.Criar;
+using GearUp.Application.OrdensServico.Status.Alterar;
+using GearUp.Application.Notificacoes.Listar;
+using GearUp.Domain.Enums;
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
+using System.Security.Claims;
+
+namespace GearUp.Api.Controllers;
+
+[ApiController, Route("api/ordens-servico"), Authorize]
+public sealed class OrdensServicoController(
+    ICriarOrdemServicoUseCase criarOrdemServicoUseCase,
+    IListarOrdemServicoUseCase listarOrdemServicoUseCase,
+    IConsultarOrdemServicoUseCase consultarOrdemServicoUseCase,
+    IIniciarDiagnosticoUseCase iniciarDiagnosticoUseCase,
+    IRegistrarDiagnosticoUseCase registrarDiagnosticoUseCase,
+    IAlterarStatusUseCase alterarStatusUseCase) : ControllerBase
+{
+    [HttpPost, Authorize(Roles = "Atendente")]
+    [ProducesResponseType(StatusCodes.Status201Created)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    public async Task<IActionResult> Criar(CriarOrdemServicoRequest request, CancellationToken ct)
+    { 
+        var os = await criarOrdemServicoUseCase.CriarAsync(
+            new CriarOrdemServicoCommand(
+                request.ClienteId,
+                request.VeiculoId,
+                request.SolicitacaoInicial,
+                request.Prioridade,
+                request.Prazo
+            ), ct);
+
+        return Created($"/api/ordens-servico/{os.Id}", os);
+    }
+
+    [HttpGet]
+    [ProducesResponseType<List<ListarOrdemServicoResult>>(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+    public async Task<IActionResult> Listar([FromQuery] bool emAndamento, [FromQuery] Guid? clienteId, CancellationToken ct)
+    {
+        if (User.IsInRole("Cliente")) 
+            clienteId = ObterClienteId();
+
+        var ordens = await listarOrdemServicoUseCase.ListarAsync(
+            new ListarOrdemServicoCommand(
+                emAndamento,
+                clienteId
+            ), ct);
+
+        return Ok(ordens);
+    }
+
+    [HttpGet("{ordemServicoId:guid}")]
+    [ProducesResponseType<List<ListarOrdemServicoResult>>(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    public async Task<IActionResult> Obter(Guid ordemServicoId, CancellationToken ct)
+    { 
+        var os = await consultarOrdemServicoUseCase.ObterAsync(new ConsultarOrdemServicoCommand(ordemServicoId), ct);
+
+        // NotFound() para não revelar que a ordem de outro cliente existe
+        if (!User.PodeAcessarOrdemServico(os.ClienteId))
+            return NotFound(new
+            {
+                code = "OS_NAO_ENCONTRADA",
+                message = "Ordem de serviço não encontrada."
+            });
+
+        return Ok(os); 
+    }
+
+    [HttpPost("{ordemServicoId:guid}/diagnostico/iniciar"), Authorize(Roles = "Mecanico")]
+    [ProducesResponseType(StatusCodes.Status204NoContent)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    [ProducesResponseType(StatusCodes.Status422UnprocessableEntity)]
+    public async Task<IActionResult> IniciarDiagnostico(Guid ordemServicoId, CancellationToken ct)
+    { 
+        await iniciarDiagnosticoUseCase.IniciarAsync(
+            new IniciarDiagnosticoCommand(
+                ordemServicoId, 
+                Guid.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier) ?? User.FindFirstValue("sub")!)
+            ), ct); 
+        
+        return NoContent(); 
+    }
+
+    [HttpPost("{ordemServicoId:guid}/diagnostico"), Authorize(Roles = "Mecanico")]
+    [ProducesResponseType(StatusCodes.Status204NoContent)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    [ProducesResponseType(StatusCodes.Status422UnprocessableEntity)]
+    public async Task<IActionResult> Diagnosticar(Guid ordemServicoId, DiagnosticoRequest request, CancellationToken ct)
+    { 
+        await registrarDiagnosticoUseCase.RegistrarAsync(
+            new RegistrarDiagnosticoCommand(
+                ordemServicoId,
+                request.Descricao
+            ), ct);
+
+        return NoContent(); 
+    }
+
+    [HttpPatch("{ordemServicoId:guid}/status"), Authorize(Roles = "Atendente,Auxiliar,Mecanico")]
+    [ProducesResponseType(StatusCodes.Status204NoContent)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    [ProducesResponseType(StatusCodes.Status422UnprocessableEntity)]
+    public async Task<IActionResult> AlterarStatus(Guid ordemServicoId, AlterarStatusRequest request, CancellationToken ct)
+    { 
+        await alterarStatusUseCase.AlterarAsync(
+            new AlterarStatusCommand(
+                ordemServicoId,
+                request.Status
+            ), ct); 
+        
+        return NoContent(); 
+    }
+
+    private Guid ObterClienteId()
+    {
+        return Guid.TryParse(User.FindFirstValue("cliente_id"), out var id)
+            ? id
+            : throw new UnauthorizedAccessException("Usuário não vinculado a um cliente.");
+    }
+}

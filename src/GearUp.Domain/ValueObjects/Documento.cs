@@ -1,3 +1,5 @@
+using GearUp.Domain.Enums;
+
 namespace GearUp.Domain.ValueObjects;
 
 public sealed record Documento

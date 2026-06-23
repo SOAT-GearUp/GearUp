@@ -1,5 +1,5 @@
 using GearUp.Domain.Entities;
-using GearUp.Domain.ValueObjects;
+using GearUp.Domain.Enums;
 
 namespace GearUp.Domain.UnitTests.Entities;
 

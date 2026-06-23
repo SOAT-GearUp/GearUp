@@ -13,6 +13,9 @@ internal sealed class ClienteConfiguration : IEntityTypeConfiguration<Cliente>
 
         builder.HasKey(cliente => cliente.Id);
 
+        builder.Property(cliente => cliente.Id)
+            .ValueGeneratedNever();
+
         builder.Property(cliente => cliente.Nome)
             .HasMaxLength(150)
             .IsRequired();
@@ -52,5 +55,10 @@ internal sealed class ClienteConfiguration : IEntityTypeConfiguration<Cliente>
             .IsRequired();
 
         builder.HasQueryFilter(cliente => cliente.Ativo);
+
+        builder.HasMany(cliente => cliente.Veiculos)
+            .WithOne()
+            .HasForeignKey(veiculo => veiculo.ClienteId)
+            .OnDelete(DeleteBehavior.Cascade);
     }
 }

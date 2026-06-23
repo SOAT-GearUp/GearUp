@@ -1,3 +1,4 @@
+using GearUp.Domain.Enums;
 using GearUp.Domain.ValueObjects;
 
 namespace GearUp.Domain.UnitTests.ValueObjects;

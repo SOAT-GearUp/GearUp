@@ -1,12 +1,12 @@
-using GearUp.Application.Clientes;
+using GearUp.Application.Clientes.Exceptions;
+using GearUp.Application.Common.Exceptions;
+using GearUp.Domain.Common.Exceptions;
 using Microsoft.AspNetCore.Diagnostics;
 using Microsoft.AspNetCore.Mvc;
 
 namespace GearUp.Api.ErrorHandling;
 
-internal sealed class GlobalExceptionHandler(
-    IProblemDetailsService problemDetailsService,
-    ILogger<GlobalExceptionHandler> logger)
+internal sealed class GlobalExceptionHandler(ILogger<GlobalExceptionHandler> logger)
     : IExceptionHandler
 {
     public async ValueTask<bool> TryHandleAsync(
@@ -14,17 +14,36 @@ internal sealed class GlobalExceptionHandler(
         Exception exception,
         CancellationToken cancellationToken)
     {
-        var (statusCode, title) = exception switch
+        var (statusCode, code, message) = exception switch
         {
+            RegraNegocioException regra => (
+                StatusCodes.Status422UnprocessableEntity,
+                regra.Codigo,
+                regra.Message),
+            RecursoNaoEncontradoException recurso => (
+                StatusCodes.Status404NotFound,
+                recurso.Codigo,
+                recurso.Message),
+            UnauthorizedAccessException => (
+                StatusCodes.Status401Unauthorized,
+                "NAO_AUTORIZADO",
+                exception.Message),
             ArgumentException => (
                 StatusCodes.Status400BadRequest,
-                "Dados inválidos"),
+                "DADOS_INVALIDOS",
+                exception.Message),
             ClienteDocumentoDuplicadoException => (
                 StatusCodes.Status409Conflict,
-                "Cliente já cadastrado"),
+                "RECURSO_DUPLICADO",
+                exception.Message),
+            ConflitoException conflito => (
+                StatusCodes.Status409Conflict,
+                conflito.Codigo,
+                conflito.Message),
             _ => (
                 StatusCodes.Status500InternalServerError,
-                "Erro interno")
+                "ERRO_INTERNO",
+                "Ocorreu um erro inesperado.")
         };
 
         if (statusCode == StatusCodes.Status500InternalServerError)
@@ -34,18 +53,9 @@ internal sealed class GlobalExceptionHandler(
 
         httpContext.Response.StatusCode = statusCode;
 
-        return await problemDetailsService.TryWriteAsync(new ProblemDetailsContext
-        {
-            HttpContext = httpContext,
-            Exception = exception,
-            ProblemDetails = new ProblemDetails
-            {
-                Status = statusCode,
-                Title = title,
-                Detail = statusCode == StatusCodes.Status500InternalServerError
-                    ? "Ocorreu um erro inesperado."
-                    : exception.Message
-            }
-        });
+        await httpContext.Response.WriteAsJsonAsync(new ErrorResponse(code, message), cancellationToken);
+        return true;
     }
 }
+
+internal sealed record ErrorResponse(string Code, string Message);

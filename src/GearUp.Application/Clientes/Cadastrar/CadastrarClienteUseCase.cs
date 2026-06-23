@@ -1,4 +1,6 @@
-using GearUp.Application.Common;
+using GearUp.Application.Clientes.Common.Interfaces;
+using GearUp.Application.Clientes.Exceptions;
+using GearUp.Application.Common.Interfaces;
 using GearUp.Domain.Entities;
 
 namespace GearUp.Application.Clientes.Cadastrar;
@@ -8,7 +10,7 @@ internal sealed class CadastrarClienteUseCase(
     IUnitOfWork unitOfWork)
     : ICadastrarClienteUseCase
 {
-    public async Task<CadastrarClienteResult> ExecutarAsync(
+    public async Task<CadastrarClienteResult> CadastrarAsync(
         CadastrarClienteCommand command,
         CancellationToken cancellationToken)
     {
@@ -18,12 +20,9 @@ internal sealed class CadastrarClienteUseCase(
             command.Email,
             command.Telefone);
 
-        if (await clienteRepository.DocumentoExisteAsync(
-                cliente.Documento,
-                cancellationToken))
+        if (await clienteRepository.DocumentoExisteAsync(cliente.Documento, cancellationToken))
         {
-            throw new ClienteDocumentoDuplicadoException(
-                cliente.Documento.Numero);
+            throw new ClienteDocumentoDuplicadoException(cliente.Documento.Numero);
         }
 
         await clienteRepository.AdicionarAsync(cliente, cancellationToken);

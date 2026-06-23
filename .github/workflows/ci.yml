@@ -1,0 +1,27 @@
+name: CI
+
+on:
+  push:
+    branches: [main, master]
+  pull_request:
+
+jobs:
+  build-test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: 10.0.x
+      - run: dotnet restore GearUp.slnx
+      - run: dotnet build GearUp.slnx --configuration Release --no-restore
+      - run: dotnet test GearUp.slnx --configuration Release --no-build
+      - run: dotnet test tests/GearUp.Domain.UnitTests/GearUp.Domain.UnitTests.csproj --configuration Release --no-build --collect:"XPlat Code Coverage" --results-directory TestResults/Domain
+      - name: Enforce 80% Domain line coverage
+        shell: pwsh
+        run: |
+          [xml]$report = Get-Content -Raw (Get-ChildItem TestResults/Domain -Recurse -Filter coverage.cobertura.xml | Select-Object -First 1).FullName
+          $rate = [double]$report.coverage.'line-rate'
+          Write-Host "Domain line coverage: $($rate * 100)%"
+          if ($rate -lt 0.80) { throw "Domain coverage is below 80%." }
+      - run: docker build -f src/GearUp.Api/Dockerfile -t gearup-api:ci .
