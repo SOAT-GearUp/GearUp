@@ -1,5 +1,5 @@
 ﻿using GearUp.Application.Autenticacao.Common;
-using GearUp.Application.Clientes.Common.Interfaces;
+using GearUp.Application.Atendimento.Clientes.Common.Interfaces;
 using GearUp.Application.Common.Interfaces;
 
 namespace GearUp.Application.Autenticacao.GerenciarUsuarios
