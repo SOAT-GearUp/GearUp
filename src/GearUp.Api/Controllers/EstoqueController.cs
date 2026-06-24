@@ -1,5 +1,4 @@
 using GearUp.Api.Contracts.Estoque;
-using GearUp.Application.Clientes.Listar;
 using GearUp.Application.Estoque.Cadastrar;
 using GearUp.Application.Estoque.Listar;
 using GearUp.Application.Estoque.Movimentar;
