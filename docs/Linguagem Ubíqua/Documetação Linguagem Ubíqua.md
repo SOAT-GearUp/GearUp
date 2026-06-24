@@ -391,7 +391,7 @@ Entregue
 **Atributos-chave:** Placa, modelo, marca, ano, CPF/CNPJ do proprietário  
 **Referência nos requisitos:** RF05, RF06
 
-> **Nota de modelagem (ADR-004):** Veículo é uma entidade pertencente ao agregado `OrdemServico`, e não um Aggregate Root independente.
+> **Nota de modelagem (ADR-004):** Veículo é um Aggregate Root no bounded context **Cadastro**, referenciado por `OrdemServico` via identificador.
 
 ---
 

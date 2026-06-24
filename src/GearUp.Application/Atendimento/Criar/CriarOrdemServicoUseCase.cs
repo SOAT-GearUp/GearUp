@@ -1,5 +1,6 @@
+using GearUp.Application.Atendimento.Clientes.Common.Interfaces;
+using GearUp.Application.Atendimento.Clientes.Veiculos.Common.Interfaces;
 using GearUp.Application.Atendimento.Comum.Interfaces;
-using GearUp.Application.Clientes.Common.Interfaces;
 using GearUp.Application.Common.Interfaces;
 using GearUp.Domain.Entities;
 
@@ -7,6 +8,7 @@ namespace GearUp.Application.Atendimento.Criar;
 
 internal sealed class CriarOrdemServicoUseCase(
     IClienteRepository clienteRepository,
+    IVeiculoRepository veiculoRepository,
     IOrdemServicoRepository ordemServicoRepository,
     IUnitOfWork unitOfWork) : ICriarOrdemServicoUseCase
 {
@@ -15,13 +17,14 @@ internal sealed class CriarOrdemServicoUseCase(
         var cliente = await clienteRepository.ObterAsync(command.ClienteId, ct)
             ?? throw new RecursoNaoEncontradoException("CLIENTE_NAO_ENCONTRADO", "Cliente não encontrado.");
 
-        if (cliente.Veiculos.All(v => v.Id != command.VeiculoId))
+        var veiculo = await veiculoRepository.ObterAsync(command.VeiculoId, ct);
+
+        if (veiculo is null || veiculo.ClienteId != cliente.Id)
             throw new RecursoNaoEncontradoException("VEICULO_NAO_ENCONTRADO", "Veículo não pertence ao cliente.");
 
         var ordem = OrdemServico.Criar(command.ClienteId, command.VeiculoId, command.SolicitacaoInicial, command.Prioridade, command.Prazo);
 
         await ordemServicoRepository.AdicionarAsync(ordem, ct);
-
         await unitOfWork.SaveChangesAsync(ct);
 
         return new CriarOrdemServicoResult(ordem.Id);

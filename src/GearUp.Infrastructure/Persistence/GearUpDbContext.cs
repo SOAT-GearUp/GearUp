@@ -14,9 +14,10 @@ public sealed class GearUpDbContext(
     public DbSet<Cliente> Clientes => Set<Cliente>();
     public DbSet<Veiculo> Veiculos => Set<Veiculo>();
     public DbSet<Usuario> Usuarios => Set<Usuario>();
-    public DbSet<EstoqueItem> EstoqueItens => Set<EstoqueItem>();
+    public DbSet<Estoque> EstoqueItens => Set<Estoque>();
     public DbSet<OrdemServico> OrdensServico => Set<OrdemServico>();
-    public DbSet<Notificacao> Notificacoes => Set<Notificacao>();
+    public DbSet<Orcamento> Orcamentos => Set<Orcamento>();
+    public DbSet<Comunicacao> Comunicacoes => Set<Comunicacao>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {

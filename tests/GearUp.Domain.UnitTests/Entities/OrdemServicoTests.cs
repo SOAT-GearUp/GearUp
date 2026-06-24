@@ -25,17 +25,17 @@ public sealed class OrdemServicoTests
         os.IniciarDiagnostico(Guid.NewGuid());
         os.RegistrarDiagnostico("Trocar pastilhas.");
 
-        var orcamento = os.CriarOrcamento([Item(TipoItemOrcamento.Peca, "Pastilha", 1, 200, Guid.NewGuid())]);
-        os.DecidirOrcamento(orcamento.Id, true);
+        var orcamentoId = Guid.NewGuid();
+        os.AguardarAprovacao(orcamentoId, 1);
+        os.ReceberDecisaoOrcamento(orcamentoId, true);
 
         Assert.Equal(StatusOrdemServico.AguardandoPecasInsumos, os.Status);
-        Assert.Equal(StatusOrcamento.Aprovado, orcamento.Status);
-        Assert.Contains(os.DomainEvents.OfType<OrcamentoDisponivelDomainEvent>(), evento => evento.Versao == 1);
-        Assert.Contains(os.DomainEvents.OfType<NotificacaoSolicitadaDomainEvent>(), evento => evento.Destinatario == DestinatarioNotificacao.Cliente);
+        Assert.Contains(os.DomainEvents.OfType<OrcamentoDisponivelDomainEvent>(), e => e.Versao == 1);
+        Assert.Contains(os.DomainEvents.OfType<NotificacaoSolicitadaDomainEvent>(), e => e.Destinatario == DestinatarioNotificacao.Cliente);
     }
 
     [Fact]
-    public void EntrarEmExecucaoSemAprovacao_DeveFalhar()
+    public void TransicaoStatusInvalida_DeveFalhar()
     {
         var os = Criar();
 
@@ -45,12 +45,8 @@ public sealed class OrdemServicoTests
     [Fact]
     public void OrcamentoDecidido_NaoPodeSerAlterado()
     {
-        var os = Criar();
-        os.IniciarDiagnostico(Guid.NewGuid());
-        os.RegistrarDiagnostico("Diagnostico");
-
-        var orcamento = os.CriarOrcamento([Item(TipoItemOrcamento.Servico, "Alinhamento", 1, 100, null)]);
-        os.DecidirOrcamento(orcamento.Id, true);
+        var orcamento = CriarOrcamento([Item(TipoItemOrcamento.Servico, "Alinhamento", 1, 100, null)]);
+        orcamento.Decidir(true);
 
         Assert.Throws<RegraNegocioException>(() => orcamento.AdicionarItem(Item(TipoItemOrcamento.Servico, "Extra", 1, 50, null)));
     }
@@ -58,11 +54,8 @@ public sealed class OrdemServicoTests
     [Fact]
     public void OrcamentoPendente_DevePermitirManutencaoDeItens()
     {
-        var os = Criar();
-        os.IniciarDiagnostico(Guid.NewGuid());
-        os.RegistrarDiagnostico("Diagnostico");
+        var orcamento = CriarOrcamento([Item(TipoItemOrcamento.Servico, "Alinhamento", 1, 100, null)]);
 
-        var orcamento = os.CriarOrcamento([Item(TipoItemOrcamento.Servico, "Alinhamento", 1, 100, null)]);
         var novo = orcamento.AdicionarItem(Item(TipoItemOrcamento.MaoDeObra, "Mao de obra", 2, 50, null));
         orcamento.AtualizarItem(novo.Id, Item(TipoItemOrcamento.MaoDeObra, "Mao de obra especializada", 3, 60, null));
 
@@ -80,11 +73,13 @@ public sealed class OrdemServicoTests
         os.IniciarDiagnostico(Guid.NewGuid());
         os.RegistrarDiagnostico("Diagnostico");
 
-        var primeiro = os.CriarOrcamento([Item(TipoItemOrcamento.Servico, "Servico", 1, 100, null)]);
-        os.DecidirOrcamento(primeiro.Id, false);
-        var segundo = os.CriarOrcamento([Item(TipoItemOrcamento.Servico, "Servico revisado", 1, 80, null)]);
+        var primeiroId = Guid.NewGuid();
+        os.AguardarAprovacao(primeiroId, 1);
+        os.ReceberDecisaoOrcamento(primeiroId, false);
 
-        Assert.Equal(2, segundo.Versao);
+        var segundoId = Guid.NewGuid();
+        os.AguardarAprovacao(segundoId, 2);
+
         Assert.Equal(StatusOrdemServico.AguardandoAprovacao, os.Status);
     }
 
@@ -95,10 +90,11 @@ public sealed class OrdemServicoTests
         os.IniciarDiagnostico(Guid.NewGuid());
         os.RegistrarDiagnostico("Diagnostico");
 
-        var orcamento = os.CriarOrcamento([Item(TipoItemOrcamento.Servico, "Servico", 1, 100, null)]);
-        os.DecidirOrcamento(orcamento.Id, true);
+        var orcamentoId = Guid.NewGuid();
+        os.AguardarAprovacao(orcamentoId, 1);
+        os.ReceberDecisaoOrcamento(orcamentoId, true);
         os.AlterarStatus(StatusOrdemServico.AguardandoExecucao);
-        os.AlterarStatus(StatusOrdemServico.EmExecucao);
+        os.IniciarExecucao([]);
         os.AlterarStatus(StatusOrdemServico.Finalizada);
         os.AlterarStatus(StatusOrdemServico.Entregue);
 
@@ -108,18 +104,18 @@ public sealed class OrdemServicoTests
     }
 
     [Fact]
-    public void Notificacao_DeveSerMarcadaComoLida()
+    public void Comunicacao_DeveSerMarcadaComoLida()
     {
-        var notificacao = Notificacao.Criar(
+        var comunicacao = Comunicacao.Criar(
             Guid.NewGuid(),
             Guid.NewGuid(),
             DestinatarioNotificacao.Cliente,
             "Mensagem");
 
-        notificacao.MarcarComoLida();
-        notificacao.MarcarComoLida();
+        comunicacao.MarcarComoLida();
+        comunicacao.MarcarComoLida();
 
-        Assert.NotNull(notificacao.LidaEm);
+        Assert.NotNull(comunicacao.LidaEm);
     }
 
     private static OrdemServico Criar()
@@ -132,6 +128,11 @@ public sealed class OrdemServicoTests
             null);
     }
 
+    private static Orcamento CriarOrcamento(IEnumerable<NovoItemOrcamento> itens)
+    {
+        return Orcamento.Criar(Guid.NewGuid(), 1, itens);
+    }
+
     private static NovoItemOrcamento Item(
         TipoItemOrcamento tipo,
         string descricao,
@@ -139,11 +140,6 @@ public sealed class OrdemServicoTests
         decimal valorUnitario,
         Guid? estoqueItemId)
     {
-        return NovoItemOrcamento.Criar(
-            tipo,
-            descricao,
-            quantidade,
-            valorUnitario,
-            estoqueItemId);
+        return NovoItemOrcamento.Criar(tipo, descricao, quantidade, valorUnitario, estoqueItemId);
     }
 }

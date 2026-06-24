@@ -1,20 +1,20 @@
-﻿using GearUp.Application.Notificacoes.Common.Interfaces;
+using GearUp.Application.Notificacoes.Common.Interfaces;
 using GearUp.Domain.Entities;
 using GearUp.Domain.Enums;
 using Microsoft.EntityFrameworkCore;
 
 namespace GearUp.Infrastructure.Persistence.Repositories
 {
-    internal class NotificacaoRepository(GearUpDbContext db) : INotificacaoRepository
+    internal sealed class ComunicacaoRepository(GearUpDbContext db) : IComunicacaoRepository
     {
-        public Task AdicionarAsync(Notificacao notificacao, CancellationToken cancellationToken)
+        public Task AdicionarAsync(Comunicacao comunicacao, CancellationToken cancellationToken)
         {
-            return db.Notificacoes.AddAsync(notificacao, cancellationToken).AsTask();
+            return db.Comunicacoes.AddAsync(comunicacao, cancellationToken).AsTask();
         }
 
-        public async Task<IReadOnlyList<Notificacao>> ListarAsync(DestinatarioNotificacao destinatario, Guid? clienteId, CancellationToken ct)
+        public async Task<IReadOnlyList<Comunicacao>> ListarAsync(DestinatarioNotificacao destinatario, Guid? clienteId, CancellationToken ct)
         {
-            var query = db.Notificacoes
+            var query = db.Comunicacoes
                 .AsNoTracking()
                 .Where(x => x.Destinatario == destinatario);
 

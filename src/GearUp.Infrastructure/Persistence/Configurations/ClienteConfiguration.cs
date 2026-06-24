@@ -55,10 +55,5 @@ internal sealed class ClienteConfiguration : IEntityTypeConfiguration<Cliente>
             .IsRequired();
 
         builder.HasQueryFilter(cliente => cliente.Ativo);
-
-        builder.HasMany(cliente => cliente.Veiculos)
-            .WithOne()
-            .HasForeignKey(veiculo => veiculo.ClienteId)
-            .OnDelete(DeleteBehavior.Cascade);
     }
 }

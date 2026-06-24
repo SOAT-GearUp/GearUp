@@ -9,7 +9,7 @@ public sealed class EstoqueItemTests
     [Fact]
     public void CriarComQuantidadeInicial_DeveRegistrarEntradaInicial()
     {
-        var item = EstoqueItem.Criar("Filtro", TipoItemEstoque.Peca, 30, 5);
+        var item = Estoque.Criar("Filtro", TipoItemEstoque.Peca, 30, 5);
 
         Assert.Equal(5, item.QuantidadeDisponivel);
         var movimentacao = Assert.Single(item.Movimentacoes);
@@ -20,7 +20,7 @@ public sealed class EstoqueItemTests
     [Fact]
     public void EntradaESaida_DevemAtualizarSaldoEAuditoria()
     {
-        var item = EstoqueItem.Criar("Óleo 5W30", TipoItemEstoque.Insumo, 50);
+        var item = Estoque.Criar("Óleo 5W30", TipoItemEstoque.Insumo, 50);
         item.Movimentar(TipoMovimentacaoEstoque.Entrada, 10, "Compra");
         item.Movimentar(TipoMovimentacaoEstoque.Saida, 2, "Uso em serviço", Guid.NewGuid());
         Assert.Equal(8, item.QuantidadeDisponivel);
@@ -30,7 +30,7 @@ public sealed class EstoqueItemTests
     [Fact]
     public void SaidaAcimaDoSaldo_DeveFalhar()
     {
-        var item = EstoqueItem.Criar("Filtro", TipoItemEstoque.Peca, 30);
+        var item = Estoque.Criar("Filtro", TipoItemEstoque.Peca, 30);
         var erro = Assert.Throws<RegraNegocioException>(() => item.Movimentar(TipoMovimentacaoEstoque.Saida, 1, "Uso"));
         Assert.Equal("ESTOQUE_INSUFICIENTE", erro.Codigo);
     }

@@ -4,12 +4,16 @@ using GearUp.Domain.Entities;
 
 namespace GearUp.Application.Atendimento.Consultar;
 
-internal sealed class ConsultarOrdemServicoUseCase(IOrdemServicoRepository ordemServicoRepository) : IConsultarOrdemServicoUseCase
+internal sealed class ConsultarOrdemServicoUseCase(
+    IOrdemServicoRepository ordemServicoRepository,
+    IOrcamentoRepository orcamentoRepository) : IConsultarOrdemServicoUseCase
 {
     public async Task<ConsultarOrdemServicoResult> ObterAsync(ConsultarOrdemServicoCommand command, CancellationToken ct)
     {
         var ordem = await ordemServicoRepository.ObterAsync(command.Id, ct)
             ?? throw new RecursoNaoEncontradoException("OS_NAO_ENCONTRADA", "Ordem de serviço não encontrada.");
+
+        var orcamentos = await orcamentoRepository.ListarPorOrdemServicoAsync(ordem.Id, ct);
 
         return new ConsultarOrdemServicoResult(
             ordem.Id,
@@ -23,7 +27,7 @@ internal sealed class ConsultarOrdemServicoUseCase(IOrdemServicoRepository ordem
             ordem.CriadaEm,
             ordem.IniciadaEm,
             ordem.FinalizadaEm,
-            ordem.Orcamentos.Select(MapearOrcamento).ToList(),
+            orcamentos.Select(MapearOrcamento).ToList(),
             ordem.Historico
                 .OrderBy(evento => evento.CriadoEm)
                 .Select(evento => new HistoricoOrdemServicoResult(evento.Tipo, evento.Descricao, evento.CriadoEm))

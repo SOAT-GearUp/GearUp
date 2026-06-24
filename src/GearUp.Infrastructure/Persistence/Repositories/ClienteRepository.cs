@@ -10,7 +10,6 @@ internal sealed class ClienteRepository(GearUpDbContext dbContext) : IClienteRep
     public Task<Cliente?> ObterAsync(Guid id, CancellationToken cancellationToken)
     {
         return dbContext.Clientes
-            .Include(cliente => cliente.Veiculos)
             .SingleOrDefaultAsync(cliente => cliente.Id == id, cancellationToken);
     }
 
@@ -18,21 +17,8 @@ internal sealed class ClienteRepository(GearUpDbContext dbContext) : IClienteRep
     {
         return await dbContext.Clientes
             .AsNoTracking()
-            .Include(cliente => cliente.Veiculos)
             .OrderBy(cliente => cliente.Nome)
             .ToListAsync(cancellationToken);
-    }
-
-    public Task<Veiculo?> ObterVeiculoAsync(Guid id, CancellationToken cancellationToken) =>
-        dbContext.Veiculos.SingleOrDefaultAsync(veiculo => veiculo.Id == id, cancellationToken);
-
-    public Task<bool> PlacaExisteAsync(string placa, Guid? ignorarId, CancellationToken cancellationToken)
-    {
-        var normalizada = placa.Replace("-", string.Empty).Trim().ToUpperInvariant();
-
-        return dbContext.Veiculos
-            .IgnoreQueryFilters()
-            .AnyAsync(v => v.Placa == normalizada && (!ignorarId.HasValue || v.Id != ignorarId.Value), cancellationToken);
     }
 
     public Task<bool> DocumentoExisteAsync(Documento documento, CancellationToken cancellationToken)

@@ -1,5 +1,4 @@
-﻿using GearUp.Application.Estoque.Common.Interfaces;
-using GearUp.Domain.Entities;
+using GearUp.Application.Estoque.Common.Interfaces;
 
 namespace GearUp.Application.Estoque.Listar
 {

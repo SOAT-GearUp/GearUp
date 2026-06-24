@@ -138,7 +138,11 @@ Após autenticação, o usuário receberá um token assinado digitalmente conten
 
 ## ADR-004 - Modelagem dos Agregados do Domínio
 
-**Título:** Modelagem de agregados baseada no domínio da oficina
+**Título:** Modelagem de agregados baseada no Event Storming
+
+**Data:** 11/06/2026
+
+**Revisão:** 24/06/2026 — alinhamento ao Event Storming: `Veiculo`, `Orcamento` e `Comunicacao` passam a ser Aggregate Roots próprios; bounded contexts explicitados conforme o workshop.
 
 **Status:** Aceita
 
@@ -148,28 +152,43 @@ O sistema possui forte dependência do fluxo de execução de Ordens de Serviço
 
 Era necessário definir limites transacionais que garantissem consistência sem gerar excesso de dependências entre entidades.
 
+O mapeamento de domínio realizado via Event Storming (`Event Storming/Documentação Event Storming.md`) organiza o negócio em quatro bounded contexts — **Cadastro**, **Ordem de Serviço**, **Estoque** e **Comunicação** — cada um com agregados e eventos próprios. A modelagem de agregados deve refletir esse mapeamento como fonte de verdade.
+
 ## Decisão
 
-Os agregados serão modelados da seguinte forma:
+Os agregados serão organizados por bounded context, conforme o Event Storming:
 
-- OrdemServico (Aggregate Root)
-- Cliente (Aggregate Root)
-- Estoque (Aggregate Root)
+| Bounded Context | Aggregate Root | Entidades internas |
+|---|---|---|
+| **Cadastro** | `Cliente` | — |
+| **Cadastro** | `Veiculo` | — |
+| **Ordem de Serviço** | `OrdemServico` | `HistoricoOrdemServico` |
+| **Ordem de Serviço** | `Orcamento` | `ItemOrcamento` |
+| **Estoque** | `Estoque` | `MovimentacaoEstoque` |
+| **Comunicação** | `Comunicacao` | — |
 
-Veículo e Orçamento serão tratados como entidades pertencentes ao agregado OrdemServico.
+Além dos contextos mapeados no Event Storming, o agregado `Usuario` existe para autenticação e controle de acesso (RF01–RF03), fora do escopo do workshop.
+
+**Regras de referência entre agregados:**
+
+- `OrdemServico` referencia `Cliente` e `Veiculo` por identificador, sem composição.
+- `Orcamento` referencia `OrdemServico` por identificador.
+- Policies do Event Storming (ex.: verificação de estoque na aprovação, notificações) são orquestradas na camada Application, coordenando múltiplos agregados sem violar os limites transacionais.
 
 ## Consequências
 
 ### Positivas
 
-- Limites transacionais claros.
-- Menor acoplamento entre módulos.
+- Limites transacionais claros e alinhados ao workshop de domínio.
+- Menor acoplamento entre módulos e bounded contexts.
 - Melhor aderência aos princípios de DDD.
-- Facilita futura separação em microsserviços.
+- Facilita futura separação em microsserviços por bounded context.
+- Documentação de arquitetura, Event Storming e código convergem na mesma modelagem.
 
 ### Negativas
 
-- Consultas envolvendo múltiplos agregados exigirão mecanismos de leitura específicos.
+- Consultas e fluxos envolvendo múltiplos agregados exigirão orquestração na Application e mecanismos de leitura específicos.
+- Operações que antes cabiam em uma única transação (ex.: criar OS com orçamento) passam a envolver persistência coordenada de agregados distintos.
 
 ## ADR-005 - Utilização de Use Cases na Camada de Aplicação
 

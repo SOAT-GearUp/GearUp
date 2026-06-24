@@ -18,8 +18,6 @@ internal sealed class OrdemServicoRepository(GearUpDbContext db) : IAtendimentoR
     public Task<OrdemServico?> ObterAsync(Guid id, CancellationToken ct)
     {
         return db.OrdensServico
-            .Include(x => x.Orcamentos)
-            .ThenInclude(x => x.Itens)
             .Include(x => x.Historico)
             .SingleOrDefaultAsync(x => x.Id == id, ct);
     }
@@ -28,8 +26,6 @@ internal sealed class OrdemServicoRepository(GearUpDbContext db) : IAtendimentoR
     {
         var query = db.OrdensServico
             .AsNoTracking()
-            .Include(x => x.Orcamentos)
-            .ThenInclude(x => x.Itens)
             .Include(x => x.Historico)
             .AsQueryable();
 

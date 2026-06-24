@@ -5,12 +5,12 @@ using GearUp.Domain.Enums;
 
 namespace GearUp.Domain.Entities;
 
-public sealed class EstoqueItem : AggregateRoot
+public sealed class Estoque : AggregateRoot
 {
     private readonly List<MovimentacaoEstoque> _movimentacoes = [];
-    private EstoqueItem() { }
+    private Estoque() { }
 
-    private EstoqueItem(string nome, TipoItemEstoque tipo, decimal precoUnitario, decimal quantidadeInicial)
+    private Estoque(string nome, TipoItemEstoque tipo, decimal precoUnitario, decimal quantidadeInicial)
     {
         Id = Guid.NewGuid();
         Nome = ValidarNome(nome);
@@ -30,7 +30,7 @@ public sealed class EstoqueItem : AggregateRoot
     public bool Ativo { get; private set; }
     public IReadOnlyCollection<MovimentacaoEstoque> Movimentacoes => _movimentacoes.AsReadOnly();
 
-    public static EstoqueItem Criar(string nome, TipoItemEstoque tipo, decimal precoUnitario, decimal quantidadeInicial = 0)
+    public static Estoque Criar(string nome, TipoItemEstoque tipo, decimal precoUnitario, decimal quantidadeInicial = 0)
     {
         if (quantidadeInicial < 0)
             throw new ArgumentException("A quantidade inicial não pode ser negativa.", nameof(quantidadeInicial));

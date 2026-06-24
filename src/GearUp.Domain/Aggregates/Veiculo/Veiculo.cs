@@ -1,8 +1,9 @@
 using System.Text.RegularExpressions;
+using GearUp.Domain.Common;
 
 namespace GearUp.Domain.Entities;
 
-public sealed partial class Veiculo
+public sealed partial class Veiculo : AggregateRoot
 {
     private Veiculo() { }
 
@@ -22,7 +23,7 @@ public sealed partial class Veiculo
     public int Ano { get; private set; }
     public bool Ativo { get; private set; }
 
-    internal static Veiculo Criar(Guid clienteId, string placa, string marca, string modelo, int ano) =>
+    public static Veiculo Criar(Guid clienteId, string placa, string marca, string modelo, int ano) =>
         new(clienteId, placa, marca, modelo, ano);
 
     public void Atualizar(string placa, string marca, string modelo, int ano)

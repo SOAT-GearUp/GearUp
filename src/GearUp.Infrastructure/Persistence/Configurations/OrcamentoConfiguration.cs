@@ -13,6 +13,7 @@ internal sealed class OrcamentoConfiguration : IEntityTypeConfiguration<Orcament
         b.Property(x => x.Id).ValueGeneratedNever();
         b.Ignore(x => x.ValorTotal);
         b.HasIndex(x => new { x.OrdemServicoId, x.Versao }).IsUnique();
+        b.HasOne<OrdemServico>().WithMany().HasForeignKey(x => x.OrdemServicoId).OnDelete(DeleteBehavior.Cascade);
         b.HasMany(x => x.Itens).WithOne().HasForeignKey(x => x.OrcamentoId).OnDelete(DeleteBehavior.Cascade);
     }
 }

@@ -4,9 +4,9 @@ using Microsoft.EntityFrameworkCore.Metadata.Builders;
 
 namespace GearUp.Infrastructure.Persistence.Configurations;
 
-internal sealed class EstoqueItemConfiguration : IEntityTypeConfiguration<EstoqueItem>
+internal sealed class EstoqueConfiguration : IEntityTypeConfiguration<Estoque>
 {
-    public void Configure(EntityTypeBuilder<EstoqueItem> b)
+    public void Configure(EntityTypeBuilder<Estoque> b)
     {
         b.ToTable("EstoqueItens");
         b.HasKey(x => x.Id);

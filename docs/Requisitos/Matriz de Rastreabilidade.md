@@ -23,11 +23,14 @@ Data da revisão: 17/06/2026.
 
 ## Decisão de modelagem
 
-O ADR-004 coloca `Veiculo` dentro de `OrdemServico`, mas RF05, RF06 e a
-Linguagem Ubíqua exigem cadastro próprio, múltiplos veículos por cliente e
-histórico independente. A implementação trata `Veiculo` como entidade do
-agregado `Cliente`; a OS guarda sua referência por identificador. O orçamento
-permanece entidade interna do agregado `OrdemServico`.
+Conforme ADR-004 (revisão 24/06/2026) e o Event Storming, os agregados são:
+
+- **Cadastro:** `Cliente`, `Veiculo`
+- **Ordem de Serviço:** `OrdemServico`, `Orcamento`
+- **Estoque:** `Estoque`
+- **Comunicação:** `Comunicacao`
+
+`OrdemServico` referencia `Cliente` e `Veiculo` por identificador; `Orcamento` referencia `OrdemServico` por identificador. A orquestração entre agregados ocorre na camada Application.
 
 ## Qualidade verificada
 

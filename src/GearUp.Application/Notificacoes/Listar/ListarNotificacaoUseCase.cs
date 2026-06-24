@@ -2,21 +2,21 @@ using GearUp.Application.Notificacoes.Common.Interfaces;
 
 namespace GearUp.Application.Notificacoes.Listar
 {
-    internal sealed class ListarNotificacaoUseCase(INotificacaoRepository notificacaoRepository) : IListarNotificacaoUseCase
+    internal sealed class ListarNotificacaoUseCase(IComunicacaoRepository comunicacaoRepository) : IListarNotificacaoUseCase
     {
         public async Task<IReadOnlyList<ListarNotificaoResult>> ListarNotificacoesAsync(ListarNotificaoCommand command, CancellationToken ct)
         {
-            var notificacoes = await notificacaoRepository.ListarAsync(command.Destinatario, command.ClienteId, ct);
+            var comunicacoes = await comunicacaoRepository.ListarAsync(command.Destinatario, command.ClienteId, ct);
 
-            return notificacoes
-                .Select(notificacao => new ListarNotificaoResult(
-                    notificacao.Id,
-                    notificacao.OrdemServicoId,
-                    notificacao.ClienteId,
-                    notificacao.Destinatario,
-                    notificacao.Mensagem,
-                    notificacao.CriadaEm,
-                    notificacao.LidaEm))
+            return comunicacoes
+                .Select(c => new ListarNotificaoResult(
+                    c.Id,
+                    c.OrdemServicoId,
+                    c.ClienteId,
+                    c.Destinatario,
+                    c.Mensagem,
+                    c.CriadaEm,
+                    c.LidaEm))
                 .ToList();
         }
     }

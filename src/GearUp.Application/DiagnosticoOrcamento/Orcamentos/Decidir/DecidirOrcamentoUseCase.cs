@@ -1,16 +1,24 @@
 using GearUp.Application.Common.Interfaces;
 using GearUp.Application.DiagnosticoOrcamento.Comum.Interfaces;
+using GearUp.Application.DiagnosticoOrcamento.Orcamentos.Common.Interfaces;
 
 namespace GearUp.Application.DiagnosticoOrcamento.Orcamentos.Decidir;
 
-internal sealed class DecidirOrcamentoUseCase(IOrdemServicoRepository ordemServicoRepository, IUnitOfWork unitOfWork) : IDecidirOrcamentoUseCase
+internal sealed class DecidirOrcamentoUseCase(
+    IOrdemServicoRepository ordemServicoRepository,
+    IOrcamentoRepository orcamentoRepository,
+    IUnitOfWork unitOfWork) : IDecidirOrcamentoUseCase
 {
     public async Task DecidirAsync(DecidirOrcamentoCommand command, CancellationToken ct)
     {
-        var os = await ordemServicoRepository.ObterAsync(command.OrdemServicoId, ct)
+        var orcamento = await orcamentoRepository.ObterAsync(command.OrcamentoId, ct)
+            ?? throw new RecursoNaoEncontradoException("ORCAMENTO_NAO_ENCONTRADO", "Orçamento não encontrado.");
+
+        var os = await ordemServicoRepository.ObterAsync(orcamento.OrdemServicoId, ct)
             ?? throw new RecursoNaoEncontradoException("OS_NAO_ENCONTRADA", "Ordem de serviço não encontrada.");
 
-        os.DecidirOrcamento(command.OrcamentoId, command.Aprovado);
+        orcamento.Decidir(command.Aprovado);
+        os.ReceberDecisaoOrcamento(orcamento.Id, command.Aprovado);
 
         await unitOfWork.SaveChangesAsync(ct);
     }

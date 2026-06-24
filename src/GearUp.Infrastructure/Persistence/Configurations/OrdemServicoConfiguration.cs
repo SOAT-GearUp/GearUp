@@ -16,7 +16,6 @@ internal sealed class OrdemServicoConfiguration : IEntityTypeConfiguration<Ordem
         b.HasIndex(x => new { x.Status, x.Prioridade, x.CriadaEm });
         b.HasOne<Cliente>().WithMany().HasForeignKey(x => x.ClienteId).OnDelete(DeleteBehavior.Restrict);
         b.HasOne<Veiculo>().WithMany().HasForeignKey(x => x.VeiculoId).OnDelete(DeleteBehavior.Restrict);
-        b.HasMany(x => x.Orcamentos).WithOne().HasForeignKey(x => x.OrdemServicoId).OnDelete(DeleteBehavior.Cascade);
         b.HasMany(x => x.Historico).WithOne().HasForeignKey(x => x.OrdemServicoId).OnDelete(DeleteBehavior.Cascade);
     }
 }

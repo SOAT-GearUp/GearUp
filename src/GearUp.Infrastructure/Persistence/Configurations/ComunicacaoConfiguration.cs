@@ -4,9 +4,9 @@ using Microsoft.EntityFrameworkCore.Metadata.Builders;
 
 namespace GearUp.Infrastructure.Persistence.Configurations;
 
-internal sealed class NotificacaoConfiguration : IEntityTypeConfiguration<Notificacao>
+internal sealed class ComunicacaoConfiguration : IEntityTypeConfiguration<Comunicacao>
 {
-    public void Configure(EntityTypeBuilder<Notificacao> b)
+    public void Configure(EntityTypeBuilder<Comunicacao> b)
     {
         b.ToTable("Notificacoes");
         b.HasKey(x => x.Id);

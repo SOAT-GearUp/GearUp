@@ -54,8 +54,6 @@ public sealed class CadastrarClienteUseCaseTests
 
         public Task<Cliente?> ObterAsync(Guid id, CancellationToken cancellationToken) => Task.FromResult<Cliente?>(null);
         public Task<IReadOnlyList<Cliente>> ListarAsync(CancellationToken cancellationToken) => Task.FromResult<IReadOnlyList<Cliente>>([]);
-        public Task<Veiculo?> ObterVeiculoAsync(Guid id, CancellationToken cancellationToken) => Task.FromResult<Veiculo?>(null);
-        public Task<bool> PlacaExisteAsync(string placa, Guid? ignorarId, CancellationToken cancellationToken) => Task.FromResult(false);
 
         public Task<bool> DocumentoExisteAsync(
             Documento documento,

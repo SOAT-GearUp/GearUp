@@ -6,22 +6,20 @@ using GearUp.Domain.Entities;
 namespace GearUp.Application.Notificacoes.EventHandlers
 {
     public sealed class NotificacaoSolicitadaDomainEventHandler(
-        INotificacaoRepository notificacaoRepository)
+        IComunicacaoRepository comunicacaoRepository)
         : IDomainEventHandler<NotificacaoSolicitadaDomainEvent>
     {
         public async Task HandleAsync(
             NotificacaoSolicitadaDomainEvent domainEvent,
             CancellationToken cancellationToken)
         {
-            var notificacao = Notificacao.Criar(
+            var comunicacao = Comunicacao.Criar(
                 domainEvent.OrdemServicoId,
                 domainEvent.ClienteId,
                 domainEvent.Destinatario,
                 domainEvent.Mensagem);
 
-            await notificacaoRepository.AdicionarAsync(
-                notificacao,
-                cancellationToken);
+            await comunicacaoRepository.AdicionarAsync(comunicacao, cancellationToken);
         }
     }
 }

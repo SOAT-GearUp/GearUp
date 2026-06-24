@@ -5,8 +5,6 @@ namespace GearUp.Domain.Entities;
 
 public sealed class Cliente : AggregateRoot
 {
-    private readonly List<Veiculo> _veiculos = [];
-
     private Cliente()
     {
     }
@@ -35,7 +33,6 @@ public sealed class Cliente : AggregateRoot
     public bool Ativo { get; private set; }
     public DateTimeOffset CriadoEm { get; private set; }
     public DateTimeOffset? ExcluidoEm { get; private set; }
-    public IReadOnlyCollection<Veiculo> Veiculos => _veiculos.AsReadOnly();
 
     public static Cliente Criar(string nome, string documento, string email, string telefone)
     {
@@ -63,16 +60,6 @@ public sealed class Cliente : AggregateRoot
         Nome = NormalizarNome(nome);
         Email = Email.Criar(email);
         Telefone = Telefone.Criar(telefone);
-    }
-
-    public Veiculo AdicionarVeiculo(string placa, string marca, string modelo, int ano)
-    {
-        if (_veiculos.Any(veiculo => veiculo.Placa == placa.Replace("-", string.Empty).ToUpperInvariant()))
-            throw new ArgumentException("Já existe um veículo com essa placa para o cliente.", nameof(placa));
-
-        var veiculo = Veiculo.Criar(Id, placa, marca, modelo, ano);
-        _veiculos.Add(veiculo);
-        return veiculo;
     }
 
     private static string NormalizarNome(string nome)

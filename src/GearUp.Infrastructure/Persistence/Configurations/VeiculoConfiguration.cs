@@ -16,5 +16,6 @@ internal sealed class VeiculoConfiguration : IEntityTypeConfiguration<Veiculo>
         b.Property(x => x.Marca).HasMaxLength(80).IsRequired();
         b.Property(x => x.Modelo).HasMaxLength(80).IsRequired();
         b.HasQueryFilter(x => x.Ativo);
+        b.HasOne<Cliente>().WithMany().HasForeignKey(x => x.ClienteId).OnDelete(DeleteBehavior.Cascade);
     }
 }

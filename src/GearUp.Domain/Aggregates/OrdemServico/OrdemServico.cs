@@ -5,13 +5,11 @@ using GearUp.Domain.DomainEvents.DiagnosticoOrcamento;
 using GearUp.Domain.DomainEvents.Execucao;
 using GearUp.Domain.DomainEvents.Notificacoes;
 using GearUp.Domain.Enums;
-using GearUp.Domain.ValueObjects.Orcamentos;
 
 namespace GearUp.Domain.Entities;
 
 public sealed class OrdemServico : AggregateRoot
 {
-    private readonly List<Orcamento> _orcamentos = [];
     private readonly List<HistoricoOrdemServico> _historico = [];
     private OrdemServico() { }
 
@@ -41,7 +39,6 @@ public sealed class OrdemServico : AggregateRoot
     public DateTimeOffset CriadaEm { get; private set; }
     public DateTimeOffset? IniciadaEm { get; private set; }
     public DateTimeOffset? FinalizadaEm { get; private set; }
-    public IReadOnlyCollection<Orcamento> Orcamentos => _orcamentos.AsReadOnly();
     public IReadOnlyCollection<HistoricoOrdemServico> Historico => _historico.AsReadOnly();
 
     public static OrdemServico Criar(Guid clienteId, Guid veiculoId, string solicitacao, PrioridadeOrdemServico prioridade, DateTimeOffset? prazo) =>
@@ -64,27 +61,18 @@ public sealed class OrdemServico : AggregateRoot
         Notificar(DestinatarioNotificacao.Atendente, "Diagnóstico concluído; orçamento pendente.");
     }
 
-    public Orcamento CriarOrcamento(IEnumerable<NovoItemOrcamento> itens)
+    public void AguardarAprovacao(Guid orcamentoId, int versao)
     {
         if (Status is not (StatusOrdemServico.AguardandoOrcamento or StatusOrdemServico.AguardandoAprovacao))
             throw new RegraNegocioException("STATUS_OS_INVALIDO", "A OS não está aguardando orçamento.");
 
-        var orcamento = Orcamento.Criar(Id, _orcamentos.Count + 1, itens);
-        _orcamentos.Add(orcamento);
-        AlterarStatusInterno(StatusOrdemServico.AguardandoAprovacao, "ORCAMENTO_GERADO", $"Orçamento v{orcamento.Versao} gerado.");
-        AdicionarDomainEvent(new OrcamentoDisponivelDomainEvent(Id, ClienteId, orcamento.Id, orcamento.Versao, DateTimeOffset.UtcNow));
-
-        return orcamento;
+        AlterarStatusInterno(StatusOrdemServico.AguardandoAprovacao, "ORCAMENTO_GERADO", $"Orçamento v{versao} gerado.");
+        AdicionarDomainEvent(new OrcamentoDisponivelDomainEvent(Id, ClienteId, orcamentoId, versao, DateTimeOffset.UtcNow));
     }
 
-    public void DecidirOrcamento(Guid orcamentoId, bool aprovado)
+    public void ReceberDecisaoOrcamento(Guid orcamentoId, bool aprovado)
     {
         ExigirStatus(StatusOrdemServico.AguardandoAprovacao);
-
-        var orcamento = _orcamentos.SingleOrDefault(item => item.Id == orcamentoId)
-            ?? throw new RegraNegocioException("ORCAMENTO_NAO_ENCONTRADO", "Orçamento não encontrado.");
-
-        orcamento.Decidir(aprovado);
 
         var status = aprovado
             ? StatusOrdemServico.AguardandoPecasInsumos
@@ -101,6 +89,15 @@ public sealed class OrdemServico : AggregateRoot
         Notificar(DestinatarioNotificacao.Atendente, aprovado ? "Orçamento aprovado pelo cliente." : "Orçamento rejeitado pelo cliente.");
     }
 
+    public void IniciarExecucao(List<ItemDeEstoque> itens)
+    {
+        ExigirStatus(StatusOrdemServico.AguardandoExecucao);
+        IniciadaEm = DateTimeOffset.UtcNow;
+        Notificar(DestinatarioNotificacao.Cliente, "Execução dos serviços iniciada.");
+        AdicionarDomainEvent(new ExecucaoIniciadaDomainEvent(Id, ClienteId, itens, DateTimeOffset.UtcNow));
+        AlterarStatusInterno(StatusOrdemServico.EmExecucao, "OS_EMEXECUCAO", "Status alterado para EmExecucao.");
+    }
+
     public void AlterarStatus(StatusOrdemServico novoStatus)
     {
         if (novoStatus == StatusOrdemServico.Cancelada)
@@ -115,7 +112,6 @@ public sealed class OrdemServico : AggregateRoot
         var permitida = (Status, novoStatus) switch
         {
             (StatusOrdemServico.AguardandoPecasInsumos, StatusOrdemServico.AguardandoExecucao) => true,
-            (StatusOrdemServico.AguardandoExecucao, StatusOrdemServico.EmExecucao) => Orcamentos.Any(o => o.Status == StatusOrcamento.Aprovado),
             (StatusOrdemServico.EmExecucao, StatusOrdemServico.Finalizada) => true,
             (StatusOrdemServico.Finalizada, StatusOrdemServico.Entregue) => true,
             _ => false
@@ -123,18 +119,6 @@ public sealed class OrdemServico : AggregateRoot
 
         if (!permitida)
             throw new RegraNegocioException("TRANSICAO_STATUS_INVALIDA", $"Transição de {Status} para {novoStatus} não permitida.");
-
-        if (novoStatus == StatusOrdemServico.EmExecucao)
-        {
-            IniciadaEm = DateTimeOffset.UtcNow;
-            var aprovado = _orcamentos.Single(o => o.Status == StatusOrcamento.Aprovado);
-            var itens = aprovado.Itens
-                .Where(i => i.EstoqueItemId.HasValue)
-                .Select(i => new ItemDeEstoque(i.EstoqueItemId!.Value, i.Quantidade, i.Descricao))
-                .ToList();
-            Notificar(DestinatarioNotificacao.Cliente, "Execução dos serviços iniciada.");
-            AdicionarDomainEvent(new ExecucaoIniciadaDomainEvent(Id, ClienteId, itens, DateTimeOffset.UtcNow));
-        }
 
         if (novoStatus == StatusOrdemServico.Finalizada)
         {
