@@ -11,10 +11,10 @@ internal sealed class GearUpDbContextFactory
     {
         var connectionString = Environment.GetEnvironmentVariable(
             "ConnectionStrings__GearUpDatabase")
-            ?? "Server=localhost,14333;Database=GearUp;User Id=sa;Password=Your_strong!Pass123;TrustServerCertificate=True";
+            ?? "Host=localhost;Port=5433;Database=GearUp;Username=gearup;Password=Your_strong!Pass123";
 
         var options = new DbContextOptionsBuilder<GearUpDbContext>()
-            .UseSqlServer(connectionString, sqlOptions => sqlOptions.EnableRetryOnFailure())
+            .UseNpgsql(connectionString, npgsqlOptions => npgsqlOptions.EnableRetryOnFailure())
             .Options;
 
         return new GearUpDbContext(options);

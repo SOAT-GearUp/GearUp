@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using Microsoft.EntityFrameworkCore.Migrations;
 
 #nullable disable
@@ -6,21 +6,39 @@ using Microsoft.EntityFrameworkCore.Migrations;
 namespace GearUp.Infrastructure.Persistence.Migrations
 {
     /// <inheritdoc />
-    public partial class ImplementaRequisitosMvp : Migration
+    public partial class InitialCreate : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
         {
             migrationBuilder.CreateTable(
+                name: "Clientes",
+                columns: table => new
+                {
+                    Id = table.Column<Guid>(type: "uuid", nullable: false),
+                    Nome = table.Column<string>(type: "character varying(150)", maxLength: 150, nullable: false),
+                    Documento = table.Column<string>(type: "character varying(14)", maxLength: 14, nullable: false),
+                    Email = table.Column<string>(type: "character varying(254)", maxLength: 254, nullable: false),
+                    Telefone = table.Column<string>(type: "character varying(11)", maxLength: 11, nullable: false),
+                    Ativo = table.Column<bool>(type: "boolean", nullable: false),
+                    CriadoEm = table.Column<DateTimeOffset>(type: "timestamp with time zone", nullable: false),
+                    ExcluidoEm = table.Column<DateTimeOffset>(type: "timestamp with time zone", nullable: true)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_Clientes", x => x.Id);
+                });
+
+            migrationBuilder.CreateTable(
                 name: "EstoqueItens",
                 columns: table => new
                 {
-                    Id = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
-                    Nome = table.Column<string>(type: "nvarchar(150)", maxLength: 150, nullable: false),
-                    Tipo = table.Column<int>(type: "int", nullable: false),
-                    PrecoUnitario = table.Column<decimal>(type: "decimal(18,2)", precision: 18, scale: 2, nullable: false),
-                    QuantidadeDisponivel = table.Column<decimal>(type: "decimal(18,3)", precision: 18, scale: 3, nullable: false),
-                    Ativo = table.Column<bool>(type: "bit", nullable: false)
+                    Id = table.Column<Guid>(type: "uuid", nullable: false),
+                    Nome = table.Column<string>(type: "character varying(150)", maxLength: 150, nullable: false),
+                    Tipo = table.Column<int>(type: "integer", nullable: false),
+                    PrecoUnitario = table.Column<decimal>(type: "numeric(18,2)", precision: 18, scale: 2, nullable: false),
+                    QuantidadeDisponivel = table.Column<decimal>(type: "numeric(18,3)", precision: 18, scale: 3, nullable: false),
+                    Ativo = table.Column<bool>(type: "boolean", nullable: false)
                 },
                 constraints: table =>
                 {
@@ -31,29 +49,35 @@ namespace GearUp.Infrastructure.Persistence.Migrations
                 name: "Usuarios",
                 columns: table => new
                 {
-                    Id = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
-                    NomeUsuario = table.Column<string>(type: "varchar(100)", unicode: false, maxLength: 100, nullable: false),
-                    SenhaHash = table.Column<string>(type: "varchar(500)", unicode: false, maxLength: 500, nullable: false),
-                    Perfil = table.Column<int>(type: "int", nullable: false),
-                    ClienteId = table.Column<Guid>(type: "uniqueidentifier", nullable: true),
-                    Ativo = table.Column<bool>(type: "bit", nullable: false)
+                    Id = table.Column<Guid>(type: "uuid", nullable: false),
+                    NomeUsuario = table.Column<string>(type: "character varying(100)", maxLength: 100, nullable: false),
+                    SenhaHash = table.Column<string>(type: "character varying(500)", maxLength: 500, nullable: false),
+                    Perfil = table.Column<int>(type: "integer", nullable: false),
+                    ClienteId = table.Column<Guid>(type: "uuid", nullable: true),
+                    Ativo = table.Column<bool>(type: "boolean", nullable: false)
                 },
                 constraints: table =>
                 {
                     table.PrimaryKey("PK_Usuarios", x => x.Id);
+                    table.ForeignKey(
+                        name: "FK_Usuarios_Clientes_ClienteId",
+                        column: x => x.ClienteId,
+                        principalTable: "Clientes",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Restrict);
                 });
 
             migrationBuilder.CreateTable(
                 name: "Veiculos",
                 columns: table => new
                 {
-                    Id = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
-                    ClienteId = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
-                    Placa = table.Column<string>(type: "varchar(7)", unicode: false, maxLength: 7, nullable: false),
-                    Marca = table.Column<string>(type: "nvarchar(80)", maxLength: 80, nullable: false),
-                    Modelo = table.Column<string>(type: "nvarchar(80)", maxLength: 80, nullable: false),
-                    Ano = table.Column<int>(type: "int", nullable: false),
-                    Ativo = table.Column<bool>(type: "bit", nullable: false)
+                    Id = table.Column<Guid>(type: "uuid", nullable: false),
+                    ClienteId = table.Column<Guid>(type: "uuid", nullable: false),
+                    Placa = table.Column<string>(type: "character varying(7)", maxLength: 7, nullable: false),
+                    Marca = table.Column<string>(type: "character varying(80)", maxLength: 80, nullable: false),
+                    Modelo = table.Column<string>(type: "character varying(80)", maxLength: 80, nullable: false),
+                    Ano = table.Column<int>(type: "integer", nullable: false),
+                    Ativo = table.Column<bool>(type: "boolean", nullable: false)
                 },
                 constraints: table =>
                 {
@@ -70,13 +94,13 @@ namespace GearUp.Infrastructure.Persistence.Migrations
                 name: "MovimentacoesEstoque",
                 columns: table => new
                 {
-                    Id = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
-                    EstoqueItemId = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
-                    Tipo = table.Column<int>(type: "int", nullable: false),
-                    Quantidade = table.Column<decimal>(type: "decimal(18,3)", precision: 18, scale: 3, nullable: false),
-                    Motivo = table.Column<string>(type: "nvarchar(300)", maxLength: 300, nullable: false),
-                    OrdemServicoId = table.Column<Guid>(type: "uniqueidentifier", nullable: true),
-                    CriadoEm = table.Column<DateTimeOffset>(type: "datetimeoffset", nullable: false)
+                    Id = table.Column<Guid>(type: "uuid", nullable: false),
+                    EstoqueItemId = table.Column<Guid>(type: "uuid", nullable: false),
+                    Tipo = table.Column<int>(type: "integer", nullable: false),
+                    Quantidade = table.Column<decimal>(type: "numeric(18,3)", precision: 18, scale: 3, nullable: false),
+                    Motivo = table.Column<string>(type: "character varying(300)", maxLength: 300, nullable: false),
+                    OrdemServicoId = table.Column<Guid>(type: "uuid", nullable: true),
+                    CriadoEm = table.Column<DateTimeOffset>(type: "timestamp with time zone", nullable: false)
                 },
                 constraints: table =>
                 {
@@ -93,18 +117,18 @@ namespace GearUp.Infrastructure.Persistence.Migrations
                 name: "OrdensServico",
                 columns: table => new
                 {
-                    Id = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
-                    ClienteId = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
-                    VeiculoId = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
-                    SolicitacaoInicial = table.Column<string>(type: "nvarchar(1000)", maxLength: 1000, nullable: false),
-                    Diagnostico = table.Column<string>(type: "nvarchar(4000)", maxLength: 4000, nullable: true),
-                    MecanicoId = table.Column<Guid>(type: "uniqueidentifier", nullable: true),
-                    Prioridade = table.Column<int>(type: "int", nullable: false),
-                    Prazo = table.Column<DateTimeOffset>(type: "datetimeoffset", nullable: true),
-                    Status = table.Column<int>(type: "int", nullable: false),
-                    CriadaEm = table.Column<DateTimeOffset>(type: "datetimeoffset", nullable: false),
-                    IniciadaEm = table.Column<DateTimeOffset>(type: "datetimeoffset", nullable: true),
-                    FinalizadaEm = table.Column<DateTimeOffset>(type: "datetimeoffset", nullable: true)
+                    Id = table.Column<Guid>(type: "uuid", nullable: false),
+                    ClienteId = table.Column<Guid>(type: "uuid", nullable: false),
+                    VeiculoId = table.Column<Guid>(type: "uuid", nullable: false),
+                    SolicitacaoInicial = table.Column<string>(type: "character varying(1000)", maxLength: 1000, nullable: false),
+                    Diagnostico = table.Column<string>(type: "character varying(4000)", maxLength: 4000, nullable: true),
+                    MecanicoId = table.Column<Guid>(type: "uuid", nullable: true),
+                    Prioridade = table.Column<int>(type: "integer", nullable: false),
+                    Prazo = table.Column<DateTimeOffset>(type: "timestamp with time zone", nullable: true),
+                    Status = table.Column<int>(type: "integer", nullable: false),
+                    CriadaEm = table.Column<DateTimeOffset>(type: "timestamp with time zone", nullable: false),
+                    IniciadaEm = table.Column<DateTimeOffset>(type: "timestamp with time zone", nullable: true),
+                    FinalizadaEm = table.Column<DateTimeOffset>(type: "timestamp with time zone", nullable: true)
                 },
                 constraints: table =>
                 {
@@ -127,11 +151,11 @@ namespace GearUp.Infrastructure.Persistence.Migrations
                 name: "HistoricoOrdensServico",
                 columns: table => new
                 {
-                    Id = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
-                    OrdemServicoId = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
-                    Tipo = table.Column<string>(type: "nvarchar(80)", maxLength: 80, nullable: false),
-                    Descricao = table.Column<string>(type: "nvarchar(500)", maxLength: 500, nullable: false),
-                    CriadoEm = table.Column<DateTimeOffset>(type: "datetimeoffset", nullable: false)
+                    Id = table.Column<Guid>(type: "uuid", nullable: false),
+                    OrdemServicoId = table.Column<Guid>(type: "uuid", nullable: false),
+                    Tipo = table.Column<string>(type: "character varying(80)", maxLength: 80, nullable: false),
+                    Descricao = table.Column<string>(type: "character varying(500)", maxLength: 500, nullable: false),
+                    CriadoEm = table.Column<DateTimeOffset>(type: "timestamp with time zone", nullable: false)
                 },
                 constraints: table =>
                 {
@@ -148,13 +172,13 @@ namespace GearUp.Infrastructure.Persistence.Migrations
                 name: "Notificacoes",
                 columns: table => new
                 {
-                    Id = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
-                    OrdemServicoId = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
-                    ClienteId = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
-                    Destinatario = table.Column<int>(type: "int", nullable: false),
-                    Mensagem = table.Column<string>(type: "nvarchar(500)", maxLength: 500, nullable: false),
-                    CriadaEm = table.Column<DateTimeOffset>(type: "datetimeoffset", nullable: false),
-                    LidaEm = table.Column<DateTimeOffset>(type: "datetimeoffset", nullable: true)
+                    Id = table.Column<Guid>(type: "uuid", nullable: false),
+                    OrdemServicoId = table.Column<Guid>(type: "uuid", nullable: false),
+                    ClienteId = table.Column<Guid>(type: "uuid", nullable: false),
+                    Destinatario = table.Column<int>(type: "integer", nullable: false),
+                    Mensagem = table.Column<string>(type: "character varying(500)", maxLength: 500, nullable: false),
+                    CriadaEm = table.Column<DateTimeOffset>(type: "timestamp with time zone", nullable: false),
+                    LidaEm = table.Column<DateTimeOffset>(type: "timestamp with time zone", nullable: true)
                 },
                 constraints: table =>
                 {
@@ -171,12 +195,12 @@ namespace GearUp.Infrastructure.Persistence.Migrations
                 name: "Orcamentos",
                 columns: table => new
                 {
-                    Id = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
-                    OrdemServicoId = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
-                    Versao = table.Column<int>(type: "int", nullable: false),
-                    Status = table.Column<int>(type: "int", nullable: false),
-                    CriadoEm = table.Column<DateTimeOffset>(type: "datetimeoffset", nullable: false),
-                    DecididoEm = table.Column<DateTimeOffset>(type: "datetimeoffset", nullable: true)
+                    Id = table.Column<Guid>(type: "uuid", nullable: false),
+                    OrdemServicoId = table.Column<Guid>(type: "uuid", nullable: false),
+                    Versao = table.Column<int>(type: "integer", nullable: false),
+                    Status = table.Column<int>(type: "integer", nullable: false),
+                    CriadoEm = table.Column<DateTimeOffset>(type: "timestamp with time zone", nullable: false),
+                    DecididoEm = table.Column<DateTimeOffset>(type: "timestamp with time zone", nullable: true)
                 },
                 constraints: table =>
                 {
@@ -193,13 +217,13 @@ namespace GearUp.Infrastructure.Persistence.Migrations
                 name: "ItensOrcamento",
                 columns: table => new
                 {
-                    Id = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
-                    OrcamentoId = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
-                    Tipo = table.Column<int>(type: "int", nullable: false),
-                    Descricao = table.Column<string>(type: "nvarchar(300)", maxLength: 300, nullable: false),
-                    Quantidade = table.Column<decimal>(type: "decimal(18,3)", precision: 18, scale: 3, nullable: false),
-                    ValorUnitario = table.Column<decimal>(type: "decimal(18,2)", precision: 18, scale: 2, nullable: false),
-                    EstoqueItemId = table.Column<Guid>(type: "uniqueidentifier", nullable: true)
+                    Id = table.Column<Guid>(type: "uuid", nullable: false),
+                    OrcamentoId = table.Column<Guid>(type: "uuid", nullable: false),
+                    Tipo = table.Column<int>(type: "integer", nullable: false),
+                    Descricao = table.Column<string>(type: "character varying(300)", maxLength: 300, nullable: false),
+                    Quantidade = table.Column<decimal>(type: "numeric(18,3)", precision: 18, scale: 3, nullable: false),
+                    ValorUnitario = table.Column<decimal>(type: "numeric(18,2)", precision: 18, scale: 2, nullable: false),
+                    EstoqueItemId = table.Column<Guid>(type: "uuid", nullable: true)
                 },
                 constraints: table =>
                 {
@@ -211,6 +235,12 @@ namespace GearUp.Infrastructure.Persistence.Migrations
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Cascade);
                 });
+
+            migrationBuilder.CreateIndex(
+                name: "UX_Clientes_Documento",
+                table: "Clientes",
+                column: "Documento",
+                unique: true);
 
             migrationBuilder.CreateIndex(
                 name: "IX_HistoricoOrdensServico_CriadoEm",
@@ -269,6 +299,11 @@ namespace GearUp.Infrastructure.Persistence.Migrations
                 column: "VeiculoId");
 
             migrationBuilder.CreateIndex(
+                name: "IX_Usuarios_ClienteId",
+                table: "Usuarios",
+                column: "ClienteId");
+
+            migrationBuilder.CreateIndex(
                 name: "IX_Usuarios_NomeUsuario",
                 table: "Usuarios",
                 column: "NomeUsuario",
@@ -315,6 +350,9 @@ namespace GearUp.Infrastructure.Persistence.Migrations
 
             migrationBuilder.DropTable(
                 name: "Veiculos");
+
+            migrationBuilder.DropTable(
+                name: "Clientes");
         }
     }
 }

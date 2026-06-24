@@ -21,7 +21,14 @@ public sealed class DatabaseInitializer(GearUpDbContext db, IPasswordHasher hash
             if (!bool.TryParse(configuration["Seed:DevelopmentUsers"], out var seedHabilitado) || !seedHabilitado) return;
             if (await db.Usuarios.AnyAsync(ct)) return;
 
-            const string senhaDesenvolvimento = "GearUp@123";
+            var senhaDesenvolvimento = configuration["Seed:DevelopmentPassword"];
+            if (string.IsNullOrWhiteSpace(senhaDesenvolvimento))
+            {
+                logger.LogWarning(
+                    "Seed de usuários de desenvolvimento ignorado: configure Seed:DevelopmentPassword (ex.: SEED_DEV_PASSWORD no .env).");
+                return;
+            }
+
             db.Usuarios.AddRange(
                 Usuario.Criar("atendente", hasher.CriarHash(senhaDesenvolvimento), PerfilUsuario.Atendente),
                 Usuario.Criar("auxiliar", hasher.CriarHash(senhaDesenvolvimento), PerfilUsuario.Auxiliar),

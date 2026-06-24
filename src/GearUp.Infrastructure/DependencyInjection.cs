@@ -25,7 +25,7 @@ public static class DependencyInjection
                 "A connection string 'GearUpDatabase' não foi configurada.");
 
         services.AddDbContext<GearUpDbContext>(options =>
-            options.UseSqlServer(connectionString, sqlOptions => sqlOptions.EnableRetryOnFailure()));
+            options.UseNpgsql(connectionString, npgsqlOptions => npgsqlOptions.EnableRetryOnFailure()));
 
         services.AddScoped<IClienteRepository, ClienteRepository>();
         services.AddScoped<IUsuarioRepository, UsuarioRepository>();

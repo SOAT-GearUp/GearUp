@@ -1,6 +1,6 @@
 # GearUp
 
-API REST para gestão de oficina mecânica, construída em .NET 10, SQL Server,
+API REST para gestão de oficina mecânica, construída em .NET 10, PostgreSQL,
 DDD e Clean Architecture.
 
 ## Executar com Docker
@@ -14,20 +14,22 @@ A API estará em `http://localhost:8080` e o Swagger em
 `http://localhost:8080/swagger`. O banco e as migrations são inicializados
 automaticamente.
 
-Usuários iniciais de desenvolvimento:
+Usuários iniciais de desenvolvimento (criados no primeiro boot se a tabela
+estiver vazia; senha em `SEED_DEV_PASSWORD` no `.env`):
 
-| Usuário | Senha | Perfil |
-|---|---|---|
-| `atendente` | `GearUp@123` | Atendente |
-| `auxiliar` | `GearUp@123` | Auxiliar |
-| `mecanico` | `GearUp@123` | Mecânico |
+| Usuário | Perfil |
+|---|---|
+| `atendente` | Atendente |
+| `auxiliar` | Auxiliar |
+| `mecanico` | Mecânico |
 
 Essas credenciais são exclusivas para desenvolvimento e devem ser alteradas
 antes de qualquer publicação.
 
 ## Executar localmente
 
-Configure `ConnectionStrings__GearUpDatabase` e `Jwt__Key`, depois execute:
+Configure `ConnectionStrings__GearUpDatabase`, `Jwt__Key` e
+`Seed__DevelopmentPassword`, depois execute:
 
 ```powershell
 dotnet tool restore
@@ -45,7 +47,7 @@ dotnet test GearUp.slnx --collect:"XPlat Code Coverage"
 
 - `GearUp.Domain`: agregados, entidades, value objects e invariantes.
 - `GearUp.Application`: use cases e contratos de persistência/serviços.
-- `GearUp.Infrastructure`: EF Core, SQL Server, JWT e implementações.
+- `GearUp.Infrastructure`: EF Core, PostgreSQL, JWT e implementações.
 - `GearUp.Api`: autenticação, autorização e contratos HTTP.
 
 O fluxo de dependências é `Api -> Application/Infrastructure`,

@@ -48,11 +48,13 @@ Os módulos de domínio serão separados por contexto de negócio, reduzindo aco
 - Deploy único para todos os módulos.
 - Crescimento excessivo do monólito pode gerar aumento de acoplamento caso não seja controlado.
 
-## ADR-002 - Utilização do SQL Server como Banco de Dados
+## ADR-002 - Utilização do PostgreSQL como Banco de Dados
 
-**Título:** Utilização do SQL Server como banco de dados principal
+**Título:** Utilização do PostgreSQL como banco de dados principal
 
 **Data:** 11/06/2026
+
+**Revisão:** 23/06/2026 — substituição do SQL Server pelo PostgreSQL na implementação.
 
 **Status:** Aceita
 
@@ -71,26 +73,32 @@ Esses dados possuem forte relacionamento entre si e exigem consistência transac
 
 O volume inicial de dados é considerado baixo a moderado e não há requisitos que indiquem necessidade de alta escalabilidade horizontal de leitura.
 
+Para o MVP, busca-se um banco relacional maduro, compatível com containers Docker, sem custo de licenciamento e com suporte estável ao Entity Framework Core no ecossistema .NET.
+
 ## Decisão
 
-Será utilizado SQL Server como banco de dados principal da aplicação.
+Será utilizado **PostgreSQL 16** como banco de dados principal da aplicação.
 
-A persistência será implementada através do Entity Framework Core.
+A persistência será implementada através do **Entity Framework Core**, com o provider **Npgsql.EntityFrameworkCore.PostgreSQL**.
+
+As migrations serão versionadas no projeto `GearUp.Infrastructure` e aplicadas automaticamente na inicialização da API.
 
 ## Consequências
 
 ### Positivas
 
-- Forte consistência transacional.
+- Forte consistência transacional (ACID).
 - Excelente suporte a relacionamentos complexos.
-- Facilidade para consultas analíticas futuras.
-- Integração madura com .NET.
-- Ferramentas robustas de administração e monitoramento.
+- Integração madura com .NET via Npgsql e EF Core.
+- Open source, sem custo de licenciamento.
+- Imagem oficial leve e adequada para execução local com Docker.
+- Amplo suporte em provedores de cloud (RDS, Azure Database for PostgreSQL, etc.).
 
 ### Negativas
 
 - Escalabilidade horizontal mais limitada que algumas soluções NoSQL.
-- Maior custo de licenciamento em cenários corporativos.
+- Equipes acostumadas exclusivamente ao ecossistema Microsoft SQL Server podem exigir adaptação inicial.
+- Algumas ferramentas corporativas de BI/administração podem ser menos familiares que as do SQL Server.
 
 ## **ADR-003 - Autenticação e Autorização utilizando JWT**
 
@@ -296,7 +304,7 @@ A aplicação será distribuída através de containers Docker.
 Serão fornecidos:
 
 - Dockerfile da API.
-- docker-compose para API e SQL Server.
+- docker-compose para API e PostgreSQL (`postgres:16`), com healthcheck e volume persistente.
 
 ## Consequências
 

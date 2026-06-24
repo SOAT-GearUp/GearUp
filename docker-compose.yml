@@ -1,15 +1,16 @@
 services:
-  sqlserver:
-    image: mcr.microsoft.com/mssql/server:2022-latest
+  postgres:
+    image: postgres:16
     environment:
-      ACCEPT_EULA: "Y"
-      MSSQL_SA_PASSWORD: "${MSSQL_SA_PASSWORD:-GearUp_Strong!Pass123}"
+      POSTGRES_DB: GearUp
+      POSTGRES_USER: gearup
+      POSTGRES_PASSWORD: "${POSTGRES_PASSWORD:-GearUp_Strong!Pass123}"
     ports:
-      - "14333:1433"
+      - "5433:5432"
     volumes:
-      - gearup-sql-data:/var/opt/mssql
+      - gearup-postgres-data:/var/lib/postgresql/data
     healthcheck:
-      test: ["CMD-SHELL", "/opt/mssql-tools18/bin/sqlcmd -S localhost -U sa -P '${MSSQL_SA_PASSWORD:-GearUp_Strong!Pass123}' -C -Q 'SELECT 1' || exit 1"]
+      test: ["CMD-SHELL", "pg_isready -U gearup -d GearUp"]
       interval: 10s
       timeout: 5s
       retries: 12
@@ -21,13 +22,14 @@ services:
     environment:
       ASPNETCORE_ENVIRONMENT: Development
       ASPNETCORE_HTTP_PORTS: 8080
-      ConnectionStrings__GearUpDatabase: "Server=sqlserver,1433;Database=GearUp;User Id=sa;Password=${MSSQL_SA_PASSWORD:-GearUp_Strong!Pass123};TrustServerCertificate=True"
+      ConnectionStrings__GearUpDatabase: "Host=postgres;Port=5432;Database=GearUp;Username=gearup;Password=${POSTGRES_PASSWORD:-GearUp_Strong!Pass123}"
       Jwt__Key: "${JWT_KEY:-LOCAL-DEVELOPMENT-KEY-CHANGE-IN-PRODUCTION-2026}"
+      Seed__DevelopmentPassword: "${SEED_DEV_PASSWORD}"
     ports:
       - "8080:8080"
     depends_on:
-      sqlserver:
+      postgres:
         condition: service_healthy
 
 volumes:
-  gearup-sql-data:
+  gearup-postgres-data:
