@@ -8,7 +8,7 @@ namespace GearUp.Application.Estoque.Cadastrar
     {
         public async Task<CadastrarEstoqueItemResult> CadastrarAsync(CadastrarEstoqueItemCommand command, CancellationToken ct)
         {
-            var item = Estoque.Criar(command.Nome, command.Tipo, command.Preco, command.QuantidadeInicial);
+            var item = GearUp.Domain.Entities.Estoque.Criar(command.Nome, command.Tipo, command.Preco, command.QuantidadeInicial);
 
             await estoqueRepository.AdicionarAsync(item, ct);
 
