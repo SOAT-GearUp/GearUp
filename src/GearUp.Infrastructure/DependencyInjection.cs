@@ -1,9 +1,8 @@
 using GearUp.Application.Autenticacao.Common;
-using GearUp.Application.Clientes.Common.Interfaces;
+using GearUp.Application.Atendimento.Clientes.Common.Interfaces;
 using GearUp.Application.Common.Interfaces;
 using GearUp.Application.Estoque.Common.Interfaces;
 using GearUp.Application.Notificacoes.Common.Interfaces;
-using GearUp.Application.OrdensServico.Common.Interfaces;
 using GearUp.Infrastructure.DomainEvents;
 using GearUp.Infrastructure.Persistence;
 using GearUp.Infrastructure.Persistence.Repositories;
@@ -11,6 +10,10 @@ using GearUp.Infrastructure.Security;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+
+using IAtendimentoRepo = GearUp.Application.Atendimento.Comum.Interfaces.IOrdemServicoRepository;
+using IDiagnosticoRepo = GearUp.Application.DiagnosticoOrcamento.Comum.Interfaces.IOrdemServicoRepository;
+using IExecucaoRepo = GearUp.Application.Execucao.Comum.Interfaces.IOrdemServicoRepository;
 
 namespace GearUp.Infrastructure;
 
@@ -30,7 +33,9 @@ public static class DependencyInjection
         services.AddScoped<IClienteRepository, ClienteRepository>();
         services.AddScoped<IUsuarioRepository, UsuarioRepository>();
         services.AddScoped<IEstoqueRepository, EstoqueRepository>();
-        services.AddScoped<IOrdemServicoRepository, OrdemServicoRepository>();
+        services.AddScoped<IAtendimentoRepo, OrdemServicoRepository>();
+        services.AddScoped<IDiagnosticoRepo, OrdemServicoRepository>();
+        services.AddScoped<IExecucaoRepo, OrdemServicoRepository>();
         services.AddScoped<INotificacaoRepository, NotificacaoRepository>();
         services.AddScoped<IDomainEventDispatcher, DomainEventDispatcher>();
         services.AddSingleton<IPasswordHasher, PasswordHasher>();

@@ -2,30 +2,23 @@ using GearUp.Api.Contracts.Clientes.Atualizar;
 using GearUp.Api.Contracts.Clientes.Cadastrar;
 using GearUp.Api.Contracts.Clientes.Veiculos.Atualizar;
 using GearUp.Api.Contracts.Clientes.Veiculos.Cadastrar;
-using GearUp.Application.Clientes;
-using GearUp.Application.Clientes.Atualizar;
-using GearUp.Application.Clientes.Cadastrar;
-using GearUp.Application.Clientes.Consultar;
-using GearUp.Application.Clientes.Excluir;
-using GearUp.Application.Clientes.Listar;
-using GearUp.Application.Clientes.Veiculos.Atualizar;
-using GearUp.Application.Clientes.Veiculos.Cadastrar;
-using GearUp.Domain.Entities;
+using GearUp.Application.Atendimento.Clientes.Atualizar;
+using GearUp.Application.Atendimento.Clientes.Cadastrar;
+using GearUp.Application.Atendimento.Clientes.Consultar;
+using GearUp.Application.Atendimento.Clientes.Excluir;
+using GearUp.Application.Atendimento.Clientes.Listar;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using static Microsoft.EntityFrameworkCore.DbLoggerCategory.Database;
 
 namespace GearUp.Api.Controllers;
 
-[ApiController]
-[Route("api/clientes")]
+[ApiController, Route("api/clientes")]
 public sealed class ClientesController(
     ICadastrarClienteUseCase cadastrarClienteUseCase,
     IConsultarClienteUseCase consultarClienteUseCase,
     IListarClienteUseCase listarClienteUseCase,
     IAtualizarClienteUseCase atualizarClienteUseCase,
-    IExcluirClienteUseCase excluirClienteUseCase)
-    : ControllerBase
+    IExcluirClienteUseCase excluirClienteUseCase) : ControllerBase
 {
     [Authorize(Roles = "Atendente"), HttpGet]
     [ProducesResponseType<List<ListarClienteResult>>(StatusCodes.Status200OK)]
@@ -48,17 +41,10 @@ public sealed class ClientesController(
     [ProducesResponseType<CadastrarClienteResult>(StatusCodes.Status201Created)]
     [ProducesResponseType<ProblemDetails>(StatusCodes.Status400BadRequest)]
     [ProducesResponseType<ProblemDetails>(StatusCodes.Status409Conflict)]
-    public async Task<IActionResult> Cadastrar(CadastrarClienteRequest request, CancellationToken cancellationToken)
+    public async Task<IActionResult> Cadastrar(CadastrarClienteRequest request, CancellationToken ct)
     {
-        var command = new CadastrarClienteCommand(
-            request.Nome,
-            request.Documento,
-            request.Email,
-            request.Telefone);
-
         var result = await cadastrarClienteUseCase.CadastrarAsync(
-            command,
-            cancellationToken);
+            new CadastrarClienteCommand(request.Nome, request.Documento, request.Email, request.Telefone), ct);
 
         return Created($"/api/clientes/{result.Id}", result);
     }
@@ -69,17 +55,11 @@ public sealed class ClientesController(
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<IActionResult> Atualizar(Guid id, AtualizarClienteRequest request, CancellationToken ct)
     {
-        var command = new AtualizarClienteCommand(
-            id,
-            request.Nome,
-            request.Email,
-            request.Telefone);
-
-        await atualizarClienteUseCase.AtualizarAsync(command, ct);
+        await atualizarClienteUseCase.AtualizarAsync(
+            new AtualizarClienteCommand(id, request.Nome, request.Email, request.Telefone), ct);
 
         return NoContent();
     }
-    
 
     [Authorize(Roles = "Atendente"), HttpDelete("{id:guid}")]
     [ProducesResponseType(StatusCodes.Status204NoContent)]

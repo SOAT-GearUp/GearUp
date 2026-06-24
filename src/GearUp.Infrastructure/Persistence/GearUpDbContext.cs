@@ -1,5 +1,5 @@
 using GearUp.Application.Common.Interfaces;
-using GearUp.Domain.Common.DomainEvents;
+using GearUp.Domain.Common;
 using GearUp.Domain.Entities;
 using GearUp.Infrastructure.DomainEvents;
 using Microsoft.EntityFrameworkCore;

@@ -1,6 +1,6 @@
 using GearUp.Domain.Common.Exceptions;
 using GearUp.Domain.DomainEvents.Notificacoes;
-using GearUp.Domain.DomainEvents.OrdensServico;
+using GearUp.Domain.DomainEvents.DiagnosticoOrcamento;
 using GearUp.Domain.Entities;
 using GearUp.Domain.Enums;
 using GearUp.Domain.ValueObjects.Orcamentos;

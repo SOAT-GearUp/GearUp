@@ -1,6 +1,6 @@
-using GearUp.Application.Clientes.Cadastrar;
-using GearUp.Application.Clientes.Common.Interfaces;
-using GearUp.Application.Clientes.Exceptions;
+using GearUp.Application.Atendimento.Clientes.Cadastrar;
+using GearUp.Application.Atendimento.Clientes.Common.Interfaces;
+using GearUp.Application.Atendimento.Clientes.Exceptions;
 using GearUp.Application.Common.Interfaces;
 using GearUp.Domain.Entities;
 using GearUp.Domain.ValueObjects;

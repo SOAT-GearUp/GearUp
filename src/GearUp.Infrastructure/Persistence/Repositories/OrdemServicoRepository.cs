@@ -1,11 +1,14 @@
-using GearUp.Application.OrdensServico.Common.Interfaces;
 using GearUp.Domain.Entities;
 using GearUp.Domain.Enums;
 using Microsoft.EntityFrameworkCore;
 
+using IAtendimentoRepo = GearUp.Application.Atendimento.Comum.Interfaces.IOrdemServicoRepository;
+using IDiagnosticoRepo = GearUp.Application.DiagnosticoOrcamento.Comum.Interfaces.IOrdemServicoRepository;
+using IExecucaoRepo = GearUp.Application.Execucao.Comum.Interfaces.IOrdemServicoRepository;
+
 namespace GearUp.Infrastructure.Persistence.Repositories;
 
-internal sealed class OrdemServicoRepository(GearUpDbContext db) : IOrdemServicoRepository
+internal sealed class OrdemServicoRepository(GearUpDbContext db) : IAtendimentoRepo, IDiagnosticoRepo, IExecucaoRepo
 {
     public async Task AdicionarAsync(OrdemServico ordem, CancellationToken ct)
     {
@@ -30,10 +33,10 @@ internal sealed class OrdemServicoRepository(GearUpDbContext db) : IOrdemServico
             .Include(x => x.Historico)
             .AsQueryable();
 
-        if (andamento) 
+        if (andamento)
             query = query.Where(x => x.Status != StatusOrdemServico.Entregue && x.Status != StatusOrdemServico.Cancelada);
 
-        if (clienteId.HasValue) 
+        if (clienteId.HasValue)
             query = query.Where(x => x.ClienteId == clienteId.Value);
 
         return await query
@@ -42,5 +45,4 @@ internal sealed class OrdemServicoRepository(GearUpDbContext db) : IOrdemServico
             .ThenBy(x => x.CriadaEm)
             .ToListAsync(ct);
     }
-
 }

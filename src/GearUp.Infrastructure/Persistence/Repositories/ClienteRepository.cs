@@ -1,12 +1,11 @@
-using GearUp.Application.Clientes.Common.Interfaces;
+using GearUp.Application.Atendimento.Clientes.Common.Interfaces;
 using GearUp.Domain.Entities;
 using GearUp.Domain.ValueObjects;
 using Microsoft.EntityFrameworkCore;
 
 namespace GearUp.Infrastructure.Persistence.Repositories;
 
-internal sealed class ClienteRepository(GearUpDbContext dbContext)
-    : IClienteRepository
+internal sealed class ClienteRepository(GearUpDbContext dbContext) : IClienteRepository
 {
     public Task<Cliente?> ObterAsync(Guid id, CancellationToken cancellationToken)
     {
@@ -30,7 +29,7 @@ internal sealed class ClienteRepository(GearUpDbContext dbContext)
     public Task<bool> PlacaExisteAsync(string placa, Guid? ignorarId, CancellationToken cancellationToken)
     {
         var normalizada = placa.Replace("-", string.Empty).Trim().ToUpperInvariant();
-        
+
         return dbContext.Veiculos
             .IgnoreQueryFilters()
             .AnyAsync(v => v.Placa == normalizada && (!ignorarId.HasValue || v.Id != ignorarId.Value), cancellationToken);
@@ -40,9 +39,7 @@ internal sealed class ClienteRepository(GearUpDbContext dbContext)
     {
         return dbContext.Clientes
             .IgnoreQueryFilters()
-            .AnyAsync(
-                cliente => cliente.Documento == documento,
-                cancellationToken);
+            .AnyAsync(cliente => cliente.Documento == documento, cancellationToken);
     }
 
     public async Task AdicionarAsync(Cliente cliente, CancellationToken cancellationToken)
