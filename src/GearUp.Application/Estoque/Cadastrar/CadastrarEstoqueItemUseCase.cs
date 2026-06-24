@@ -1,6 +1,6 @@
 using GearUp.Application.Common.Interfaces;
 using GearUp.Application.Estoque.Common.Interfaces;
-using GearUp.Domain.Entities;
+using EstoqueAggregate = GearUp.Domain.Entities.Estoque;
 
 namespace GearUp.Application.Estoque.Cadastrar
 {
@@ -8,7 +8,7 @@ namespace GearUp.Application.Estoque.Cadastrar
     {
         public async Task<CadastrarEstoqueItemResult> CadastrarAsync(CadastrarEstoqueItemCommand command, CancellationToken ct)
         {
-            var item = GearUp.Domain.Entities.Estoque.Criar(command.Nome, command.Tipo, command.Preco, command.QuantidadeInicial);
+            var item = EstoqueAggregate.Criar(command.Nome, command.Tipo, command.Preco, command.QuantidadeInicial);
 
             await estoqueRepository.AdicionarAsync(item, ct);
 
