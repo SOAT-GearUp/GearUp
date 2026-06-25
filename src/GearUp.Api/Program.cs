@@ -63,8 +63,13 @@ var app = builder.Build();
 
 if (app.Environment.IsDevelopment())
 {
+    app.UseStaticFiles();
     app.UseSwagger();
-    app.UseSwaggerUI();
+    app.UseSwaggerUI(options =>
+    {
+        options.EnablePersistAuthorization();
+        options.InjectJavascript("/swagger/swagger-auth.js");
+    });
 }
 
 app.UseExceptionHandler();

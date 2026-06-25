@@ -10,6 +10,10 @@ Copy-Item .env.example .env
 docker compose up --build
 ```
 
+As imagens .NET do Dockerfile vêm do Docker Hub (`bitnami/dotnet-sdk` e
+`bitnami/aspnet-core`), para o build funcionar sem depender do registry da
+Microsoft (`mcr.microsoft.com`).
+
 A API estará em `http://localhost:8080` e o Swagger em
 `http://localhost:8080/swagger`. O banco e as migrations são inicializados
 automaticamente.
