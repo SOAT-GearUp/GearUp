@@ -3,6 +3,30 @@
 API REST para gestão de oficina mecânica, construída em .NET 10, PostgreSQL,
 DDD e Clean Architecture.
 
+## Documentação (DDD)
+
+Artefatos de descoberta, modelagem e decisões arquiteturais desta entrega.
+
+### Descoberta e modelagem
+
+| Artefato | Como acessar |
+|---|---|
+| **Event Storming** | [Quadro no Miro](https://miro.com/app/board/uXjVHaE40W8=/?share_link_id=725212077212) |
+| **Storytelling** | Abra [egon.io](https://egon.io/app/), clique em **Import** e selecione o arquivo [`docs/Storytelling/GearUp - Storytelling da Oficina Mecânica.egn`](docs/Storytelling/GearUp%20-%20Storytelling%20da%20Oficina%20Mec%C3%A2nica.egn) |
+
+O arquivo `.egn` é o mapa narrativo do fluxo da oficina (storytelling). O
+[egon.io](https://egon.io/app/) é a ferramenta online para visualizá-lo — não
+abre direto no navegador; é preciso importar o arquivo no site.
+
+### Artefatos escritos
+
+| Documento | Descrição |
+|---|---|
+| [ADRs](docs/ADR/Documentação%20ADR.md) | Registro de decisões arquiteturais (monólito modular, DDD, Clean Architecture, etc.) |
+| [Linguagem Ubíqua](docs/Linguagem%20Ubíqua/Documetação%20Linguagem%20Ubíqua.md) | Glossário, bounded contexts e termos do domínio |
+| [Requisitos](docs/Requisitos/Documentação%20de%20Requisitos.md) | Personas, problema, requisitos funcionais e não funcionais |
+| [Matriz de Rastreabilidade](docs/Requisitos/Matriz%20de%20Rastreabilidade.md) | Rastreio requisito → implementação no código |
+
 ## Executar com Docker
 
 ```powershell
