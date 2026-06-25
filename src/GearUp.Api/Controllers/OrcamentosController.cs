@@ -21,7 +21,7 @@ public class OrcamentosController(
     IAtualizarItemOrcamentoUseCase atualizarItemOrcamentoUseCase,
     IRemoverItemOrcamentoUseCase removerItemOrcamentoUseCase) : ControllerBase
 {
-    [HttpPost, Authorize(Roles = "Atendente,Mecanico")]
+    [HttpPost, Authorize(Roles = "Admin,Atendente,Mecanico")]
     [ProducesResponseType(StatusCodes.Status201Created)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
@@ -37,7 +37,7 @@ public class OrcamentosController(
         return Created($"/api/ordens-servico/{ordemServicoId}/orcamentos/{orcamento.Id}", orcamento);
     }
 
-    [HttpPost("{orcamentoId:guid}/decisao"), Authorize(Roles = "Cliente,Atendente")]
+    [HttpPost("{orcamentoId:guid}/decisao"), Authorize(Roles = "Admin,Cliente,Atendente")]
     [ProducesResponseType(StatusCodes.Status204NoContent)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     [ProducesResponseType(StatusCodes.Status422UnprocessableEntity)]
@@ -53,7 +53,7 @@ public class OrcamentosController(
         return NoContent();
     }
 
-    [HttpPost("{orcamentoId:guid}/itens"), Authorize(Roles = "Atendente,Mecanico")]
+    [HttpPost("{orcamentoId:guid}/itens"), Authorize(Roles = "Admin,Atendente,Mecanico")]
     [ProducesResponseType(StatusCodes.Status204NoContent)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
@@ -65,7 +65,7 @@ public class OrcamentosController(
         return NoContent();
     }
 
-    [HttpPut("{orcamentoId:guid}/itens/{itemId:guid}"), Authorize(Roles = "Atendente,Mecanico")]
+    [HttpPut("{orcamentoId:guid}/itens/{itemId:guid}"), Authorize(Roles = "Admin,Atendente,Mecanico")]
     [ProducesResponseType(StatusCodes.Status204NoContent)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
@@ -77,7 +77,7 @@ public class OrcamentosController(
         return NoContent();
     }
 
-    [HttpDelete("{orcamentoId:guid}/itens/{itemId:guid}"), Authorize(Roles = "Atendente,Mecanico")]
+    [HttpDelete("{orcamentoId:guid}/itens/{itemId:guid}"), Authorize(Roles = "Admin,Atendente,Mecanico")]
     public async Task<IActionResult> RemoverItem(Guid ordemServicoId, Guid orcamentoId, Guid itemId, CancellationToken ct)
     {
         await removerItemOrcamentoUseCase.RemoverAsync(new RemoverItemOrcamentoCommand(ordemServicoId, orcamentoId, itemId), ct);

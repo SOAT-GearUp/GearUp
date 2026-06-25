@@ -23,7 +23,7 @@ public sealed class OrdensServicoController(
     IRegistrarDiagnosticoUseCase registrarDiagnosticoUseCase,
     IAlterarStatusUseCase alterarStatusUseCase) : ControllerBase
 {
-    [HttpPost, Authorize(Roles = "Atendente")]
+    [HttpPost, Authorize(Roles = "Admin,Atendente")]
     [ProducesResponseType(StatusCodes.Status201Created)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
@@ -69,7 +69,7 @@ public sealed class OrdensServicoController(
         return Ok(os);
     }
 
-    [HttpPost("{ordemServicoId:guid}/diagnostico/iniciar"), Authorize(Roles = "Mecanico")]
+    [HttpPost("{ordemServicoId:guid}/diagnostico/iniciar"), Authorize(Roles = "Admin,Mecanico")]
     [ProducesResponseType(StatusCodes.Status204NoContent)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     [ProducesResponseType(StatusCodes.Status422UnprocessableEntity)]
@@ -84,7 +84,7 @@ public sealed class OrdensServicoController(
         return NoContent();
     }
 
-    [HttpPost("{ordemServicoId:guid}/diagnostico"), Authorize(Roles = "Mecanico")]
+    [HttpPost("{ordemServicoId:guid}/diagnostico"), Authorize(Roles = "Admin,Mecanico")]
     [ProducesResponseType(StatusCodes.Status204NoContent)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
@@ -97,7 +97,7 @@ public sealed class OrdensServicoController(
         return NoContent();
     }
 
-    [HttpPatch("{ordemServicoId:guid}/status"), Authorize(Roles = "Atendente,Auxiliar,Mecanico")]
+    [HttpPatch("{ordemServicoId:guid}/status"), Authorize(Roles = "Admin,Atendente,Auxiliar,Mecanico")]
     [ProducesResponseType(StatusCodes.Status204NoContent)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]

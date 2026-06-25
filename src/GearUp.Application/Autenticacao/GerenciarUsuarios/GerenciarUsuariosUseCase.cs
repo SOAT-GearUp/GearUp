@@ -1,6 +1,8 @@
 ﻿using GearUp.Application.Autenticacao.Common;
 using GearUp.Application.Atendimento.Clientes.Common.Interfaces;
+using GearUp.Application.Common.Exceptions;
 using GearUp.Application.Common.Interfaces;
+using GearUp.Domain.Enums;
 
 namespace GearUp.Application.Autenticacao.GerenciarUsuarios
 {
@@ -12,6 +14,8 @@ namespace GearUp.Application.Autenticacao.GerenciarUsuarios
     {
         public async Task<CriarUsuarioResult> CriarAsync(CriarUsuarioCommand command, CancellationToken ct)
         {
+            ValidarPermissaoCriacao(command.PerfilSolicitante, command.Perfil);
+
             var normalizado = command.Usuario.Trim().ToLowerInvariant();
 
             if (await usuarios.ExisteAsync(normalizado, ct)) 
@@ -27,6 +31,21 @@ namespace GearUp.Application.Autenticacao.GerenciarUsuarios
             await unitOfWork.SaveChangesAsync(ct); 
 
             return new CriarUsuarioResult(usuario.Id);
+        }
+
+        private static void ValidarPermissaoCriacao(PerfilUsuario perfilSolicitante, PerfilUsuario perfilNovo)
+        {
+            if (perfilSolicitante == PerfilUsuario.Admin)
+                return;
+
+            if (perfilSolicitante == PerfilUsuario.Atendente && perfilNovo == PerfilUsuario.Cliente)
+                return;
+
+            throw new AcessoNegadoException(
+                "PERFIL_NAO_PERMITIDO",
+                perfilSolicitante == PerfilUsuario.Atendente
+                    ? "Atendente pode criar apenas usuários do tipo Cliente."
+                    : "Perfil sem permissão para criar usuários.");
         }
     }
 }

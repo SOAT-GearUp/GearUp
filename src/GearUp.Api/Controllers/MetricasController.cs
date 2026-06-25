@@ -9,7 +9,7 @@ namespace GearUp.Api.Controllers;
 public class MetricasController(
     IObterTempoMedioExecucaoUseCase obterTempoMedioExecucaoUseCase) : ControllerBase
 {
-    [HttpGet("tempo-medio-execucao"), Authorize(Roles = "Atendente")]
+    [HttpGet("tempo-medio-execucao"), Authorize(Roles = "Admin,Atendente")]
     public async Task<IActionResult> TempoMedio(CancellationToken ct)
     {
         var tempo = await obterTempoMedioExecucaoUseCase.ObterTempoMedioExecucaoAsync(ct);

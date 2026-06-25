@@ -20,7 +20,7 @@ public sealed class ClientesController(
     IAtualizarClienteUseCase atualizarClienteUseCase,
     IExcluirClienteUseCase excluirClienteUseCase) : ControllerBase
 {
-    [Authorize(Roles = "Atendente"), HttpGet]
+    [Authorize(Roles = "Admin,Atendente"), HttpGet]
     [ProducesResponseType<List<ListarClienteResult>>(StatusCodes.Status200OK)]
     public async Task<IActionResult> Listar(CancellationToken ct)
     {
@@ -28,7 +28,7 @@ public sealed class ClientesController(
         return Ok(clientes);
     }
 
-    [Authorize(Roles = "Atendente"), HttpGet("{id:guid}")]
+    [Authorize(Roles = "Admin,Atendente"), HttpGet("{id:guid}")]
     [ProducesResponseType<ConsultarClienteResult>(StatusCodes.Status200OK)]
     [ProducesResponseType<ProblemDetails>(StatusCodes.Status404NotFound)]
     public async Task<IActionResult> Obter(Guid id, CancellationToken ct)
@@ -37,7 +37,7 @@ public sealed class ClientesController(
         return Ok(cliente);
     }
 
-    [Authorize(Roles = "Atendente"), HttpPost]
+    [Authorize(Roles = "Admin,Atendente"), HttpPost]
     [ProducesResponseType<CadastrarClienteResult>(StatusCodes.Status201Created)]
     [ProducesResponseType<ProblemDetails>(StatusCodes.Status400BadRequest)]
     [ProducesResponseType<ProblemDetails>(StatusCodes.Status409Conflict)]
@@ -49,7 +49,7 @@ public sealed class ClientesController(
         return Created($"/api/clientes/{result.Id}", result);
     }
 
-    [Authorize(Roles = "Atendente"), HttpPut("{id:guid}")]
+    [Authorize(Roles = "Admin,Atendente"), HttpPut("{id:guid}")]
     [ProducesResponseType(StatusCodes.Status204NoContent)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
@@ -61,7 +61,7 @@ public sealed class ClientesController(
         return NoContent();
     }
 
-    [Authorize(Roles = "Atendente"), HttpDelete("{id:guid}")]
+    [Authorize(Roles = "Admin,Atendente"), HttpDelete("{id:guid}")]
     [ProducesResponseType(StatusCodes.Status204NoContent)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<IActionResult> Excluir(Guid id, CancellationToken ct)

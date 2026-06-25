@@ -18,23 +18,23 @@ public sealed class DatabaseInitializer(GearUpDbContext db, IPasswordHasher hash
         {
             await db.Database.MigrateAsync(ct);
 
-            if (!bool.TryParse(configuration["Seed:DevelopmentUsers"], out var seedHabilitado) || !seedHabilitado) return;
             if (await db.Usuarios.AnyAsync(ct)) return;
 
-            var senhaDesenvolvimento = configuration["Seed:DevelopmentPassword"];
-            if (string.IsNullOrWhiteSpace(senhaDesenvolvimento))
+            var adminUsuario = configuration["Seed:AdminUser"];
+            var adminSenha = configuration["Seed:AdminPassword"];
+            if (string.IsNullOrWhiteSpace(adminUsuario) || string.IsNullOrWhiteSpace(adminSenha))
             {
                 logger.LogWarning(
-                    "Seed de usuários de desenvolvimento ignorado: configure Seed:DevelopmentPassword (ex.: SEED_DEV_PASSWORD no .env).");
+                    "Seed do usuário admin ignorado: configure Seed:AdminUser e Seed:AdminPassword (ex.: SEED_ADMIN_USER e SEED_ADMIN_PASSWORD no .env).");
                 return;
             }
 
-            db.Usuarios.AddRange(
-                Usuario.Criar("atendente", hasher.CriarHash(senhaDesenvolvimento), PerfilUsuario.Atendente),
-                Usuario.Criar("auxiliar", hasher.CriarHash(senhaDesenvolvimento), PerfilUsuario.Auxiliar),
-                Usuario.Criar("mecanico", hasher.CriarHash(senhaDesenvolvimento), PerfilUsuario.Mecanico));
+            db.Usuarios.Add(Usuario.Criar(
+                adminUsuario.Trim(),
+                hasher.CriarHash(adminSenha),
+                PerfilUsuario.Admin));
             await db.SaveChangesAsync(ct);
-            logger.LogWarning("Usuários de desenvolvimento criados. Altere a senha padrão antes de publicar.");
+            logger.LogInformation("Usuário admin inicial criado ({Usuario}).", adminUsuario.Trim().ToLowerInvariant());
         });
     }
 }

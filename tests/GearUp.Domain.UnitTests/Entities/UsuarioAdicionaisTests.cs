@@ -9,6 +9,7 @@ public sealed class UsuarioAdicionaisTests
     [InlineData(PerfilUsuario.Atendente)]
     [InlineData(PerfilUsuario.Auxiliar)]
     [InlineData(PerfilUsuario.Mecanico)]
+    [InlineData(PerfilUsuario.Admin)]
     public void Criar_ComPerfilNaoCliente_NaoExigeClienteId(PerfilUsuario perfil)
     {
         var usuario = Usuario.Criar("funcionario01", "hash123", perfil);

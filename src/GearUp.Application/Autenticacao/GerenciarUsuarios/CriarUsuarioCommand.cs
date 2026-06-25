@@ -7,6 +7,7 @@ namespace GearUp.Application.Autenticacao.GerenciarUsuarios
         string Usuario,
         string Senha,
         PerfilUsuario Perfil,
-        Guid? ClienteId
+        Guid? ClienteId,
+        PerfilUsuario PerfilSolicitante
     );
 }

@@ -40,6 +40,10 @@ internal sealed class GlobalExceptionHandler(ILogger<GlobalExceptionHandler> log
                 StatusCodes.Status409Conflict,
                 conflito.Codigo,
                 conflito.Message),
+            AcessoNegadoException acesso => (
+                StatusCodes.Status403Forbidden,
+                acesso.Codigo,
+                acesso.Message),
             _ => (
                 StatusCodes.Status500InternalServerError,
                 "ERRO_INTERNO",

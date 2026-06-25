@@ -14,26 +14,35 @@ A API estará em `http://localhost:8080` e o Swagger em
 `http://localhost:8080/swagger`. O banco e as migrations são inicializados
 automaticamente.
 
-Usuários iniciais de desenvolvimento (criados no primeiro boot se a tabela
-estiver vazia; senha em `SEED_DEV_PASSWORD` no `.env`):
+No primeiro boot, se a tabela de usuários estiver vazia, o sistema cria um
+único usuário **admin** com as credenciais do `.env`:
 
-| Usuário | Perfil |
+| Variável | Descrição |
 |---|---|
-| `atendente` | Atendente |
-| `auxiliar` | Auxiliar |
-| `mecanico` | Mecânico |
+| `SEED_ADMIN_USER` | Nome de usuário do admin inicial |
+| `SEED_ADMIN_PASSWORD` | Senha do admin inicial |
 
-Essas credenciais são exclusivas para desenvolvimento e devem ser alteradas
-antes de qualquer publicação.
+Exemplo padrão em `.env.example`:
+
+```
+SEED_ADMIN_USER=admin
+SEED_ADMIN_PASSWORD=GearUp@123
+```
+
+Com o admin logado, use `POST /api/usuarios` para cadastrar os demais perfis
+(`Atendente`, `Auxiliar`, `Mecanico`, `Cliente`). O **Atendente** pode criar
+apenas usuários do tipo **Cliente**; o **Admin** pode criar qualquer perfil.
+
+Altere a senha padrão do admin antes de publicar em produção.
 
 ## Executar localmente
 
-Configure `ConnectionStrings__GearUpDatabase`, `Jwt__Key` e
-`Seed__DevelopmentPassword`, depois execute:
+Configure `ConnectionStrings__GearUpDatabase`, `Jwt__Key`, `Seed__AdminUser` e
+`Seed__AdminPassword`, depois execute:
 
 ```powershell
 dotnet tool restore
-dotnet ef database update --project src/GearUp.Infrastructure
+dotnet ef database update --project src/GearUp.Infrastructure --startup-project src/GearUp.Api
 dotnet run --project src/GearUp.Api
 ```
 

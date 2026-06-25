@@ -12,14 +12,14 @@ namespace GearUp.Application.UnitTests.Autenticacao;
 public sealed class GerenciarUsuariosUseCaseTests
 {
     [Fact]
-    public async Task CriarAsync_ComUsuarioFuncionarioNovo_DeveAdicionarESalvar()
+    public async Task CriarAsync_ComAdminCriandoFuncionarioNovo_DeveAdicionarESalvar()
     {
         var usuarios = new UsuarioRepositoryFake(existe: false);
         var clientes = new ClienteRepositoryFake(cliente: null);
         var hasher = new PasswordHasherFake();
         var unitOfWork = new UnitOfWorkFake();
         var useCase = new GerenciarUsuariosUseCase(usuarios, clientes, hasher, unitOfWork);
-        var command = new CriarUsuarioCommand("  Atendente  ", "senha123", PerfilUsuario.Atendente, null);
+        var command = new CriarUsuarioCommand("  Atendente  ", "senha123", PerfilUsuario.Atendente, null, PerfilUsuario.Admin);
 
         var result = await useCase.CriarAsync(command, CancellationToken.None);
 
@@ -32,7 +32,7 @@ public sealed class GerenciarUsuariosUseCaseTests
     }
 
     [Fact]
-    public async Task CriarAsync_ComUsuarioClienteVinculadoValido_DeveAdicionarESalvar()
+    public async Task CriarAsync_ComAtendenteCriandoClienteVinculadoValido_DeveAdicionarESalvar()
     {
         var cliente = Cliente.Criar("Maria da Silva", "52998224725", "maria@email.com", "11999999999");
         var usuarios = new UsuarioRepositoryFake(existe: false);
@@ -40,7 +40,7 @@ public sealed class GerenciarUsuariosUseCaseTests
         var hasher = new PasswordHasherFake();
         var unitOfWork = new UnitOfWorkFake();
         var useCase = new GerenciarUsuariosUseCase(usuarios, clientes, hasher, unitOfWork);
-        var command = new CriarUsuarioCommand("maria", "senha123", PerfilUsuario.Cliente, cliente.Id);
+        var command = new CriarUsuarioCommand("maria", "senha123", PerfilUsuario.Cliente, cliente.Id, PerfilUsuario.Atendente);
 
         var result = await useCase.CriarAsync(command, CancellationToken.None);
 
@@ -52,13 +52,30 @@ public sealed class GerenciarUsuariosUseCaseTests
     }
 
     [Fact]
+    public async Task CriarAsync_ComAtendenteCriandoFuncionario_DeveRejeitar()
+    {
+        var usuarios = new UsuarioRepositoryFake(existe: false);
+        var clientes = new ClienteRepositoryFake(cliente: null);
+        var unitOfWork = new UnitOfWorkFake();
+        var useCase = new GerenciarUsuariosUseCase(usuarios, clientes, new PasswordHasherFake(), unitOfWork);
+        var command = new CriarUsuarioCommand("mecanico", "senha123", PerfilUsuario.Mecanico, null, PerfilUsuario.Atendente);
+
+        var ex = await Assert.ThrowsAsync<AcessoNegadoException>(
+            () => useCase.CriarAsync(command, CancellationToken.None));
+
+        Assert.Equal("PERFIL_NAO_PERMITIDO", ex.Codigo);
+        Assert.Null(usuarios.UsuarioAdicionado);
+        Assert.Equal(0, unitOfWork.SaveChangesChamadas);
+    }
+
+    [Fact]
     public async Task CriarAsync_ComNomeDuplicado_DeveRejeitar()
     {
         var usuarios = new UsuarioRepositoryFake(existe: true);
         var clientes = new ClienteRepositoryFake(cliente: null);
         var unitOfWork = new UnitOfWorkFake();
         var useCase = new GerenciarUsuariosUseCase(usuarios, clientes, new PasswordHasherFake(), unitOfWork);
-        var command = new CriarUsuarioCommand("atendente", "senha123", PerfilUsuario.Atendente, null);
+        var command = new CriarUsuarioCommand("atendente", "senha123", PerfilUsuario.Atendente, null, PerfilUsuario.Admin);
 
         var ex = await Assert.ThrowsAsync<ConflitoException>(
             () => useCase.CriarAsync(command, CancellationToken.None));
@@ -75,7 +92,7 @@ public sealed class GerenciarUsuariosUseCaseTests
         var clientes = new ClienteRepositoryFake(cliente: null);
         var unitOfWork = new UnitOfWorkFake();
         var useCase = new GerenciarUsuariosUseCase(usuarios, clientes, new PasswordHasherFake(), unitOfWork);
-        var command = new CriarUsuarioCommand("maria", "senha123", PerfilUsuario.Cliente, null);
+        var command = new CriarUsuarioCommand("maria", "senha123", PerfilUsuario.Cliente, null, PerfilUsuario.Atendente);
 
         var ex = await Assert.ThrowsAsync<RecursoNaoEncontradoException>(
             () => useCase.CriarAsync(command, CancellationToken.None));
@@ -92,7 +109,7 @@ public sealed class GerenciarUsuariosUseCaseTests
         var clientes = new ClienteRepositoryFake(cliente: null);
         var unitOfWork = new UnitOfWorkFake();
         var useCase = new GerenciarUsuariosUseCase(usuarios, clientes, new PasswordHasherFake(), unitOfWork);
-        var command = new CriarUsuarioCommand("maria", "senha123", PerfilUsuario.Cliente, Guid.NewGuid());
+        var command = new CriarUsuarioCommand("maria", "senha123", PerfilUsuario.Cliente, Guid.NewGuid(), PerfilUsuario.Atendente);
 
         var ex = await Assert.ThrowsAsync<RecursoNaoEncontradoException>(
             () => useCase.CriarAsync(command, CancellationToken.None));

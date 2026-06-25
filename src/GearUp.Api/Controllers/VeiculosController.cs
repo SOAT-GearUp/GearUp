@@ -12,7 +12,7 @@ public sealed class VeiculosController(
     ICadastrarVeiculoUseCase cadastrarVeiculoUseCase,
     IAtualizarVeiculoUseCase atualizarVeiculoUseCase) : ControllerBase
 {
-    [Authorize(Roles = "Atendente"), HttpPost]
+    [Authorize(Roles = "Admin,Atendente"), HttpPost]
     [ProducesResponseType<CadastrarVeiculoResult>(StatusCodes.Status201Created)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
@@ -25,7 +25,7 @@ public sealed class VeiculosController(
         return Created($"/api/clientes/{clienteId}/veiculos/{veiculo.VeiculoId}", veiculo);
     }
 
-    [Authorize(Roles = "Atendente"), HttpPut("{veiculoId:guid}")]
+    [Authorize(Roles = "Admin,Atendente"), HttpPut("{veiculoId:guid}")]
     [ProducesResponseType(StatusCodes.Status204NoContent)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]

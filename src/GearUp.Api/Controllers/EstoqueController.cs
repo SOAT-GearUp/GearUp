@@ -7,7 +7,7 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace GearUp.Api.Controllers;
 
-[ApiController, Route("api/estoque"), Authorize(Roles = "Atendente,Auxiliar")]
+[ApiController, Route("api/estoque"), Authorize(Roles = "Admin,Atendente,Auxiliar")]
 public sealed class EstoqueController(
     IListarEstoqueItemUseCase listarEstoqueUseCase,
     ICadastrarEstoqueItemUseCase cadastrarEstoqueUseCase,

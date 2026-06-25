@@ -5,6 +5,7 @@
         Atendente = 1,
         Auxiliar = 2,
         Mecanico = 3,
-        Cliente = 4
+        Cliente = 4,
+        Admin = 5
     }
 }
