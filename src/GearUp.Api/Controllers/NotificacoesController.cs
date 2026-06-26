@@ -1,10 +1,12 @@
-Ôªøusing GearUp.Application.Notificacoes.Listar;
+using GearUp.Application.Comunicacao.Notificacoes;
 using GearUp.Domain.Enums;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using System.Security.Claims;
 
 namespace GearUp.Api.Controllers
 {
+    [Authorize]
     [Route("api/[controller]")]
     [ApiController]
     public class NotificacoesController(
@@ -30,7 +32,7 @@ namespace GearUp.Api.Controllers
         {
             return Guid.TryParse(User.FindFirstValue("cliente_id"), out var id)
                 ? id
-                : throw new UnauthorizedAccessException("Usu√°rio n√£o vinculado a um cliente.");
+                : throw new UnauthorizedAccessException("Usu·rio n„o vinculado a um cliente.");
         }
     }
 }

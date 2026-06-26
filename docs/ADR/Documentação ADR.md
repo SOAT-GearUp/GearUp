@@ -142,7 +142,7 @@ Após autenticação, o usuário receberá um token assinado digitalmente conten
 
 **Data:** 11/06/2026
 
-**Revisão:** 24/06/2026 — alinhamento ao Event Storming: `Veiculo`, `Orcamento` e `Comunicacao` passam a ser Aggregate Roots próprios; bounded contexts explicitados conforme o workshop.
+**Revisão:** 24/06/2026 — alinhamento ao Event Storming: `Veiculo`, `Orcamento` e `Notificacao` passam a ser Aggregate Roots próprios; bounded contexts explicitados conforme o workshop.
 
 **Status:** Aceita
 
@@ -165,7 +165,7 @@ Os agregados serão organizados por bounded context, conforme o Event Storming:
 | **Ordem de Serviço** | `OrdemServico` | `HistoricoOrdemServico` |
 | **Ordem de Serviço** | `Orcamento` | `ItemOrcamento` |
 | **Estoque** | `Estoque` | `MovimentacaoEstoque` |
-| **Comunicação** | `Comunicacao` | — |
+| **Comunicação** | `Notificacao` | — |
 
 Além dos contextos mapeados no Event Storming, o agregado `Usuario` existe para autenticação e controle de acesso (RF01–RF03), fora do escopo do workshop.
 

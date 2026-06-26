@@ -104,18 +104,18 @@ public sealed class OrdemServicoTests
     }
 
     [Fact]
-    public void Comunicacao_DeveSerMarcadaComoLida()
+    public void Notificacao_DeveSerMarcadaComoLida()
     {
-        var comunicacao = Comunicacao.Criar(
+        var notificacao = Notificacao.Criar(
             Guid.NewGuid(),
             Guid.NewGuid(),
             DestinatarioNotificacao.Cliente,
             "Mensagem");
 
-        comunicacao.MarcarComoLida();
-        comunicacao.MarcarComoLida();
+        notificacao.MarcarComoLida();
+        notificacao.MarcarComoLida();
 
-        Assert.NotNull(comunicacao.LidaEm);
+        Assert.NotNull(notificacao.LidaEm);
     }
 
     private static OrdemServico Criar()

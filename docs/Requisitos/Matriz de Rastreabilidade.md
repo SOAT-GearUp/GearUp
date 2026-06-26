@@ -28,7 +28,7 @@ Conforme ADR-004 (revisão 24/06/2026) e o Event Storming, os agregados são:
 - **Cadastro:** `Cliente`, `Veiculo`
 - **Ordem de Serviço:** `OrdemServico`, `Orcamento`
 - **Estoque:** `Estoque`
-- **Comunicação:** `Comunicacao`
+- **Comunicação:** `Notificacao`
 
 `OrdemServico` referencia `Cliente` e `Veiculo` por identificador; `Orcamento` referencia `OrdemServico` por identificador. A orquestração entre agregados ocorre na camada Application.
 

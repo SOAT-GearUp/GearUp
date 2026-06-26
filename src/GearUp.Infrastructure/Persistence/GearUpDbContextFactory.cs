@@ -11,7 +11,7 @@ internal sealed class GearUpDbContextFactory
     {
         var connectionString = Environment.GetEnvironmentVariable(
             "ConnectionStrings__GearUpDatabase")
-            ?? "Host=localhost;Port=5433;Database=GearUp;Username=gearup;Password=Your_strong!Pass123";
+            ?? "Host=localhost;Port=5433;Database=GearUp;Username=gearup;Password=GearUp_Strong!Pass123";
 
         var options = new DbContextOptionsBuilder<GearUpDbContext>()
             .UseNpgsql(connectionString, npgsqlOptions => npgsqlOptions.EnableRetryOnFailure())

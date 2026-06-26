@@ -1,4 +1,4 @@
-using GearUp.Application.Atendimento.Clientes.Common.Interfaces;
+using GearUp.Application.Cadastro.Clientes.Common.Interfaces;
 using GearUp.Domain.Entities;
 using GearUp.Domain.ValueObjects;
 using Microsoft.EntityFrameworkCore;

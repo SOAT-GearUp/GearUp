@@ -1,4 +1,4 @@
-using GearUp.Application.Execucao.Metricas;
+using GearUp.Application.OrdemDeServico.Execucao.Metricas;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 

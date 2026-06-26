@@ -2,9 +2,9 @@ using GearUp.Domain.Entities;
 using GearUp.Domain.Enums;
 using Microsoft.EntityFrameworkCore;
 
-using IAtendimentoOrcamentoRepo = GearUp.Application.Atendimento.Comum.Interfaces.IOrcamentoRepository;
-using IDiagnosticoOrcamentoRepo = GearUp.Application.DiagnosticoOrcamento.Orcamentos.Common.Interfaces.IOrcamentoRepository;
-using IExecucaoOrcamentoRepo = GearUp.Application.Execucao.Comum.Interfaces.IOrcamentoRepository;
+using IAtendimentoOrcamentoRepo = GearUp.Application.OrdemDeServico.Common.Interfaces.IOrcamentoRepository;
+using IDiagnosticoOrcamentoRepo = GearUp.Application.OrdemDeServico.Orcamentos.Common.Interfaces.IOrcamentoRepository;
+using IExecucaoOrcamentoRepo = GearUp.Application.OrdemDeServico.Execucao.Common.Interfaces.IOrcamentoRepository;
 
 namespace GearUp.Infrastructure.Persistence.Repositories;
 

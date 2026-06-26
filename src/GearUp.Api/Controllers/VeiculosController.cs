@@ -1,7 +1,7 @@
 using GearUp.Api.Contracts.Clientes.Veiculos.Atualizar;
 using GearUp.Api.Contracts.Clientes.Veiculos.Cadastrar;
-using GearUp.Application.Atendimento.Clientes.Veiculos.Atualizar;
-using GearUp.Application.Atendimento.Clientes.Veiculos.Cadastrar;
+using GearUp.Application.Cadastro.Clientes.Veiculos.Atualizar;
+using GearUp.Application.Cadastro.Clientes.Veiculos.Cadastrar;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 

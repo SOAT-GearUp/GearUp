@@ -1,4 +1,4 @@
-using GearUp.Application.Atendimento.Clientes.Exceptions;
+using GearUp.Application.Cadastro.Clientes.Exceptions;
 using GearUp.Application.Common.Exceptions;
 using GearUp.Domain.Common.Exceptions;
 using Microsoft.AspNetCore.Diagnostics;

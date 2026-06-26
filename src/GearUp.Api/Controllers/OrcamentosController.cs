@@ -1,11 +1,11 @@
 using GearUp.Api.Authorization;
 using GearUp.Api.Contracts.Orcamentos;
-using GearUp.Application.Atendimento.Consultar;
-using GearUp.Application.DiagnosticoOrcamento.Orcamentos.Criar;
-using GearUp.Application.DiagnosticoOrcamento.Orcamentos.Decidir;
-using GearUp.Application.DiagnosticoOrcamento.Orcamentos.Itens.Adicionar;
-using GearUp.Application.DiagnosticoOrcamento.Orcamentos.Itens.Atualizar;
-using GearUp.Application.DiagnosticoOrcamento.Orcamentos.Itens.Remover;
+using GearUp.Application.OrdemDeServico.Ordens.Consultar;
+using GearUp.Application.OrdemDeServico.Orcamentos.Criar;
+using GearUp.Application.OrdemDeServico.Orcamentos.Decidir;
+using GearUp.Application.OrdemDeServico.Orcamentos.Itens.Adicionar;
+using GearUp.Application.OrdemDeServico.Orcamentos.Itens.Atualizar;
+using GearUp.Application.OrdemDeServico.Orcamentos.Itens.Remover;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 

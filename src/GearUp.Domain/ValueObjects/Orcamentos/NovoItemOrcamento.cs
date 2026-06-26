@@ -34,11 +34,10 @@ public sealed record NovoItemOrcamento
             throw new ArgumentException(
                 "O valor unitário não pode ser negativo.");
 
-        // O orçamento precisa tem um item cadastrado no estoque? 
-        //if ((tipo is TipoItemOrcamento.Peca or TipoItemOrcamento.Insumo) && estoqueItemId is null)
-        //    throw new RegraNegocioException(
-        //        "ESTOQUE_ITEM_OBRIGATORIO",
-        //        "Peças e insumos devem estar vinculados a um item de estoque.");
+        if ((tipo is TipoItemOrcamento.Peca or TipoItemOrcamento.Insumo) && estoqueItemId is null)
+            throw new RegraNegocioException(
+                "ESTOQUE_ITEM_OBRIGATORIO",
+                "Peças e insumos devem estar vinculados a um item de estoque.");
 
         if ((tipo is TipoItemOrcamento.Servico or TipoItemOrcamento.MaoDeObra) && estoqueItemId is not null)
             throw new RegraNegocioException(

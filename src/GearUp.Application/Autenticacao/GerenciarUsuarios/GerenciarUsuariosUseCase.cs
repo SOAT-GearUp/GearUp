@@ -1,5 +1,5 @@
-Ôªøusing GearUp.Application.Autenticacao.Common;
-using GearUp.Application.Atendimento.Clientes.Common.Interfaces;
+using GearUp.Application.Autenticacao.Common;
+using GearUp.Application.Cadastro.Clientes.Common.Interfaces;
 using GearUp.Application.Common.Exceptions;
 using GearUp.Application.Common.Interfaces;
 using GearUp.Domain.Enums;
@@ -19,10 +19,10 @@ namespace GearUp.Application.Autenticacao.GerenciarUsuarios
             var normalizado = command.Usuario.Trim().ToLowerInvariant();
 
             if (await usuarios.ExisteAsync(normalizado, ct)) 
-                throw new ConflitoException("USUARIO_DUPLICADO", "Nome de usu√°rio j√° cadastrado.");
+                throw new ConflitoException("USUARIO_DUPLICADO", "Nome de usu·rio j· cadastrado.");
 
             if (command.Perfil == PerfilUsuario.Cliente && (!command.ClienteId.HasValue || await clientes.ObterAsync(command.ClienteId.Value, ct) is null))
-                throw new RecursoNaoEncontradoException("CLIENTE_NAO_ENCONTRADO", "Cliente vinculado ao usu√°rio n√£o encontrado.");
+                throw new RecursoNaoEncontradoException("CLIENTE_NAO_ENCONTRADO", "Cliente vinculado ao usu·rio n„o encontrado.");
 
             var usuario = Domain.Entities.Usuario.Criar(normalizado, hasher.CriarHash(command.Senha), command.Perfil, command.ClienteId);
 
@@ -44,8 +44,8 @@ namespace GearUp.Application.Autenticacao.GerenciarUsuarios
             throw new AcessoNegadoException(
                 "PERFIL_NAO_PERMITIDO",
                 perfilSolicitante == PerfilUsuario.Atendente
-                    ? "Atendente pode criar apenas usu√°rios do tipo Cliente."
-                    : "Perfil sem permiss√£o para criar usu√°rios.");
+                    ? "Atendente pode criar apenas usu·rios do tipo Cliente."
+                    : "Perfil sem permiss„o para criar usu·rios.");
         }
     }
 }

@@ -2,11 +2,11 @@ using GearUp.Api.Contracts.Clientes.Atualizar;
 using GearUp.Api.Contracts.Clientes.Cadastrar;
 using GearUp.Api.Contracts.Clientes.Veiculos.Atualizar;
 using GearUp.Api.Contracts.Clientes.Veiculos.Cadastrar;
-using GearUp.Application.Atendimento.Clientes.Atualizar;
-using GearUp.Application.Atendimento.Clientes.Cadastrar;
-using GearUp.Application.Atendimento.Clientes.Consultar;
-using GearUp.Application.Atendimento.Clientes.Excluir;
-using GearUp.Application.Atendimento.Clientes.Listar;
+using GearUp.Application.Cadastro.Clientes.Atualizar;
+using GearUp.Application.Cadastro.Clientes.Cadastrar;
+using GearUp.Application.Cadastro.Clientes.Consultar;
+using GearUp.Application.Cadastro.Clientes.Excluir;
+using GearUp.Application.Cadastro.Clientes.Listar;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 

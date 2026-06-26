@@ -1,4 +1,4 @@
-using GearUp.Application.Atendimento.Clientes.Common.Interfaces;
+using GearUp.Application.Cadastro.Clientes.Common.Interfaces;
 using GearUp.Application.Autenticacao.Common;
 using GearUp.Application.Autenticacao.GerenciarUsuarios;
 using GearUp.Application.Common.Exceptions;
