@@ -6,7 +6,9 @@
     <Project Path="src/GearUp.Infrastructure/GearUp.Infrastructure.csproj" />
   </Folder>
   <Folder Name="/tests/">
-    <Project Path="tests/GearUp.Api.IntegrationTests/GearUp.Api.IntegrationTests.csproj" />
+    <Project Path="tests/GearUp.Api.IntegrationTests/GearUp.Api.IntegrationTests.csproj">
+      <Build Solution="Debug|*" Project="false" />
+    </Project>
     <Project Path="tests/GearUp.Application.UnitTests/GearUp.Application.UnitTests.csproj" />
     <Project Path="tests/GearUp.Domain.UnitTests/GearUp.Domain.UnitTests.csproj" />
   </Folder>
