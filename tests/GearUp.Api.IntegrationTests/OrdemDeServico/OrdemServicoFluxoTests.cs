@@ -131,7 +131,7 @@ public sealed class OrdemServicoFluxoTests(GearUpApiFactory factory) : Integrati
 
         var response = await client.GetAsync("/api/ordens-servico/metricas/tempo-medio-execucao");
 
-        response.EnsureSuccessStatusCode();
+        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
     }
 
     private static async Task<IReadOnlyList<Guid>> ObterItensOrcamentoAsync(HttpClient client, Guid ordemServicoId, Guid orcamentoId)
