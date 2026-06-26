@@ -1,11 +1,12 @@
 ﻿using GearUp.Domain.Enums;
+using System.ComponentModel.DataAnnotations;
 
 namespace GearUp.Api.Contracts.Orcamentos
 {
     public sealed record ItemOrcamentoRequest(
-        TipoItemOrcamento Tipo, 
-        string Descricao, 
-        decimal Quantidade, 
-        decimal ValorUnitario, 
+        [Required] TipoItemOrcamento Tipo,
+        [Required] string Descricao, 
+        [Required] decimal Quantidade, 
+        [Required] decimal ValorUnitario, 
         Guid? EstoqueItemId);
 }

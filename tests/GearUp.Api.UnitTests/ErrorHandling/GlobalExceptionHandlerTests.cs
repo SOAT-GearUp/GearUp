@@ -12,7 +12,7 @@ public sealed class GlobalExceptionHandlerTests
     [Theory]
     [MemberData(nameof(ExcecoesMapeadas))]
     public async Task TryHandleAsync_DeveMapearExcecaoParaRespostaEsperada(
-        Exception exception,
+        ExcecaoMapeada excecaoMapeada,
         int statusCode,
         string code,
         string message)
@@ -20,6 +20,7 @@ public sealed class GlobalExceptionHandlerTests
         var httpContext = new DefaultHttpContext();
         httpContext.Response.Body = new MemoryStream();
         var handler = new GlobalExceptionHandler(NullLogger<GlobalExceptionHandler>.Instance);
+        var exception = CriarExcecao(excecaoMapeada);
 
         var handled = await handler.TryHandleAsync(httpContext, exception, CancellationToken.None);
 
@@ -31,30 +32,30 @@ public sealed class GlobalExceptionHandlerTests
         Assert.Equal(message, response.Message);
     }
 
-    public static TheoryData<Exception, int, string, string> ExcecoesMapeadas()
+    public static TheoryData<ExcecaoMapeada, int, string, string> ExcecoesMapeadas()
     {
-        return new TheoryData<Exception, int, string, string>
+        return new TheoryData<ExcecaoMapeada, int, string, string>
         {
             {
-                new RegraNegocioException("REGRA_INVALIDA", "Regra violada."),
+                ExcecaoMapeada.RegraNegocio,
                 StatusCodes.Status422UnprocessableEntity,
                 "REGRA_INVALIDA",
                 "Regra violada."
             },
             {
-                new RecursoNaoEncontradoException("CLIENTE_NAO_ENCONTRADO", "Cliente nao encontrado."),
+                ExcecaoMapeada.RecursoNaoEncontrado,
                 StatusCodes.Status404NotFound,
                 "CLIENTE_NAO_ENCONTRADO",
                 "Cliente nao encontrado."
             },
             {
-                new UnauthorizedAccessException("Sem acesso."),
+                ExcecaoMapeada.NaoAutorizado,
                 StatusCodes.Status401Unauthorized,
                 "NAO_AUTORIZADO",
                 "Sem acesso."
             },
             {
-                new ConflitoException("PLACA_DUPLICADA", "Placa duplicada."),
+                ExcecaoMapeada.Conflito,
                 StatusCodes.Status409Conflict,
                 "PLACA_DUPLICADA",
                 "Placa duplicada."
@@ -87,5 +88,25 @@ public sealed class GlobalExceptionHandlerTests
         return (
             root.GetProperty("code").GetString()!,
             root.GetProperty("message").GetString()!);
+    }
+
+    private static Exception CriarExcecao(ExcecaoMapeada excecao)
+    {
+        return excecao switch
+        {
+            ExcecaoMapeada.RegraNegocio => new RegraNegocioException("REGRA_INVALIDA", "Regra violada."),
+            ExcecaoMapeada.RecursoNaoEncontrado => new RecursoNaoEncontradoException("CLIENTE_NAO_ENCONTRADO", "Cliente nao encontrado."),
+            ExcecaoMapeada.NaoAutorizado => new UnauthorizedAccessException("Sem acesso."),
+            ExcecaoMapeada.Conflito => new ConflitoException("PLACA_DUPLICADA", "Placa duplicada."),
+            _ => throw new ArgumentOutOfRangeException(nameof(excecao), excecao, null)
+        };
+    }
+
+    public enum ExcecaoMapeada
+    {
+        RegraNegocio,
+        RecursoNaoEncontrado,
+        NaoAutorizado,
+        Conflito
     }
 }

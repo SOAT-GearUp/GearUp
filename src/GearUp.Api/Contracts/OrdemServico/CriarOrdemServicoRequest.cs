@@ -1,11 +1,12 @@
 ﻿using GearUp.Domain.Enums;
+using System.ComponentModel.DataAnnotations;
 
 namespace GearUp.Api.Contracts.OrdemServico
 {
     public sealed record CriarOrdemServicoRequest(
-        Guid ClienteId, 
-        Guid VeiculoId, 
-        string SolicitacaoInicial, 
-        PrioridadeOrdemServico Prioridade, 
+        [Required] Guid ClienteId, 
+        [Required] Guid VeiculoId, 
+        [Required] string SolicitacaoInicial, 
+        [Required] PrioridadeOrdemServico Prioridade, 
         DateTimeOffset? Prazo);
 }

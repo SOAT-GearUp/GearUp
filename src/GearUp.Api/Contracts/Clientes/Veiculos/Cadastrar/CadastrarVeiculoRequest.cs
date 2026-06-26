@@ -6,4 +6,4 @@ public sealed record CadastrarVeiculoRequest(
     [Required] string Placa,
     [Required] string Marca,
     [Required] string Modelo,
-    [Range(1900, 2100)] int Ano);
+    [Range(1900, 2100)][Required] int Ano);

@@ -22,14 +22,14 @@ internal sealed class OrdemServicoRepository(GearUpDbContext db) : IAtendimentoR
             .SingleOrDefaultAsync(x => x.Id == id, ct);
     }
 
-    public async Task<IReadOnlyList<OrdemServico>> ListarAsync(bool andamento, Guid? clienteId, CancellationToken ct)
+    public async Task<IReadOnlyList<OrdemServico>> ListarAsync(bool somenteEmAndamento, Guid? clienteId, CancellationToken ct)
     {
         var query = db.OrdensServico
             .AsNoTracking()
             .Include(x => x.Historico)
             .AsQueryable();
 
-        if (andamento)
+        if (somenteEmAndamento)
             query = query.Where(x => x.Status != StatusOrdemServico.Entregue && x.Status != StatusOrdemServico.Cancelada);
 
         if (clienteId.HasValue)

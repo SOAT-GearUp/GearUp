@@ -13,7 +13,7 @@ internal sealed class TokenService(IConfiguration configuration) : ITokenService
 {
     public TokenResult Gerar(Usuario usuario)
     {
-        var chave = configuration["Jwt:Key"] ?? throw new InvalidOperationException("Jwt:Key não configurada.");
+        var chave = ObterChaveJwt();
         
         var emissor = configuration["Jwt:Issuer"] ?? "GearUp"; var audiencia = configuration["Jwt:Audience"] ?? "GearUp.Clients";
         
@@ -38,5 +38,18 @@ internal sealed class TokenService(IConfiguration configuration) : ITokenService
             signingCredentials: new SigningCredentials(new SymmetricSecurityKey(Encoding.UTF8.GetBytes(chave)), SecurityAlgorithms.HmacSha256));
         
         return new TokenResult(new JwtSecurityTokenHandler().WriteToken(token), expiraEm);
+    }
+
+    private string ObterChaveJwt()
+    {
+        var chave = configuration["Jwt:Key"];
+
+        if (string.IsNullOrWhiteSpace(chave))
+            throw new InvalidOperationException("Jwt:Key não configurada.");
+
+        if (Encoding.UTF8.GetByteCount(chave) < 32)
+            throw new InvalidOperationException("Jwt:Key deve possuir pelo menos 32 bytes.");
+
+        return chave;
     }
 }

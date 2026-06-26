@@ -34,8 +34,14 @@ builder.Services.AddSwaggerGen(options =>
     });
 });
 
-var jwtKey = builder.Configuration["Jwt:Key"]
-    ?? throw new InvalidOperationException("Jwt:Key não configurada.");
+var jwtKey = builder.Configuration["Jwt:Key"];
+
+if (string.IsNullOrWhiteSpace(jwtKey))
+    throw new InvalidOperationException("Jwt:Key não configurada.");
+
+if (Encoding.UTF8.GetByteCount(jwtKey) < 32)
+    throw new InvalidOperationException("Jwt:Key deve possuir pelo menos 32 bytes.");
+
 builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
     .AddJwtBearer(options =>
     {
@@ -83,6 +89,4 @@ using (var scope = app.Services.CreateScope())
     await scope.ServiceProvider.GetRequiredService<DatabaseInitializer>().InitializeAsync();
 }
 
-app.Run();
-
-public partial class Program;
+await app.RunAsync();

@@ -1,12 +1,13 @@
 ﻿using GearUp.Domain.Entities;
 
 using GearUp.Domain.Enums;
+using System.ComponentModel.DataAnnotations;
 
 namespace GearUp.Api.Contracts.Usuarios
 {
     public sealed record CriarUsuarioRequest(
-        string Usuario, 
-        string Senha, 
-        PerfilUsuario Perfil, 
+        [Required] string Usuario,
+        [Required] string Senha, 
+        [Required] PerfilUsuario Perfil, 
         Guid? ClienteId);
 }

@@ -1,5 +1,4 @@
 using GearUp.Api.Authorization;
-using GearUp.Api.Contracts.Orcamentos;
 using GearUp.Api.Contracts.OrdemServico;
 using GearUp.Application.OrdemDeServico.Ordens.Consultar;
 using GearUp.Application.OrdemDeServico.Ordens.Criar;

@@ -86,7 +86,7 @@ public sealed record Documento
 
     private static int CalcularDigito(
         ReadOnlySpan<char> numeros,
-        IReadOnlyList<int> pesos)
+        int[] pesos)
     {
         var soma = 0;
 

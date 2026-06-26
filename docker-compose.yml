@@ -23,7 +23,7 @@ services:
       ASPNETCORE_ENVIRONMENT: Development
       ASPNETCORE_HTTP_PORTS: 8080
       ConnectionStrings__GearUpDatabase: "Host=postgres;Port=5432;Database=GearUp;Username=gearup;Password=${POSTGRES_PASSWORD:-GearUp_Strong!Pass123}"
-      Jwt__Key: "${JWT_KEY:-LOCAL-DEVELOPMENT-KEY-CHANGE-IN-PRODUCTION-2026}"
+      Jwt__Key: "${JWT_KEY:?JWT_KEY must be set}"
       Seed__AdminUser: "${SEED_ADMIN_USER}"
       Seed__AdminPassword: "${SEED_ADMIN_PASSWORD}"
     ports:

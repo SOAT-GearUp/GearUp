@@ -1,5 +1,7 @@
 # GearUp
 
+[![Quality Gate Status](https://sonarcloud.io/api/project_badges/measure?project=SOAT-GearUp_GearUp&metric=alert_status)](https://sonarcloud.io/summary/new_code?id=SOAT-GearUp_GearUp)
+
 API REST para gestão de oficina mecânica, construída em .NET 10, PostgreSQL,
 DDD e Clean Architecture.
 
@@ -27,41 +29,161 @@ abre direto no navegador; é preciso importar o arquivo no site.
 | [Requisitos](docs/Requisitos/Documentação%20de%20Requisitos.md) | Personas, problema, requisitos funcionais e não funcionais |
 | [Matriz de Rastreabilidade](docs/Requisitos/Matriz%20de%20Rastreabilidade.md) | Rastreio requisito → implementação no código |
 
-## Executar com Docker
+## Como executar o projeto
+
+### Pre-requisitos
+
+- Docker Desktop
+- .NET SDK 10, apenas se for executar a API fora do Docker
+- Terminal de sua preferencia, como PowerShell, Bash ou zsh
+
+### Configurar variaveis de ambiente
+
+Crie o arquivo `.env` a partir do exemplo:
 
 ```powershell
 Copy-Item .env.example .env
-docker compose up --build
 ```
 
-As imagens .NET do Dockerfile vêm do Docker Hub (`bitnami/dotnet-sdk` e
-`bitnami/aspnet-core`), para o build funcionar sem depender do registry da
-Microsoft (`mcr.microsoft.com`).
+No Linux/macOS, o comando equivalente e:
 
-A API estará em `http://localhost:8080` e o Swagger em
-`http://localhost:8080/swagger`. O banco e as migrations são inicializados
-automaticamente.
-
-No primeiro boot, se a tabela de usuários estiver vazia, o sistema cria um
-único usuário **admin** com as credenciais do `.env`:
-
-| Variável | Descrição |
-|---|---|
-| `SEED_ADMIN_USER` | Nome de usuário do admin inicial |
-| `SEED_ADMIN_PASSWORD` | Senha do admin inicial |
-
-Exemplo padrão em `.env.example`:
-
+```bash
+cp .env.example .env
 ```
+
+Depois preencha `JWT_KEY` no arquivo `.env`. Essa chave deve ter pelo menos 32
+caracteres.
+
+Para desenvolvimento local, se nao quiser gerar uma chave, use esta chave
+publica e conhecida:
+
+```env
+JWT_KEY=gearup-local-development-key-change-me
+```
+
+Essa chave e apenas para ambiente local. Nao use em homologacao, producao ou
+qualquer ambiente compartilhado.
+
+Se preferir gerar uma chave propria, use qualquer gerador seguro de senha/token.
+Exemplos:
+
+```bash
+openssl rand -hex 32
+```
+
+ou, em PowerShell:
+
+```powershell
+[guid]::NewGuid().ToString("N") + [guid]::NewGuid().ToString("N")
+```
+
+O `.env` deve ficar com valores parecidos com estes:
+
+```env
+POSTGRES_PASSWORD=Your_strong!Pass123
+JWT_KEY=gearup-local-development-key-change-me
 SEED_ADMIN_USER=admin
 SEED_ADMIN_PASSWORD=GearUp@123
 ```
 
+Nao versionar o arquivo .env, pois ele contem segredos locais.
+
+### Executar com Docker
+
+Na pasta raiz do projeto, onde esta o arquivo `docker-compose.yml`, execute:
+
+```powershell
+docker compose up --build
+```
+
+A API estara em `http://localhost:8080` e o Swagger em
+`http://localhost:8080/swagger`. O banco e as migrations sao inicializados
+automaticamente.
+
+As imagens .NET do Dockerfile vem do Docker Hub (`bitnami/dotnet-sdk` e
+`bitnami/aspnet-core`), para o build funcionar sem depender do registry da
+Microsoft (`mcr.microsoft.com`).
+
+Para parar os containers:
+
+```powershell
+docker compose down
+```
+
+Para remover tambem o volume do banco local:
+
+```powershell
+docker compose down -v
+```
+
+### Executar localmente sem Docker para a API
+
+Se preferir rodar a API pelo `dotnet run`, mantenha pelo menos o PostgreSQL em
+execucao pelo Docker:
+
+```powershell
+docker compose up postgres
+```
+
+Em outro terminal, configure as variaveis esperadas pela API:
+
+```powershell
+$env:ASPNETCORE_ENVIRONMENT="Development"
+$env:ConnectionStrings__GearUpDatabase="Host=localhost;Port=5433;Database=GearUp;Username=gearup;Password=Your_strong!Pass123"
+$env:Jwt__Key="cole_a_chave_gerada_aqui"
+$env:Seed__AdminUser="admin"
+$env:Seed__AdminPassword="GearUp@123"
+dotnet run --project src/GearUp.Api/GearUp.Api.csproj
+```
+
+Nesse modo, a API usara a porta configurada pelo perfil local do projeto.
+
+### Debug pelo Visual Studio
+
+Para executar pelo botao **Play** do Visual Studio, o arquivo
+`src/GearUp.Api/Properties/launchSettings.json` deve manter apenas configuracoes
+locais nao sensiveis, como:
+
+```json
+"environmentVariables": {
+  "ASPNETCORE_ENVIRONMENT": "Development"
+}
+```
+
+As configuracoes sensiveis devem ficar no **User Secrets** da sua maquina.
+Execute uma vez:
+
+```powershell
+dotnet user-secrets set "ConnectionStrings:GearUpDatabase" "Host=localhost;Port=5433;Database=GearUp;Username=gearup;Password=Your_strong!Pass123" --project src/GearUp.Api/GearUp.Api.csproj
+dotnet user-secrets set "Jwt:Key" "gearup-local-development-key-change-me" --project src/GearUp.Api/GearUp.Api.csproj
+dotnet user-secrets set "Seed:AdminUser" "admin" --project src/GearUp.Api/GearUp.Api.csproj
+dotnet user-secrets set "Seed:AdminPassword" "GearUp@123" --project src/GearUp.Api/GearUp.Api.csproj
+```
+
+Antes de clicar em **Play**, mantenha o PostgreSQL local rodando:
+
+```powershell
+docker compose up postgres
+```
+
+Depois selecione o profile `http` ou `https` no Visual Studio e execute a API.
+O Swagger ficara disponivel em `/swagger`.
+
+### Usuario inicial
+
+No primeiro boot, se a tabela de usuarios estiver vazia, o sistema cria um
+unico usuario **admin** com as credenciais do `.env`:
+
+| Variavel | Descricao |
+|---|---|
+| `SEED_ADMIN_USER` | Nome de usuario do admin inicial |
+| `SEED_ADMIN_PASSWORD` | Senha do admin inicial |
+
 Com o admin logado, use `POST /api/usuarios` para cadastrar os demais perfis
 (`Atendente`, `Auxiliar`, `Mecanico`, `Cliente`). O **Atendente** pode criar
-apenas usuários do tipo **Cliente**; o **Admin** pode criar qualquer perfil.
+apenas usuarios do tipo **Cliente**; o **Admin** pode criar qualquer perfil.
 
-Altere a senha padrão do admin antes de publicar em produção.
+Altere a senha padrao do admin antes de publicar em producao.
 
 ## Testes e cobertura
 
