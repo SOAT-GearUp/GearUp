@@ -42,7 +42,6 @@ jobs:
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
         shell: powershell
         run: |
-          ${{ runner.temp }}\scanner\dotnet-sonarscanner begin /k:"GearUp-SOAT_GearUp" /o:"gearup-soat" /d:sonar.token="${{ secrets.SONAR_TOKEN }}" /d:sonar.cs.opencover.reportsPaths="**/coverage.opencover.xml"
+          ${{ runner.temp }}\scanner\dotnet-sonarscanner begin /k:"GearUp-SOAT_GearUp" /o:"gearup-soat" /d:sonar.token="${{ secrets.SONAR_TOKEN }}"
           dotnet build
-          dotnet test --collect:"XPlat Code Coverage;Format=opencover"
           ${{ runner.temp }}\scanner\dotnet-sonarscanner end /d:sonar.token="${{ secrets.SONAR_TOKEN }}"
