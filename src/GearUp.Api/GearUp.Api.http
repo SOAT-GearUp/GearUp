@@ -1,14 +1,271 @@
 @GearUp.Api_HostAddress = http://localhost:5037
+@AdminUser = admin
+@AdminPassword = GearUp@123
+@ClienteUser = cliente.fluxo
+@ClientePassword = Cliente@123
 
+### 01 - Login do administrador
+# @name loginAdmin
+POST {{GearUp.Api_HostAddress}}/api/autenticacao/login
+Content-Type: application/json
+Accept: application/json
+
+{
+  "usuario": "{{AdminUser}}",
+  "senha": "{{AdminPassword}}"
+}
+
+###
+
+@AdminToken = {{loginAdmin.response.body.$.accessToken}}
+
+### 02 - Cadastro do cliente
+# @name cadastrarCliente
 POST {{GearUp.Api_HostAddress}}/api/clientes
+Authorization: Bearer {{AdminToken}}
 Content-Type: application/json
 Accept: application/json
 
 {
   "nome": "Maria da Silva",
   "documento": "529.982.247-25",
-  "email": "maria@email.com",
-  "telefone": "(11) 99999-9999"
+  "email": "maria.silva@gearup.test",
+  "telefone": "11999999999"
 }
+
+###
+
+@ClienteId = {{cadastrarCliente.response.body.$.id}}
+
+### 03 - Cadastro do veiculo do cliente
+# @name cadastrarVeiculo
+POST {{GearUp.Api_HostAddress}}/api/clientes/{{ClienteId}}/veiculos
+Authorization: Bearer {{AdminToken}}
+Content-Type: application/json
+Accept: application/json
+
+{
+  "placa": "ABC1D23",
+  "marca": "Honda",
+  "modelo": "Civic",
+  "ano": 2022
+}
+
+###
+
+@VeiculoId = {{cadastrarVeiculo.response.body.$.veiculoId}}
+
+### 04 - Cadastro de usuario vinculado ao cliente
+# PerfilUsuario.Cliente = 4
+# @name cadastrarUsuarioCliente
+POST {{GearUp.Api_HostAddress}}/api/usuarios
+Authorization: Bearer {{AdminToken}}
+Content-Type: application/json
+Accept: application/json
+
+{
+  "usuario": "{{ClienteUser}}",
+  "senha": "{{ClientePassword}}",
+  "perfil": 4,
+  "clienteId": "{{ClienteId}}"
+}
+
+###
+
+### 05 - Login do cliente
+# @name loginCliente
+POST {{GearUp.Api_HostAddress}}/api/autenticacao/login
+Content-Type: application/json
+Accept: application/json
+
+{
+  "usuario": "{{ClienteUser}}",
+  "senha": "{{ClientePassword}}"
+}
+
+###
+
+@ClienteToken = {{loginCliente.response.body.$.accessToken}}
+
+### 06 - Cadastro de item no estoque para usar no orcamento
+# TipoItemEstoque.Peca = 1
+# @name cadastrarItemEstoque
+POST {{GearUp.Api_HostAddress}}/api/estoque
+Authorization: Bearer {{AdminToken}}
+Content-Type: application/json
+Accept: application/json
+
+{
+  "nome": "Filtro de oleo",
+  "tipo": 1,
+  "precoUnitario": 49.90,
+  "quantidadeInicial": 10
+}
+
+###
+
+@EstoqueItemId = {{cadastrarItemEstoque.response.body.$.id}}
+
+### 07 - Abertura da ordem de servico
+# PrioridadeOrdemServico.Normal = 2
+# @name criarOrdemServico
+POST {{GearUp.Api_HostAddress}}/api/ordens-servico
+Authorization: Bearer {{AdminToken}}
+Content-Type: application/json
+Accept: application/json
+
+{
+  "clienteId": "{{ClienteId}}",
+  "veiculoId": "{{VeiculoId}}",
+  "solicitacaoInicial": "Troca de oleo e revisao preventiva.",
+  "prioridade": 2,
+  "prazo": "2026-07-01T18:00:00Z"
+}
+
+###
+
+@OrdemServicoId = {{criarOrdemServico.response.body.$.id}}
+
+### 08 - Iniciar diagnostico
+POST {{GearUp.Api_HostAddress}}/api/ordens-servico/{{OrdemServicoId}}/diagnostico/iniciar
+Authorization: Bearer {{AdminToken}}
+Accept: application/json
+
+###
+
+### 09 - Registrar diagnostico
+POST {{GearUp.Api_HostAddress}}/api/ordens-servico/{{OrdemServicoId}}/diagnostico
+Authorization: Bearer {{AdminToken}}
+Content-Type: application/json
+Accept: application/json
+
+{
+  "descricao": "Oleo vencido, filtro saturado e revisao preventiva recomendada."
+}
+
+###
+
+### 10 - Criar orcamento
+# TipoItemOrcamento.Peca = 1
+# TipoItemOrcamento.Servico = 3
+# @name criarOrcamento
+POST {{GearUp.Api_HostAddress}}/api/ordens-servico/{{OrdemServicoId}}/orcamentos
+Authorization: Bearer {{AdminToken}}
+Content-Type: application/json
+Accept: application/json
+
+{
+  "itens": [
+    {
+      "tipo": 1,
+      "descricao": "Filtro de oleo",
+      "quantidade": 1,
+      "valorUnitario": 49.90,
+      "estoqueItemId": "{{EstoqueItemId}}"
+    },
+    {
+      "tipo": 3,
+      "descricao": "Troca de oleo e revisao preventiva",
+      "quantidade": 1,
+      "valorUnitario": 180.00,
+      "estoqueItemId": null
+    }
+  ]
+}
+
+###
+
+@OrcamentoId = {{criarOrcamento.response.body.$.id}}
+
+### 11 - Cliente consulta a ordem de servico com orcamento
+GET {{GearUp.Api_HostAddress}}/api/ordens-servico/{{OrdemServicoId}}
+Authorization: Bearer {{ClienteToken}}
+Accept: application/json
+
+###
+
+### 12 - Cliente aprova o orcamento
+# @name aprovarOrcamento
+POST {{GearUp.Api_HostAddress}}/api/ordens-servico/{{OrdemServicoId}}/orcamentos/{{OrcamentoId}}/decisao
+Authorization: Bearer {{ClienteToken}}
+Content-Type: application/json
+Accept: application/json
+
+{
+  "aprovado": true
+}
+
+###
+
+### 13 - Alterar status para aguardando execucao
+# StatusOrdemServico.AguardandoExecucao = 7
+PATCH {{GearUp.Api_HostAddress}}/api/ordens-servico/{{OrdemServicoId}}/status
+Authorization: Bearer {{AdminToken}}
+Content-Type: application/json
+Accept: application/json
+
+{
+  "status": 7
+}
+
+###
+
+### 14 - Iniciar execucao do servico
+# StatusOrdemServico.EmExecucao = 8
+PATCH {{GearUp.Api_HostAddress}}/api/ordens-servico/{{OrdemServicoId}}/status
+Authorization: Bearer {{AdminToken}}
+Content-Type: application/json
+Accept: application/json
+
+{
+  "status": 8
+}
+
+###
+
+### 15 - Finalizar servico
+# StatusOrdemServico.Finalizada = 9
+PATCH {{GearUp.Api_HostAddress}}/api/ordens-servico/{{OrdemServicoId}}/status
+Authorization: Bearer {{AdminToken}}
+Content-Type: application/json
+Accept: application/json
+
+{
+  "status": 9
+}
+
+###
+
+### 16 - Entregar veiculo ao cliente
+# StatusOrdemServico.Entregue = 10
+PATCH {{GearUp.Api_HostAddress}}/api/ordens-servico/{{OrdemServicoId}}/status
+Authorization: Bearer {{AdminToken}}
+Content-Type: application/json
+Accept: application/json
+
+{
+  "status": 10
+}
+
+###
+
+### 17 - Consultar ordem de servico finalizada
+GET {{GearUp.Api_HostAddress}}/api/ordens-servico/{{OrdemServicoId}}
+Authorization: Bearer {{AdminToken}}
+Accept: application/json
+
+###
+
+### 18 - Listar notificacoes do atendente
+GET {{GearUp.Api_HostAddress}}/api/notificacoes/notificacoes
+Authorization: Bearer {{AdminToken}}
+Accept: application/json
+
+###
+
+### 19 - Listar notificacoes do cliente
+GET {{GearUp.Api_HostAddress}}/api/notificacoes/notificacoes
+Authorization: Bearer {{ClienteToken}}
+Accept: application/json
 
 ###

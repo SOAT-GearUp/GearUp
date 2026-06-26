@@ -26,6 +26,14 @@ public sealed class GearUpApiFactory : WebApplicationFactory<Program>, IAsyncLif
         .WithPassword("GearUp_Strong!Pass123")
         .Build();
 
+    public GearUpApiFactory()
+    {
+        Environment.SetEnvironmentVariable("Jwt__Key", JwtKey);
+        Environment.SetEnvironmentVariable("Jwt__Issuer", "GearUp");
+        Environment.SetEnvironmentVariable("Jwt__Audience", "GearUp.Clients");
+        Environment.SetEnvironmentVariable("Jwt__ExpirationMinutes", "60");
+    }
+
     public async Task InitializeAsync()
     {
         await postgres.StartAsync();
