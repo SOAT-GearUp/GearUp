@@ -5,7 +5,7 @@ using GearUp.Application.Common.Interfaces;
 using GearUp.Domain.Entities;
 using GearUp.Domain.ValueObjects;
 
-namespace GearUp.Application.UnitTests.Cadastro.Clientes;
+namespace GearUp.Application.UnitTests.Cadastro.Clientes.Cadastrar;
 
 public sealed class CadastrarClienteUseCaseTests
 {
