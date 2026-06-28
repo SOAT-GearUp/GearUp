@@ -19,7 +19,7 @@ public sealed class OrdemServicoTests
     }
 
     [Fact]
-    public void FluxoDiagnosticoEOrcamentoAprovado_DeveAguardarPecas()
+    public void FluxoDiagnosticoEOrcamentoAprovado_SemEstoqueDisponivel_DeveAguardarPecas()
     {
         var os = Criar();
         os.IniciarDiagnostico(Guid.NewGuid());
@@ -32,6 +32,20 @@ public sealed class OrdemServicoTests
         Assert.Equal(StatusOrdemServico.AguardandoPecasInsumos, os.Status);
         Assert.Contains(os.DomainEvents.OfType<OrcamentoDisponivelDomainEvent>(), e => e.Versao == 1);
         Assert.Contains(os.DomainEvents.OfType<NotificacaoSolicitadaDomainEvent>(), e => e.Destinatario == DestinatarioNotificacao.Cliente);
+    }
+
+    [Fact]
+    public void FluxoDiagnosticoEOrcamentoAprovado_ComEstoqueDisponivel_DeveAguardarExecucao()
+    {
+        var os = Criar();
+        os.IniciarDiagnostico(Guid.NewGuid());
+        os.RegistrarDiagnostico("Trocar pastilhas.");
+
+        var orcamentoId = Guid.NewGuid();
+        os.AguardarAprovacao(orcamentoId, 1);
+        os.ReceberDecisaoOrcamento(orcamentoId, aprovado: true, estoqueDisponivelParaExecucao: true);
+
+        Assert.Equal(StatusOrdemServico.AguardandoExecucao, os.Status);
     }
 
     [Fact]
@@ -92,8 +106,7 @@ public sealed class OrdemServicoTests
 
         var orcamentoId = Guid.NewGuid();
         os.AguardarAprovacao(orcamentoId, 1);
-        os.ReceberDecisaoOrcamento(orcamentoId, true);
-        os.AlterarStatus(StatusOrdemServico.AguardandoExecucao);
+        os.ReceberDecisaoOrcamento(orcamentoId, true, estoqueDisponivelParaExecucao: true);
         os.IniciarExecucao([]);
         os.AlterarStatus(StatusOrdemServico.Finalizada);
         os.AlterarStatus(StatusOrdemServico.Entregue);

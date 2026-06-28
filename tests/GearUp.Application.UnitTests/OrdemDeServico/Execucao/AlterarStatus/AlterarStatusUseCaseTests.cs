@@ -86,8 +86,7 @@ public sealed class AlterarStatusUseCaseTests
         os.RegistrarDiagnostico("Pastilhas gastas");
         var orcamentoId = Guid.NewGuid();
         os.AguardarAprovacao(orcamentoId, 1);
-        os.ReceberDecisaoOrcamento(orcamentoId, true);
-        os.AlterarStatus(StatusOrdemServico.AguardandoExecucao);
+        os.ReceberDecisaoOrcamento(orcamentoId, true, estoqueDisponivelParaExecucao: true);
         return os;
     }
 

@@ -204,8 +204,7 @@ public sealed class OrdemServicoAdicionaisTests
         os.RegistrarDiagnostico("Diagnóstico");
         var orcamentoId = Guid.NewGuid();
         os.AguardarAprovacao(orcamentoId, 1);
-        os.ReceberDecisaoOrcamento(orcamentoId, true);
-        os.AlterarStatus(StatusOrdemServico.AguardandoExecucao);
+        os.ReceberDecisaoOrcamento(orcamentoId, true, estoqueDisponivelParaExecucao: true);
         os.IniciarExecucao([]);
         os.AlterarStatus(StatusOrdemServico.Finalizada);
         return os;
@@ -218,8 +217,7 @@ public sealed class OrdemServicoAdicionaisTests
         os.RegistrarDiagnostico("Diagnóstico");
         var orcamentoId = Guid.NewGuid();
         os.AguardarAprovacao(orcamentoId, 1);
-        os.ReceberDecisaoOrcamento(orcamentoId, true);
-        os.AlterarStatus(StatusOrdemServico.AguardandoExecucao);
+        os.ReceberDecisaoOrcamento(orcamentoId, true, estoqueDisponivelParaExecucao: true);
         return os;
     }
 }

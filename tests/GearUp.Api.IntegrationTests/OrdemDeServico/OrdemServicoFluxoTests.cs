@@ -76,12 +76,6 @@ public sealed class OrdemServicoFluxoTests(GearUpApiFactory factory) : Integrati
         });
         Assert.Equal(HttpStatusCode.NoContent, decidir.StatusCode);
 
-        var aguardarExecucao = await client.PatchAsJsonAsync($"/api/ordens-servico/{ordemServicoId}/status", new
-        {
-            status = StatusOrdemServico.AguardandoExecucao
-        });
-        Assert.Equal(HttpStatusCode.NoContent, aguardarExecucao.StatusCode);
-
         var iniciarExecucao = await client.PatchAsJsonAsync($"/api/ordens-servico/{ordemServicoId}/status", new
         {
             status = StatusOrdemServico.EmExecucao

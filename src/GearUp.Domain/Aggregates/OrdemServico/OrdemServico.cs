@@ -77,15 +77,23 @@ public sealed class OrdemServico : AggregateRoot
         AdicionarDomainEvent(new OrcamentoDisponivelDomainEvent(Id, ClienteId, orcamentoId, versao, DateTimeOffset.UtcNow));
     }
 
-    public void ReceberDecisaoOrcamento(Guid orcamentoId, bool aprovado)
+    public void ReceberDecisaoOrcamento(Guid orcamentoId, bool aprovado, bool estoqueDisponivelParaExecucao = false)
     {
         ExigirStatus(StatusOrdemServico.AguardandoAprovacao);
 
         var status = aprovado
-            ? StatusOrdemServico.AguardandoPecasInsumos
+            ? estoqueDisponivelParaExecucao
+                ? StatusOrdemServico.AguardandoExecucao
+                : StatusOrdemServico.AguardandoPecasInsumos
             : StatusOrdemServico.AguardandoOrcamento;
 
-        AlterarStatusInterno(status, aprovado ? "ORCAMENTO_APROVADO" : "ORCAMENTO_REJEITADO", aprovado ? "Orçamento aprovado." : "Orçamento rejeitado.");
+        var descricao = aprovado
+            ? estoqueDisponivelParaExecucao
+                ? "Orçamento aprovado; aguardando execução."
+                : "Orçamento aprovado."
+            : "Orçamento rejeitado.";
+
+        AlterarStatusInterno(status, aprovado ? "ORCAMENTO_APROVADO" : "ORCAMENTO_REJEITADO", descricao);
 
         if (aprovado)
             AdicionarDomainEvent(new OrcamentoAprovadoDomainEvent(Id, ClienteId, orcamentoId, DateTimeOffset.UtcNow));
