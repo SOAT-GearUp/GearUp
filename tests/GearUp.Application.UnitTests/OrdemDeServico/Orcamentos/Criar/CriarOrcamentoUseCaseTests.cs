@@ -37,6 +37,29 @@ public sealed class CriarOrcamentoUseCaseTests
     }
 
     [Fact]
+    public async Task CriarAsync_ComOrdemServicoRecebida_DeveCriarOrcamentoESalvar()
+    {
+        var os = OrdemServico.Criar(Guid.NewGuid(), Guid.NewGuid(), "Troca de oleo", PrioridadeOrdemServico.Normal, null);
+        var ordemServicoRepository = new OrdemServicoRepositoryFake(os);
+        var orcamentoRepository = new OrcamentoRepositoryFake(quantidadeExistente: 0);
+        var unitOfWork = new UnitOfWorkFake();
+        var useCase = new CriarOrcamentoUseCase(ordemServicoRepository, orcamentoRepository, unitOfWork);
+        var command = new CriarOrcamentoCommand(os.Id,
+        [
+            new CriarItemOrcamentoCommand(TipoItemOrcamento.Servico, "Troca de oleo", 1, 120m, null),
+        ]);
+
+        var result = await useCase.CriarAsync(command, CancellationToken.None);
+
+        Assert.NotEqual(Guid.Empty, result.Id);
+        Assert.Equal(1, result.Versao);
+        Assert.Equal(120m, result.ValorTotal);
+        Assert.NotNull(orcamentoRepository.OrcamentoAdicionado);
+        Assert.Equal(StatusOrdemServico.AguardandoAprovacao, os.Status);
+        Assert.Equal(1, unitOfWork.SaveChangesChamadas);
+    }
+
+    [Fact]
     public async Task CriarAsync_ComOrdemServicoInexistente_DeveLancarRecursoNaoEncontrado()
     {
         var ordemServicoRepository = new OrdemServicoRepositoryFake(null);
@@ -76,6 +99,7 @@ public sealed class CriarOrcamentoUseCaseTests
     public async Task CriarAsync_ComStatusOrdemServicoInvalido_DeveLancarRegraNegocio()
     {
         var os = OrdemServico.Criar(Guid.NewGuid(), Guid.NewGuid(), "Solicitação", PrioridadeOrdemServico.Normal, null);
+        os.IniciarDiagnostico(Guid.NewGuid());
         var ordemServicoRepository = new OrdemServicoRepositoryFake(os);
         var orcamentoRepository = new OrcamentoRepositoryFake(quantidadeExistente: 0);
         var unitOfWork = new UnitOfWorkFake();

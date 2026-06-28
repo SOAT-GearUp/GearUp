@@ -114,9 +114,22 @@ public sealed class OrdemServicoAdicionaisTests
     }
 
     [Fact]
+    public void AguardarAprovacao_QuandoRecebida_DeveSerPermitido()
+    {
+        var os = Criar();
+        var orcamentoId = Guid.NewGuid();
+
+        os.AguardarAprovacao(orcamentoId, 1);
+
+        Assert.Equal(StatusOrdemServico.AguardandoAprovacao, os.Status);
+        Assert.Contains(os.DomainEvents.OfType<OrcamentoDisponivelDomainEvent>(), e => e.OrcamentoId == orcamentoId);
+    }
+
+    [Fact]
     public void AguardarAprovacao_QuandoStatusInvalido_DeveFalhar()
     {
         var os = Criar();
+        os.IniciarDiagnostico(Guid.NewGuid());
 
         var ex = Assert.Throws<RegraNegocioException>(() => os.AguardarAprovacao(Guid.NewGuid(), 1));
         Assert.Equal("STATUS_OS_INVALIDO", ex.Codigo);
