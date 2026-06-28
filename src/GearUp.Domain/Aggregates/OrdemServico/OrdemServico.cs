@@ -63,8 +63,15 @@ public sealed class OrdemServico : AggregateRoot
 
     public void AguardarAprovacao(Guid orcamentoId, int versao)
     {
-        if (Status is not (StatusOrdemServico.AguardandoOrcamento or StatusOrdemServico.AguardandoAprovacao))
-            throw new RegraNegocioException("STATUS_OS_INVALIDO", "A OS não está aguardando orçamento.");
+        if (Status is not (
+            StatusOrdemServico.Recebida or
+            StatusOrdemServico.AguardandoOrcamento or
+            StatusOrdemServico.AguardandoAprovacao))
+        {
+            throw new RegraNegocioException(
+                "STATUS_OS_INVALIDO",
+                "A OS não está apta para geração de orçamento.");
+        }
 
         AlterarStatusInterno(StatusOrdemServico.AguardandoAprovacao, "ORCAMENTO_GERADO", $"Orçamento v{versao} gerado.");
         AdicionarDomainEvent(new OrcamentoDisponivelDomainEvent(Id, ClienteId, orcamentoId, versao, DateTimeOffset.UtcNow));

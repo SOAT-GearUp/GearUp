@@ -157,6 +157,10 @@ RF09. O sistema deve permitir definir prioridades para ordens de serviço utiliz
 
 **RF12.** O sistema deve permitir gerar orçamentos vinculados às ordens de serviço.
 
+**RF12.1.** O sistema deve permitir gerar orçamento para uma ordem de serviço com status **Recebida** quando a solicitação inicial representar um serviço conhecido que não exige diagnóstico prévio.
+
+**RF12.2.** O sistema deve exigir diagnóstico antes da geração do orçamento quando a solicitação inicial não representar um serviço conhecido.
+
 **RF13.** O sistema deve permitir adicionar, editar e remover itens do orçamento.
 
 **RF14.** O sistema deve permitir registrar peças, mão de obra e serviços no orçamento.

@@ -329,6 +329,16 @@ OS Finalizada
 
 ---
 
+#### Serviço Conhecido
+
+**Contexto:** Atendimento / Diagnóstico & Orçamento  
+**Definição:** Serviço cujo escopo, peças, insumos e mão de obra podem ser estimados sem diagnóstico prévio, pois representa uma demanda recorrente e conhecida pela oficina. Exemplos: troca de óleo, substituição de filtro, alinhamento ou balanceamento.  
+**Regra de negócio:** Uma **Ordem de Serviço** com status `Recebida` pode receber **Orçamento** diretamente quando a **Solicitação Inicial** representar um serviço conhecido que não exige diagnóstico prévio. Quando a solicitação não for um serviço conhecido, a OS deve passar por **Diagnóstico** antes da geração do orçamento.  
+**Personas envolvidas:** Atendente, Cliente  
+**Referência nos requisitos:** RF12.1, RF12.2
+
+---
+
 #### Solicitação Inicial
 
 **Contexto:** Atendimento  
@@ -405,6 +415,7 @@ Esta seção consolida todos os termos que possuem duplo significado ou que são
 |**Cliente**|Pessoa que leva o carro à oficina|Aplicação que consome a API|Em reuniões de negócio: sempre a persona. Em contextos técnicos de integração: especificar "cliente HTTP" ou "aplicação cliente".|
 |**Aprovação**|Cliente aprova o orçamento|N/A|Sempre se refere à aprovação de orçamento quando em contexto de negócio.|
 |**Serviço**|Trabalho mecânico no veículo|Microsserviço / serviço de aplicação|Qualificar quando necessário: "serviço mecânico" vs. "serviço de aplicação".|
+|**Serviço Conhecido**|Serviço mecânico que pode ser orçado sem diagnóstico prévio|N/A|Usar quando a solicitação inicial permite orçamento direto com a OS ainda em status `Recebida`.|
 |**Status**|Estado atual da OS no fluxo|Estado HTTP da requisição|Usar "Status da OS" para negócio; "código de status HTTP" para contexto técnico.|
 |**Histórico**|Histórico do cliente / Histórico de eventos|Log de sistema|Qualificar: "Histórico do Cliente", "Histórico de Eventos da OS".|
 |**OS**|Abreviação de Ordem de Serviço|N/A|Aceito como sinônimo de Ordem de Serviço em todos os contextos.|
@@ -453,6 +464,7 @@ Os termos da linguagem ubíqua devem se refletir diretamente no código-fonte. A
 
 |Data|Versão|Mudança|Responsável|
 |---|---|---|---|
+|27/06/2026|1.1|Inclusão do termo Serviço Conhecido e da regra de orçamento direto para OS recebida|José Henrique|
 |11/06/2026|1.0|Criação inicial do documento com termos extraídos dos documentos de requisitos e ADRs|Vitor Onofre Ramos|
 
 ---
