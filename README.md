@@ -25,9 +25,52 @@ abre direto no navegador; é preciso importar o arquivo no site.
 | Documento | Descrição |
 |---|---|
 | [ADRs](docs/ADR/Documentação%20ADR.md) | Registro de decisões arquiteturais (monólito modular, DDD, Clean Architecture, etc.) |
-| [Linguagem Ubíqua](docs/Linguagem%20Ubíqua/Documetação%20Linguagem%20Ubíqua.md) | Glossário, bounded contexts e termos do domínio |
+| [Linguagem Ubíqua](docs/Linguagem%20Ubíqua/Documentação%20Linguagem%20Ubíqua.md) | Glossário, bounded contexts e termos do domínio |
 | [Requisitos](docs/Requisitos/Documentação%20de%20Requisitos.md) | Personas, problema, requisitos funcionais e não funcionais |
 | [Matriz de Rastreabilidade](docs/Requisitos/Matriz%20de%20Rastreabilidade.md) | Rastreio requisito → implementação no código |
+
+### Domínio, subdomínios e bounded contexts
+
+O **domínio** do GearUp é a gestão de oficina mecânica: cadastro de clientes e
+veículos, ordens de serviço, diagnóstico, orçamento, execução e estoque.
+
+Em DDD, **subdomínio** e **bounded context** são conceitos distintos:
+
+| Conceito | Espaço | Pergunta que responde |
+|---|---|---|
+| **Subdomínio** | Problema (negócio) | *Que parte do negócio estamos modelando?* |
+| **Bounded context** | Solução (software) | *Onde este modelo e vocabulário valem no código?* |
+
+Um bounded context **não é sinônimo** de subdomínio: ele **implementa** (total ou
+parcialmente) um subdomínio, com linguagem ubíqua e limites transacionais
+próprios. Um subdomínio pode ser dividido em mais de um bounded context; um
+bounded context pode atender mais de um subdomínio — embora, neste projeto, a
+relação seja em geral próxima de 1:1.
+
+O GearUp usa **duas nomenclaturas** de bounded context, conforme o artefato de
+origem:
+
+| Subdomínio | Tipo | Event Storming | Linguagem Ubíqua | Onde no código |
+|---|---|---|---|---|
+| Atendimento e cadastro | Supporting | Cadastro | Atendimento | `Cadastro/`, `OrdemDeServico/Ordens/` |
+| Diagnóstico e orçamentação | Core | Ordem de Serviço | Diagnóstico & Orçamento | `OrdemDeServico/Diagnosticos/`, `OrdemDeServico/Orcamentos/` |
+| Execução de serviços | Core | Ordem de Serviço | Execução | `OrdemDeServico/Execucao/` |
+| Controle de estoque | Supporting | Estoque | Estoque | `Estoque/` |
+| Comunicação com cliente | Generic | Comunicação | — | `Comunicacao/` |
+| Autenticação e autorização | Generic | — (fora do workshop) | — | `Autenticacao/` |
+
+**Referências por nomenclatura:**
+
+- **Event Storming e agregados:** Cadastro, Ordem de Serviço, Estoque,
+  Comunicação — ver [ADR-004](docs/ADR/Documentação%20ADR.md#adr-004---modelagem-dos-agregados-do-domínio).
+- **Linguagem ubíqua e vocabulário do código:** Atendimento, Diagnóstico &
+  Orçamento, Execução, Estoque — ver
+  [Linguagem Ubíqua](docs/Linguagem%20Ubíqua/Documentação%20Linguagem%20Ubíqua.md).
+
+O contexto **Ordem de Serviço** (Event Storming) concentra o fluxo central da
+oficina; a Linguagem Ubíqua o subdivide em Atendimento, Diagnóstico & Orçamento
+e Execução para reduzir ambiguidade de termos. Detalhes e classificação dos
+subdomínios estão na [ADR-004](docs/ADR/Documentação%20ADR.md#adr-004---modelagem-dos-agregados-do-domínio).
 
 ## Como executar o projeto
 

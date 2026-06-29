@@ -144,6 +144,8 @@ Após autenticação, o usuário receberá um token assinado digitalmente conten
 
 **Revisão:** 24/06/2026 — alinhamento ao Event Storming: `Veiculo`, `Orcamento` e `Notificacao` passam a ser Aggregate Roots próprios; bounded contexts explicitados conforme o workshop.
 
+**Revisão:** 28/06/2026 — documentação de subdomínios e relação com bounded contexts (espaço do problema vs. espaço da solução).
+
 **Status:** Aceita
 
 ## Contexto
@@ -154,7 +156,40 @@ Era necessário definir limites transacionais que garantissem consistência sem 
 
 O mapeamento de domínio realizado via Event Storming (`Event Storming/Documentação Event Storming.md`) organiza o negócio em quatro bounded contexts — **Cadastro**, **Ordem de Serviço**, **Estoque** e **Comunicação** — cada um com agregados e eventos próprios. A modelagem de agregados deve refletir esse mapeamento como fonte de verdade.
 
+Paralelamente, a [Linguagem Ubíqua](../Linguagem%20Ubíqua/Documentação%20Linguagem%20Ubíqua.md) organiza o vocabulário do código em quatro contextos — **Atendimento**, **Diagnóstico & Orçamento**, **Execução** e **Estoque** — para reduzir ambiguidade de termos no fluxo central da oficina.
+
 ## Decisão
+
+### Subdomínios e bounded contexts
+
+**Subdomínio** e **bounded context** não são sinônimos:
+
+| Conceito | Espaço | Definição |
+|---|---|---|
+| **Subdomínio** | Problema (negócio) | Fatia do domínio de negócio que o sistema precisa cobrir. |
+| **Bounded context** | Solução (software) | Limite onde um modelo de domínio e sua linguagem ubíqua são consistentes e unívocos. |
+
+Um bounded context **implementa** um subdomínio (ou parte dele). A relação ideal é próxima de 1:1, mas um subdomínio pode ser dividido em vários bounded contexts, ou um bounded context pode atender mais de um subdomínio.
+
+Os subdomínios do GearUp e sua relação com os bounded contexts documentados:
+
+| Subdomínio | Classificação DDD | Bounded context (Event Storming) | Bounded context (Linguagem Ubíqua) | Agregados / pastas no código |
+|---|---|---|---|---|
+| Atendimento e cadastro | Supporting | Cadastro | Atendimento | `Cliente`, `Veiculo` — `Cadastro/`, abertura de OS em `OrdemDeServico/Ordens/` |
+| Diagnóstico e orçamentação | Core | Ordem de Serviço | Diagnóstico & Orçamento | `OrdemServico`, `Orcamento` — `OrdemDeServico/Diagnosticos/`, `OrdemDeServico/Orcamentos/` |
+| Execução de serviços | Core | Ordem de Serviço | Execução | `OrdemServico` — `OrdemDeServico/Execucao/` |
+| Controle de estoque | Supporting | Estoque | Estoque | `Estoque` — `Estoque/` |
+| Comunicação com cliente | Generic | Comunicação | — | `Notificacao` — `Comunicacao/` |
+| Autenticação e autorização | Generic | — (fora do Event Storming) | — | `Usuario` — `Autenticacao/` |
+
+**Fontes de verdade por nomenclatura:**
+
+- **Agregados e limites transacionais:** bounded contexts do Event Storming (tabela abaixo).
+- **Vocabulário e termos no código:** bounded contexts da Linguagem Ubíqua.
+
+O bounded context **Ordem de Serviço** (Event Storming) agrupa o fluxo central da oficina — da abertura da OS à entrega. A Linguagem Ubíqua subdivide esse fluxo em **Atendimento**, **Diagnóstico & Orçamento** e **Execução** porque cada etapa usa termos e regras distintos (ex.: *Aprovação* pertence a Diagnóstico & Orçamento; *Status da OS* pertence a Execução).
+
+### Agregados por bounded context (Event Storming)
 
 Os agregados serão organizados por bounded context, conforme o Event Storming:
 
