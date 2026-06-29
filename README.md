@@ -1,7 +1,5 @@
 # GearUp
 
-[![Quality Gate Status](https://sonarcloud.io/api/project_badges/measure?project=SOAT-GearUp_GearUp&metric=alert_status)](https://sonarcloud.io/summary/new_code?id=SOAT-GearUp_GearUp)
-
 API REST para gestão de oficina mecânica, construída em .NET 10, PostgreSQL,
 DDD e Clean Architecture.
 
@@ -290,6 +288,22 @@ O workflow em `.github/workflows/ci.yml` exige **pelo menos 80% de cobertura
 de linhas** em `GearUp.Domain`; abaixo disso o build falha. A cobertura pode
 ser conferida pela tabela do Coverlet ou pelo `line-rate` no XML gerado por
 `GearUp.Domain.UnitTests`.
+
+### Análise de Vulnerabilidades
+
+[![SonarQube Cloud](https://sonarcloud.io/images/project_badges/sonarcloud-light.svg)](https://sonarcloud.io/summary/new_code?id=SOAT-GearUp_GearUp)
+
+Foi realizada uma análise estática do código utilizando o SonarCloud. O scan avaliou aspectos de segurança, confiabilidade, manutenibilidade e cobertura de testes do projeto.
+
+Durante a análise, foram identificados pontos de segurança e qualidade que foram tratados no código. Após as correções, o projeto apresentou evolução nos indicadores do SonarCloud, incluindo redução de **Security Issues**, melhoria do **Security Rating** e acompanhamento da evolução de cobertura e code smells.
+
+Links relacionados:
+
+| Item | Como acessar |
+|---|---|
+| Dashboard no SonarCloud | [SOAT-GearUp / GearUp](https://sonarcloud.io/summary/new_code?id=SOAT-GearUp_GearUp) |
+| Relatório de análise de vulnerabilidades | [docs/Relatorios/Analise de Vulnerabilidades/Relatorio de Analise de Vulnerabilidades.md](docs/Relatorios/Analise%20de%20Vulnerabilidades/Relatorio%20de%20Analise%20de%20Vulnerabilidades.md) |
+| Gráficos utilizados no relatório | [docs/Relatorios/Analise de Vulnerabilidades/imagens](docs/Relatorios/Analise%20de%20Vulnerabilidades/imagens) |
 
 ## Camadas
 
