@@ -314,3 +314,9 @@ Links relacionados:
 
 O fluxo de dependências é `Api -> Application/Infrastructure`,
 `Infrastructure -> Application/Domain` e `Application -> Domain`.
+
+## Testes de Integração
+
+A pasta **`Docs/Postman/`** contém cinco collections do Postman utilizadas para os testes de integração da API.
+Importe todos os arquivos .json dessa pasta no Postman e selecione o `environment`**`Test`**. Em seguida, execute as collection na sequência numérica definida na nomenclatura dos arquivos (1 - ..., 2 - ..., 3 - ..., etc.), 
+respeitando a ordem de execução devido às dependências entre os testes.
