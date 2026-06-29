@@ -1,169 +1,11 @@
 {
   "info": {
-    "_postman_id": "fa76ddc6-be2b-4459-82bb-efb46e66b3ff",
-    "name": "4 - Aprovação de Orçamento",
+    "_postman_id": "fb8a278f-3b95-4abc-a5cd-7fae7ed2f65c",
+    "name": "3 - Criação de OS Simples",
     "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
     "_exporter_id": "27765086"
   },
   "item": [
-    {
-      "name": "/api/autenticacao/login - Logar como Cliente",
-      "event": [
-        {
-          "listen": "test",
-          "script": {
-            "exec": [
-              "var response = pm.response.json();\r",
-              "pm.environment.set(\"bearerToken\", response.accessToken);"
-            ],
-            "type": "text/javascript",
-            "packages": {},
-            "requests": {}
-          }
-        }
-      ],
-      "request": {
-        "method": "POST",
-        "header": [
-          {
-            "key": "Content-Type",
-            "value": "application/json"
-          },
-          {
-            "key": "Accept",
-            "value": "text/plain"
-          }
-        ],
-        "body": {
-          "mode": "raw",
-          "raw": "{\n  \"usuario\": \"cliente\",\n  \"senha\": \"cliente@123\"\n}",
-          "options": {
-            "raw": {
-              "headerFamily": "json",
-              "language": "json"
-            }
-          }
-        },
-        "url": {
-          "raw": "{{baseUrl}}/api/autenticacao/login",
-          "host": [
-            "{{baseUrl}}"
-          ],
-          "path": [
-            "api",
-            "autenticacao",
-            "login"
-          ]
-        }
-      },
-      "response": []
-    },
-    {
-      "name": "/api/ordens-servico - Listar OSs",
-      "request": {
-        "method": "GET",
-        "header": [
-          {
-            "key": "Accept",
-            "value": "text/plain"
-          }
-        ],
-        "url": {
-          "raw": "{{baseUrl}}/api/ordens-servico",
-          "host": [
-            "{{baseUrl}}"
-          ],
-          "path": [
-            "api",
-            "ordens-servico"
-          ],
-          "query": [
-            {
-              "key": "emAndamento",
-              "value": "true",
-              "disabled": true
-            },
-            {
-              "key": "clienteId",
-              "value": "{{clienteEncontradoId}}",
-              "disabled": true
-            }
-          ]
-        }
-      },
-      "response": []
-    },
-    {
-      "name": "/api/ordens-servico/:ordemServicoId - Listar Orçamentos da OS selecionada",
-      "request": {
-        "method": "GET",
-        "header": [
-          {
-            "key": "Accept",
-            "value": "text/plain"
-          }
-        ],
-        "url": {
-          "raw": "{{baseUrl}}/api/ordens-servico/:ordemServicoId",
-          "host": [
-            "{{baseUrl}}"
-          ],
-          "path": [
-            "api",
-            "ordens-servico",
-            ":ordemServicoId"
-          ],
-          "variable": [
-            {
-              "key": "ordemServicoId",
-              "value": "{{OSSimplesCriadaId}}"
-            }
-          ]
-        }
-      },
-      "response": []
-    },
-    {
-      "name": "/api/ordens-servico/:ordemServicoId/orcamentos/:orcamentoId/decisao - Aprovar Orçamento",
-      "request": {
-        "method": "POST",
-        "header": [
-          {
-            "key": "Content-Type",
-            "value": "application/json"
-          },
-          {
-            "key": "Accept",
-            "value": "text/plain"
-          }
-        ],
-        "body": {
-          "mode": "raw",
-          "raw": "{\n  \"aprovado\": true\n}",
-          "options": {
-            "raw": {
-              "headerFamily": "json",
-              "language": "json"
-            }
-          }
-        },
-        "url": {
-          "raw": "{{baseUrl}}/api/ordens-servico/{{OSSimplesCriadaId}}/orcamentos/{{OrcamentoOSSimplesCriadoId}}/decisao",
-          "host": [
-            "{{baseUrl}}"
-          ],
-          "path": [
-            "api",
-            "ordens-servico",
-            "{{OSSimplesCriadaId}}",
-            "orcamentos",
-            "{{OrcamentoOSSimplesCriadoId}}",
-            "decisao"
-          ]
-        }
-      },
-      "response": []
-    },
     {
       "name": "/api/autenticacao/login - Logar como Atendente",
       "event": [
@@ -217,18 +59,199 @@
       "response": []
     },
     {
-      "name": "/api/Notificacoes/notificacoes - Listar Notificações Atendente",
+      "name": "/api/ordens-servico - Listar OSs",
       "request": {
-        "auth": {
-          "type": "bearer",
-          "bearer": [
+        "method": "GET",
+        "header": [
+          {
+            "key": "Accept",
+            "value": "text/plain"
+          }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/api/ordens-servico",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "api",
+            "ordens-servico"
+          ],
+          "query": [
             {
-              "key": "token",
-              "value": "{{bearerToken}}",
-              "type": "string"
+              "key": "emAndamento",
+              "value": "true",
+              "disabled": true
+            },
+            {
+              "key": "clienteId",
+              "value": "0213abfd-6f16-7347-b9e4-1826fd6633bd",
+              "disabled": true
             }
           ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "/api/ordens-servico - Criar nova OS",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "var response = pm.response.json();\r",
+              "pm.environment.set(\"OSSimplesCriadaId\", response.id);"
+            ],
+            "type": "text/javascript",
+            "packages": {},
+            "requests": {}
+          }
+        }
+      ],
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "Accept",
+            "value": "text/plain"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n    \"clienteId\": \"{{clienteEncontradoId}}\",\n    \"veiculoId\": \"{{veiculoCadastradoId}}\",\n    \"solicitacaoInicial\": \"Troca de Óleo\",\n    \"prioridade\": 4,\n    \"prazo\": \"1963-03-16T02:29:17.135Z\"\n}",
+          "options": {
+            "raw": {
+              "headerFamily": "json",
+              "language": "json"
+            }
+          }
         },
+        "url": {
+          "raw": "{{baseUrl}}/api/ordens-servico",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "api",
+            "ordens-servico"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "/api/ordens-servico/:ordemServicoId/orcamentos - Criar novo Orçamento",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "var response = pm.response.json();\r",
+              "pm.environment.set(\"OrcamentoOSSimplesCriadoId\", response.id);"
+            ],
+            "type": "text/javascript",
+            "packages": {},
+            "requests": {}
+          }
+        }
+      ],
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "Accept",
+            "value": "text/plain"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"itens\": [\n    {\n      \"tipo\": 1,\n      \"descricao\": \"Filtro do Óleo\",\n      \"quantidade\": 1,\n      \"valorUnitario\": 185,\n      \"estoqueItemId\": \"{{estoqueFiltroId}}\" \n    },\n    {\n      \"tipo\": 2,\n      \"descricao\": \"Óleo\",\n      \"quantidade\": 5,\n      \"valorUnitario\": 39,\n      \"estoqueItemId\": \"{{estoqueOleoId}}\"\n    }\n  ]\n}",
+          "options": {
+            "raw": {
+              "headerFamily": "json",
+              "language": "json"
+            }
+          }
+        },
+        "url": {
+          "raw": "{{baseUrl}}/api/ordens-servico/{{OSSimplesCriadaId}}/orcamentos",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "api",
+            "ordens-servico",
+            "{{OSSimplesCriadaId}}",
+            "orcamentos"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "/api/autenticacao/login - Logar como Cliente",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "var response = pm.response.json();\r",
+              "pm.environment.set(\"bearerToken\", response.accessToken);"
+            ],
+            "type": "text/javascript",
+            "packages": {},
+            "requests": {}
+          }
+        }
+      ],
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "Accept",
+            "value": "text/plain"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"usuario\": \"cliente\",\n  \"senha\": \"cliente@123\"\n}",
+          "options": {
+            "raw": {
+              "headerFamily": "json",
+              "language": "json"
+            }
+          }
+        },
+        "url": {
+          "raw": "{{baseUrl}}/api/autenticacao/login",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "api",
+            "autenticacao",
+            "login"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "/api/Notificacoes/notificacoes - Listar Notificações do Cliente",
+      "request": {
         "method": "GET",
         "header": [],
         "url": {

@@ -1,13 +1,13 @@
 {
   "info": {
-    "_postman_id": "43e3cd2e-f423-4b24-a94b-9a7cfe57ace8",
-    "name": "5 - Execução do Serviço",
+    "_postman_id": "fa76ddc6-be2b-4459-82bb-efb46e66b3ff",
+    "name": "5 - Aprovação de Orçamento",
     "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
     "_exporter_id": "27765086"
   },
   "item": [
     {
-      "name": "/api/autenticacao/login - Logar como Mecanico",
+      "name": "/api/autenticacao/login - Logar como Cliente",
       "event": [
         {
           "listen": "test",
@@ -36,7 +36,7 @@
         ],
         "body": {
           "mode": "raw",
-          "raw": "{\n  \"usuario\": \"macanico\",\n  \"senha\": \"mecanico@123\"\n}",
+          "raw": "{\n  \"usuario\": \"cliente\",\n  \"senha\": \"cliente@123\"\n}",
           "options": {
             "raw": {
               "headerFamily": "json",
@@ -85,7 +85,7 @@
             },
             {
               "key": "clienteId",
-              "value": "{{clienteCriadoId}}",
+              "value": "{{clienteEncontradoId}}",
               "disabled": true
             }
           ]
@@ -94,151 +94,37 @@
       "response": []
     },
     {
-      "name": "/api/ordens-servico/:ordemServicoId/status - Iniciar Execução da OS",
+      "name": "/api/ordens-servico/:ordemServicoId - Listar Orçamentos da OS selecionada",
       "request": {
-        "auth": {
-          "type": "bearer",
-          "bearer": [
-            {
-              "key": "token",
-              "value": "{{bearerToken}}",
-              "type": "string"
-            }
-          ]
-        },
-        "method": "PATCH",
-        "header": [
-          {
-            "key": "Content-Type",
-            "value": "application/json"
-          },
-          {
-            "key": "Accept",
-            "value": "text/plain"
-          }
-        ],
-        "body": {
-          "mode": "raw",
-          "raw": "{\n  \"status\": 8\n}",
-          "options": {
-            "raw": {
-              "headerFamily": "json",
-              "language": "json"
-            }
-          }
-        },
-        "url": {
-          "raw": "{{baseUrl}}/api/ordens-servico/{{OSSimplesCriadaId}}/status",
-          "host": [
-            "{{baseUrl}}"
-          ],
-          "path": [
-            "api",
-            "ordens-servico",
-            "{{OSSimplesCriadaId}}",
-            "status"
-          ]
-        }
-      },
-      "response": []
-    },
-    {
-      "name": "/api/autenticacao/login - Logar como Cliente",
-      "event": [
-        {
-          "listen": "test",
-          "script": {
-            "exec": [
-              "var response = pm.response.json();\r",
-              "pm.environment.set(\"bearerToken\", response.accessToken);"
-            ],
-            "type": "text/javascript",
-            "packages": {},
-            "requests": {}
-          }
-        }
-      ],
-      "request": {
-        "method": "POST",
-        "header": [
-          {
-            "key": "Content-Type",
-            "value": "application/json"
-          },
-          {
-            "key": "Accept",
-            "value": "text/plain"
-          }
-        ],
-        "body": {
-          "mode": "raw",
-          "raw": "{\n  \"usuario\": \"cliente\",\n  \"senha\": \"cliente@123\"\n}",
-          "options": {
-            "raw": {
-              "headerFamily": "json",
-              "language": "json"
-            }
-          }
-        },
-        "url": {
-          "raw": "{{baseUrl}}/api/autenticacao/login",
-          "host": [
-            "{{baseUrl}}"
-          ],
-          "path": [
-            "api",
-            "autenticacao",
-            "login"
-          ]
-        }
-      },
-      "response": []
-    },
-    {
-      "name": "/api/Notificacoes/notificacoes - Listar Notificações do Cliente",
-      "request": {
-        "auth": {
-          "type": "bearer",
-          "bearer": [
-            {
-              "key": "token",
-              "value": "{{bearerToken}}",
-              "type": "string"
-            }
-          ]
-        },
         "method": "GET",
-        "header": [],
+        "header": [
+          {
+            "key": "Accept",
+            "value": "text/plain"
+          }
+        ],
         "url": {
-          "raw": "{{baseUrl}}/api/Notificacoes/notificacoes",
+          "raw": "{{baseUrl}}/api/ordens-servico/:ordemServicoId",
           "host": [
             "{{baseUrl}}"
           ],
           "path": [
             "api",
-            "Notificacoes",
-            "notificacoes"
+            "ordens-servico",
+            ":ordemServicoId"
+          ],
+          "variable": [
+            {
+              "key": "ordemServicoId",
+              "value": "{{OSSimplesCriadaId}}"
+            }
           ]
         }
       },
       "response": []
     },
     {
-      "name": "/api/autenticacao/login - Logar como Mecanico",
-      "event": [
-        {
-          "listen": "test",
-          "script": {
-            "exec": [
-              "var response = pm.response.json();\r",
-              "pm.environment.set(\"bearerToken\", response.accessToken);"
-            ],
-            "type": "text/javascript",
-            "packages": {},
-            "requests": {}
-          }
-        }
-      ],
+      "name": "/api/ordens-servico/:ordemServicoId/orcamentos/:orcamentoId/decisao - Aprovar Orçamento",
       "request": {
         "method": "POST",
         "header": [
@@ -253,7 +139,7 @@
         ],
         "body": {
           "mode": "raw",
-          "raw": "{\n  \"usuario\": \"macanico\",\n  \"senha\": \"mecanico@123\"\n}",
+          "raw": "{\n  \"aprovado\": true\n}",
           "options": {
             "raw": {
               "headerFamily": "json",
@@ -262,55 +148,7 @@
           }
         },
         "url": {
-          "raw": "{{baseUrl}}/api/autenticacao/login",
-          "host": [
-            "{{baseUrl}}"
-          ],
-          "path": [
-            "api",
-            "autenticacao",
-            "login"
-          ]
-        }
-      },
-      "response": []
-    },
-    {
-      "name": "/api/ordens-servico/:ordemServicoId/status - Finalizar Execução da OS",
-      "request": {
-        "auth": {
-          "type": "bearer",
-          "bearer": [
-            {
-              "key": "token",
-              "value": "{{bearerToken}}",
-              "type": "string"
-            }
-          ]
-        },
-        "method": "PATCH",
-        "header": [
-          {
-            "key": "Content-Type",
-            "value": "application/json"
-          },
-          {
-            "key": "Accept",
-            "value": "text/plain"
-          }
-        ],
-        "body": {
-          "mode": "raw",
-          "raw": "{\n  \"status\": 9\n}",
-          "options": {
-            "raw": {
-              "headerFamily": "json",
-              "language": "json"
-            }
-          }
-        },
-        "url": {
-          "raw": "{{baseUrl}}/api/ordens-servico/{{OSSimplesCriadaId}}/status",
+          "raw": "{{baseUrl}}/api/ordens-servico/{{OSSimplesCriadaId}}/orcamentos/{{OrcamentoOSSimplesCriadoId}}/decisao",
           "host": [
             "{{baseUrl}}"
           ],
@@ -318,14 +156,16 @@
             "api",
             "ordens-servico",
             "{{OSSimplesCriadaId}}",
-            "status"
+            "orcamentos",
+            "{{OrcamentoOSSimplesCriadoId}}",
+            "decisao"
           ]
         }
       },
       "response": []
     },
     {
-      "name": "/api/autenticacao/login - Logar como Cliente",
+      "name": "/api/autenticacao/login - Logar como Atendente",
       "event": [
         {
           "listen": "test",
@@ -354,7 +194,7 @@
         ],
         "body": {
           "mode": "raw",
-          "raw": "{\n  \"usuario\": \"cliente\",\n  \"senha\": \"cliente@123\"\n}",
+          "raw": "{\n  \"usuario\": \"atendente\",\n  \"senha\": \"atendente@123\"\n}",
           "options": {
             "raw": {
               "headerFamily": "json",
@@ -377,7 +217,7 @@
       "response": []
     },
     {
-      "name": "/api/Notificacoes/notificacoes - Listar Notificações do Cliente",
+      "name": "/api/Notificacoes/notificacoes - Listar Notificações Atendente",
       "request": {
         "auth": {
           "type": "bearer",
