@@ -1,0 +1,451 @@
+{
+  "info": {
+    "_postman_id": "91412493-8437-4a5a-95c1-6a8b3c089a70",
+    "name": "3.1 - Criação de OS com Diagnóstico",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+    "_exporter_id": "27765086"
+  },
+  "item": [
+    {
+      "name": "/api/autenticacao/login - Logar como Atendente",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "var response = pm.response.json();\r",
+              "pm.environment.set(\"bearerToken\", response.accessToken);"
+            ],
+            "type": "text/javascript",
+            "packages": {},
+            "requests": {}
+          }
+        }
+      ],
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "Accept",
+            "value": "text/plain"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"usuario\": \"atendente\",\n  \"senha\": \"atendente@123\"\n}",
+          "options": {
+            "raw": {
+              "headerFamily": "json",
+              "language": "json"
+            }
+          }
+        },
+        "url": {
+          "raw": "{{baseUrl}}/api/autenticacao/login",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "api",
+            "autenticacao",
+            "login"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "/api/ordens-servico - Listar OSs",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Accept",
+            "value": "text/plain"
+          }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/api/ordens-servico",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "api",
+            "ordens-servico"
+          ],
+          "query": [
+            {
+              "key": "emAndamento",
+              "value": "true",
+              "disabled": true
+            },
+            {
+              "key": "clienteId",
+              "value": "0213abfd-6f16-7347-b9e4-1826fd6633bd",
+              "disabled": true
+            }
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "/api/ordens-servico - Criar nova OS",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "var response = pm.response.json();\r",
+              "pm.environment.set(\"OSSimplesCriadaId\", response.id);"
+            ],
+            "type": "text/javascript",
+            "packages": {},
+            "requests": {}
+          }
+        }
+      ],
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "Accept",
+            "value": "text/plain"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"clienteId\": \"{{clienteEncontradoId}}\",\n  \"veiculoId\": \"{{veiculoCadastradoId}}\",\n  \"solicitacaoInicial\": \"Troca de Óleo\",\n  \"prioridade\": 4,\n  \"prazo\": \"1963-03-16T02:29:17.135Z\"\n}",
+          "options": {
+            "raw": {
+              "headerFamily": "json",
+              "language": "json"
+            }
+          }
+        },
+        "url": {
+          "raw": "{{baseUrl}}/api/ordens-servico",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "api",
+            "ordens-servico"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "/api/autenticacao/login - Logar como Mecânico",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "var response = pm.response.json();\r",
+              "pm.environment.set(\"bearerToken\", response.accessToken);"
+            ],
+            "type": "text/javascript",
+            "packages": {},
+            "requests": {}
+          }
+        }
+      ],
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "Accept",
+            "value": "text/plain"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"usuario\": \"atendente\",\n  \"senha\": \"atendente@123\"\n}",
+          "options": {
+            "raw": {
+              "headerFamily": "json",
+              "language": "json"
+            }
+          }
+        },
+        "url": {
+          "raw": "{{baseUrl}}/api/autenticacao/login",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "api",
+            "autenticacao",
+            "login"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "/api/ordens-servico - Listar OSs",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Accept",
+            "value": "text/plain"
+          }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/api/ordens-servico",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "api",
+            "ordens-servico"
+          ],
+          "query": [
+            {
+              "key": "emAndamento",
+              "value": "true",
+              "disabled": true
+            },
+            {
+              "key": "clienteId",
+              "value": "0213abfd-6f16-7347-b9e4-1826fd6633bd",
+              "disabled": true
+            }
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "/api/ordens-servico/:ordemServicoId/diagnostico/iniciar",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Accept",
+            "value": "text/plain"
+          }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/api/ordens-servico/:ordemServicoId/diagnostico/iniciar",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "api",
+            "ordens-servico",
+            ":ordemServicoId",
+            "diagnostico",
+            "iniciar"
+          ],
+          "variable": [
+            {
+              "key": "ordemServicoId",
+              "value": "0213abfd-6f16-7347-b9e4-1826fd6633bd"
+            }
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "/api/ordens-servico/:ordemServicoId/diagnostico",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "Accept",
+            "value": "text/plain"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"descricao\": \"string\"\n}",
+          "options": {
+            "raw": {
+              "headerFamily": "json",
+              "language": "json"
+            }
+          }
+        },
+        "url": {
+          "raw": "{{baseUrl}}/api/ordens-servico/:ordemServicoId/diagnostico",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "api",
+            "ordens-servico",
+            ":ordemServicoId",
+            "diagnostico"
+          ],
+          "variable": [
+            {
+              "key": "ordemServicoId",
+              "value": "0213abfd-6f16-7347-b9e4-1826fd6633bd"
+            }
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "/api/autenticacao/login - Logar como Atendente",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "var response = pm.response.json();\r",
+              "pm.environment.set(\"bearerToken\", response.accessToken);"
+            ],
+            "type": "text/javascript",
+            "packages": {},
+            "requests": {}
+          }
+        }
+      ],
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "Accept",
+            "value": "text/plain"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"usuario\": \"atendente\",\n  \"senha\": \"atendente@123\"\n}",
+          "options": {
+            "raw": {
+              "headerFamily": "json",
+              "language": "json"
+            }
+          }
+        },
+        "url": {
+          "raw": "{{baseUrl}}/api/autenticacao/login",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "api",
+            "autenticacao",
+            "login"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "/api/ordens-servico/:ordemServicoId/orcamentos - Criar novo Orçamento",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "var response = pm.response.json();\r",
+              "pm.environment.set(\"OrcamentoOSSimplesCriadoId\", response.id);"
+            ],
+            "type": "text/javascript",
+            "packages": {},
+            "requests": {}
+          }
+        }
+      ],
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "Accept",
+            "value": "text/plain"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"itens\": [\n    {\n      \"tipo\": 4,\n      \"descricao\": \"string\",\n      \"quantidade\": 3767.703818859078,\n      \"valorUnitario\": 9178.53129059677,\n      \"estoqueItemId\": \"28fddff0-21cf-4732-f1c3-96a43ecba17f\"\n    },\n    {\n      \"tipo\": 1,\n      \"descricao\": \"string\",\n      \"quantidade\": 9941.2557282544,\n      \"valorUnitario\": 8957.446899496636,\n      \"estoqueItemId\": \"8992c2c3-e0be-ff17-a787-1e466fe3e89f\"\n    }\n  ]\n}",
+          "options": {
+            "raw": {
+              "headerFamily": "json",
+              "language": "json"
+            }
+          }
+        },
+        "url": {
+          "raw": "{{baseUrl}}/api/ordens-servico/{{OSSimplesCriadaId}}/orcamentos",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "api",
+            "ordens-servico",
+            "{{OSSimplesCriadaId}}",
+            "orcamentos"
+          ]
+        }
+      },
+      "response": []
+    }
+  ],
+  "auth": {
+    "type": "bearer",
+    "bearer": [
+      {
+        "key": "token",
+        "value": "{{bearerToken}}",
+        "type": "string"
+      }
+    ]
+  },
+  "event": [
+    {
+      "listen": "prerequest",
+      "script": {
+        "type": "text/javascript",
+        "packages": {},
+        "requests": {},
+        "exec": [
+          ""
+        ]
+      }
+    },
+    {
+      "listen": "test",
+      "script": {
+        "type": "text/javascript",
+        "packages": {},
+        "requests": {},
+        "exec": [
+          ""
+        ]
+      }
+    }
+  ]
+}
