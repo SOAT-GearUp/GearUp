@@ -320,3 +320,7 @@ O fluxo de dependências é `Api -> Application/Infrastructure`,
 A pasta **`Docs/Postman/`** contém seis coleções do Postman utilizadas para os testes de integração da API.
 Importe todos os arquivos .json dessa pasta no Postman e selecione o `environment`**`Test`**. Em seguida, execute as coleções na sequência numérica definida na nomenclatura (1 - ..., 2 - ..., 3 - ..., etc.), 
 respeitando a ordem de execução devido às dependências entre os testes.
+
+## Vídeo de apresentação
+
+Apresentação do projeto GearUp: [https://youtu.be/4VtSqLqZg3I](https://youtu.be/4VtSqLqZg3I)
