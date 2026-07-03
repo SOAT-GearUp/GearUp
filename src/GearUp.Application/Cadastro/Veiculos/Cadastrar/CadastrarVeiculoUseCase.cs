@@ -1,9 +1,9 @@
 using GearUp.Application.Cadastro.Clientes.Common.Interfaces;
-using GearUp.Application.Cadastro.Clientes.Veiculos.Common.Interfaces;
+using GearUp.Application.Cadastro.Veiculos.Common.Interfaces;
 using GearUp.Application.Common.Interfaces;
 using GearUp.Domain.Entities;
 
-namespace GearUp.Application.Cadastro.Clientes.Veiculos.Cadastrar;
+namespace GearUp.Application.Cadastro.Veiculos.Cadastrar;
 
 internal sealed class CadastrarVeiculoUseCase(
     IClienteRepository clienteRepository,

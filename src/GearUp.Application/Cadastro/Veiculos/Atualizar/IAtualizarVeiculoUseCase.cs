@@ -1,4 +1,4 @@
-namespace GearUp.Application.Cadastro.Clientes.Veiculos.Atualizar;
+namespace GearUp.Application.Cadastro.Veiculos.Atualizar;
 
 public interface IAtualizarVeiculoUseCase
 {

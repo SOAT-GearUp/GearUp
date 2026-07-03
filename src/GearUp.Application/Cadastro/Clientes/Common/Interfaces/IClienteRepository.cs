@@ -1,5 +1,5 @@
 using GearUp.Domain.Entities;
-using GearUp.Domain.ValueObjects;
+using GearUp.Domain.ValueObjects.Clientes;
 
 namespace GearUp.Application.Cadastro.Clientes.Common.Interfaces;
 

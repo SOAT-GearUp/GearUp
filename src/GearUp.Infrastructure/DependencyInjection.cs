@@ -1,6 +1,6 @@
 using GearUp.Application.Autenticacao.Common;
 using GearUp.Application.Cadastro.Clientes.Common.Interfaces;
-using GearUp.Application.Cadastro.Clientes.Veiculos.Common.Interfaces;
+using GearUp.Application.Cadastro.Veiculos.Common.Interfaces;
 using GearUp.Application.Common.Interfaces;
 using GearUp.Application.Estoque.Common.Interfaces;
 using GearUp.Application.Comunicacao.Common.Interfaces;

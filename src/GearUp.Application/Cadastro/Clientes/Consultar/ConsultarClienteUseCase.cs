@@ -1,6 +1,6 @@
 using GearUp.Application.Cadastro.Clientes.Common;
 using GearUp.Application.Cadastro.Clientes.Common.Interfaces;
-using GearUp.Application.Cadastro.Clientes.Veiculos.Common.Interfaces;
+using GearUp.Application.Cadastro.Veiculos.Common.Interfaces;
 
 namespace GearUp.Application.Cadastro.Clientes.Consultar;
 

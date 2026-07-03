@@ -1,10 +1,10 @@
 using GearUp.Application.Cadastro.Clientes.Common.Interfaces;
 using GearUp.Application.Cadastro.Clientes.Veiculos.Cadastrar;
-using GearUp.Application.Cadastro.Clientes.Veiculos.Common.Interfaces;
+using GearUp.Application.Cadastro.Veiculos.Common.Interfaces;
 using GearUp.Application.Common.Exceptions;
 using GearUp.Application.Common.Interfaces;
 using GearUp.Domain.Entities;
-using GearUp.Domain.ValueObjects;
+using GearUp.Domain.ValueObjects.Clientes;
 
 namespace GearUp.Application.UnitTests.Cadastro.Clientes.Veiculos.Cadastrar;
 

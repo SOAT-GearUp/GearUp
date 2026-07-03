@@ -1,6 +1,7 @@
 using GearUp.Domain.Entities;
 using GearUp.Domain.Enums;
 using GearUp.Domain.ValueObjects;
+using GearUp.Domain.ValueObjects.Clientes;
 
 namespace GearUp.Domain.UnitTests.Entities;
 

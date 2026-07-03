@@ -1,7 +1,7 @@
-using GearUp.Application.Cadastro.Clientes.Veiculos.Common.Interfaces;
+using GearUp.Application.Cadastro.Veiculos.Common.Interfaces;
 using GearUp.Application.Common.Interfaces;
 
-namespace GearUp.Application.Cadastro.Clientes.Veiculos.Atualizar;
+namespace GearUp.Application.Cadastro.Veiculos.Atualizar;
 
 internal sealed class AtualizarVeiculoUseCase(IVeiculoRepository veiculoRepository, IUnitOfWork unitOfWork) : IAtualizarVeiculoUseCase
 {
