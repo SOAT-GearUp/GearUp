@@ -3,6 +3,10 @@ using GearUp.Application.Cadastro.Clientes.Cadastrar;
 using GearUp.Application.Cadastro.Clientes.Consultar;
 using GearUp.Application.Cadastro.Clientes.Excluir;
 using GearUp.Application.Cadastro.Clientes.Listar;
+using GearUp.Application.Cadastro.Veiculos.Atualizar;
+using GearUp.Application.Cadastro.Veiculos.Cadastrar;
+using GearUp.Application.Comunicacao.EventHandlers;
+using GearUp.Application.Comunicacao.Notificacoes;
 using GearUp.Application.OrdemDeServico.Ordens.Consultar;
 using GearUp.Application.OrdemDeServico.Ordens.Criar;
 using GearUp.Application.OrdemDeServico.Ordens.Listar;
@@ -22,14 +26,10 @@ using GearUp.Application.Estoque.Movimentar;
 using GearUp.Application.OrdemDeServico.Execucao.AlterarStatus;
 using GearUp.Application.OrdemDeServico.Execucao.EventHandlers;
 using GearUp.Application.OrdemDeServico.Execucao.Metricas;
-using GearUp.Application.Comunicacao.EventHandlers;
-using GearUp.Application.Comunicacao.Notificacoes;
 using GearUp.Domain.DomainEvents.DiagnosticoOrcamento;
 using GearUp.Domain.DomainEvents.Execucao;
 using GearUp.Domain.DomainEvents.Notificacoes;
 using Microsoft.Extensions.DependencyInjection;
-using GearUp.Application.Cadastro.Veiculos.Atualizar;
-using GearUp.Application.Cadastro.Veiculos.Cadastrar;
 
 namespace GearUp.Application;
 

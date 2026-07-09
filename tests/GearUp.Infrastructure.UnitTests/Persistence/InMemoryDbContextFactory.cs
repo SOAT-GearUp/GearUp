@@ -1,4 +1,4 @@
-using GearUp.Application.Autenticacao.Common;
+using GearUp.Application.Autenticacao.Common.Interfaces;
 using GearUp.Application.Cadastro.Clientes.Common.Interfaces;
 using GearUp.Application.Cadastro.Veiculos.Common.Interfaces;
 using GearUp.Application.Common.Interfaces;

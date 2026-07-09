@@ -1,5 +1,5 @@
 using GearUp.Application.Cadastro.Clientes.Common.Interfaces;
-using GearUp.Application.Cadastro.Clientes.Exceptions;
+using GearUp.Application.Cadastro.Clientes.Common.Exceptions;
 using GearUp.Application.Common.Interfaces;
 using GearUp.Domain.Entities;
 

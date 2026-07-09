@@ -1,4 +1,4 @@
-using GearUp.Application.Cadastro.Clientes.Veiculos.Atualizar;
+using GearUp.Application.Cadastro.Veiculos.Atualizar;
 using GearUp.Application.Cadastro.Veiculos.Common.Interfaces;
 using GearUp.Application.Common.Exceptions;
 using GearUp.Application.Common.Interfaces;

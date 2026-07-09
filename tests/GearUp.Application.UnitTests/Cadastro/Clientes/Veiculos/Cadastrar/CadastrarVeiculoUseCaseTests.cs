@@ -1,5 +1,5 @@
 using GearUp.Application.Cadastro.Clientes.Common.Interfaces;
-using GearUp.Application.Cadastro.Clientes.Veiculos.Cadastrar;
+using GearUp.Application.Cadastro.Veiculos.Cadastrar;
 using GearUp.Application.Cadastro.Veiculos.Common.Interfaces;
 using GearUp.Application.Common.Exceptions;
 using GearUp.Application.Common.Interfaces;
