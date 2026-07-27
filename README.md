@@ -342,10 +342,13 @@ no namespace `gearup`:
 | `k8s/api-hpa.yaml` | `HorizontalPodAutoscaler` (2–10 réplicas, CPU 70% / memória 75%) |
 | `k8s/ingress.yaml` | Exposição externa via `ingress-nginx` |
 
-A imagem usada nos manifestos (`<registry>/gearup-api:<tag>`) precisa estar em um
-registry acessível pelo cluster antes do deploy. O CI (`.github/workflows/ci.yml`)
-já publica automaticamente em `ghcr.io/<owner>/<repo>` a cada push em `main`/`master`,
-taggeada com o SHA do commit e com `latest`. Para publicar manualmente:
+`k8s/api-deployment.yaml` e `k8s/migrations-job.yaml` já vêm configurados com
+`image: gearup-api:local` e `imagePullPolicy: Never`, prontos para rodar num
+cluster local (Minikube/kind) sem precisar de registry. Para um cluster
+remoto, comente essa linha e descomente a linha `<registry>/gearup-api:<tag>`
+logo acima dela em cada arquivo (veja "Cluster remoto" abaixo).
+
+Para publicar manualmente em um registry:
 
 ```bash
 docker build -t <registry>/gearup-api:<tag> -f src/GearUp.Api/Dockerfile .
@@ -365,7 +368,116 @@ Esse modo aplica as migrations e faz o seed do usuário admin, sem subir o
 Kestrel. Como `Database.MigrateAsync` é idempotente, a auto-migration da API no
 boot não conflita com o `Job` — ela simplesmente não encontra nada pendente.
 
-Ordem de aplicação:
+### Local com Minikube
+
+Pré-requisitos: [Minikube](https://minikube.sigs.k8s.io/) e `kubectl`
+instalados, Docker em execução.
+
+```bash
+# 1. Cluster
+minikube start
+
+# 2. Build da imagem e carga no node do Minikube (sem precisar de registry)
+docker build -t gearup-api:local -f src/GearUp.Api/Dockerfile .
+minikube image load gearup-api:local
+
+# 3. Namespace, config e segredo
+kubectl apply -f k8s/namespace.yaml
+kubectl apply -f k8s/configmap.yaml
+kubectl create secret generic gearup-secrets \
+  --namespace gearup \
+  --from-literal=ConnectionStrings__GearUpDatabase='Host=postgres.gearup.svc.cluster.local;Port=5432;Database=GearUp;Username=gearup;Password=local123' \
+  --from-literal=Jwt__Key='gearup-local-development-key-change-me' \
+  --from-literal=Seed__AdminPassword='GearUp@123' \
+  --from-literal=postgres-password='local123'
+
+# 4. Banco de dados
+kubectl apply -f k8s/postgres-statefulset.yaml
+kubectl apply -f k8s/postgres-service.yaml
+kubectl -n gearup rollout status statefulset/postgres
+
+# 5. Migrations
+kubectl apply -f k8s/migrations-job.yaml
+kubectl -n gearup wait --for=condition=complete job/gearup-migrations --timeout=120s
+
+# 6. API
+kubectl apply -f k8s/api-deployment.yaml
+kubectl apply -f k8s/api-service.yaml
+kubectl -n gearup rollout status deployment/gearup-api
+
+# 7. Acesso local (mais simples que Ingress para uso local)
+kubectl -n gearup port-forward svc/gearup-api 8080:80
+```
+
+API em `http://localhost:8080`. Encerre o port-forward com `Ctrl+C` (ou
+`pkill -f "port-forward svc/gearup-api"` se rodou em background).
+
+> `GET /` sempre retorna 404 — não existe rota mapeada na raiz, em nenhum
+> ambiente. Teste com `curl http://localhost:8080/health/live` para confirmar
+> que a API está respondendo.
+
+`k8s/configmap.yaml` sobe com `ASPNETCORE_ENVIRONMENT: "Production"`, e o
+Swagger (`Program.cs`) só é mapeado `if (app.Environment.IsDevelopment())` —
+então `/swagger` também dá 404 por padrão. Para habilitar o Swagger e explorar
+a API pelo navegador, mude o ambiente para `Development` direto no cluster:
+
+```bash
+kubectl -n gearup patch configmap gearup-config --type merge \
+  -p '{"data":{"ASPNETCORE_ENVIRONMENT":"Development"}}'
+kubectl -n gearup rollout restart deployment/gearup-api
+kubectl -n gearup rollout status deployment/gearup-api
+```
+
+O `Deployment` só lê o ConfigMap na criação do pod, por isso o
+`rollout restart` é necessário para os pods pegarem o novo valor. Depois disso,
+Swagger em `http://localhost:8080/swagger` (refaça o `port-forward` se ele
+tiver caído no meio do restart).
+
+Esse patch só altera o ConfigMap dentro do cluster atual — não edita
+`k8s/configmap.yaml` no repositório. Se recriar o cluster (`minikube delete` +
+`minikube start`) ou reaplicar o arquivo original, o ambiente volta para
+`Production`.
+
+Testar HPA e Ingress também localmente:
+
+```bash
+minikube addons enable metrics-server   # alimenta o HPA com CPU/memória
+kubectl apply -f k8s/api-hpa.yaml
+
+minikube addons enable ingress
+kubectl apply -f k8s/ingress.yaml
+minikube tunnel                          # em outro terminal, mantenha rodando
+# adicione o host de k8s/ingress.yaml (gearup.example.com) ao /etc/hosts, apontando para 127.0.0.1
+```
+
+Depois de alterar código, repita o passo 2 (build + `minikube image load`) e
+reinicie o Deployment com `kubectl -n gearup rollout restart
+deployment/gearup-api` — a tag `local` não muda, então o cluster não percebe a
+imagem nova sem esse restart.
+
+### Cluster remoto (registry)
+
+Para um cluster fora da sua máquina, a imagem precisa estar em um registry
+acessível por ele. O CI (`.github/workflows/ci.yml`) já publica
+automaticamente em `ghcr.io/<owner>/<repo>` a cada push em `main`/`master`,
+taggeada com o SHA do commit e com `latest`.
+
+Pacotes publicados via `GITHUB_TOKEN` no GHCR nascem **privados**, vinculados
+ao repositório. Para o cluster conseguir puxar a imagem:
+
+- Torne o pacote público em **Package settings** no GitHub (mais simples para
+  estudo/homologação), ou
+- Crie um `imagePullSecret` no namespace `gearup` com um PAT (`read:packages`)
+  e referencie-o em `imagePullSecrets` nos manifestos que usam a imagem
+  (`k8s/api-deployment.yaml`, `k8s/migrations-job.yaml`).
+
+Em `k8s/api-deployment.yaml` e `k8s/migrations-job.yaml`, comente a linha
+`image: gearup-api:local` (e `imagePullPolicy: Never` no Deployment) e
+descomente `image: <registry>/gearup-api:<tag>` / `imagePullPolicy:
+IfNotPresent`, substituindo pelos valores reais.
+
+Ordem de aplicação (mesmo fluxo do Minikube, com `k8s/secret.yaml` no lugar do
+`kubectl create secret`, e adicionando HPA/Ingress):
 
 ```bash
 kubectl apply -f k8s/namespace.yaml

@@ -24,8 +24,10 @@ spec:
         - name: gearup-api
           # Tag imutável (SHA do commit) — nunca "latest" em produção.
           # O CI (.github/workflows/ci.yml) deve publicar essa imagem no registry.
-          image: <registry>/gearup-api:<tag>
-          imagePullPolicy: IfNotPresent
+          # image: <registry>/gearup-api:<tag>
+          # imagePullPolicy: IfNotPresent
+          image: gearup-api:local
+          imagePullPolicy: Never
           ports:
             - containerPort: 8080
               name: http

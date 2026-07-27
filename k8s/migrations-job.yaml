@@ -18,7 +18,8 @@ spec:
       restartPolicy: Never
       containers:
         - name: migrations
-          image: <registry>/gearup-api:<tag>
+          # image: <registry>/gearup-api:<tag>
+          image: gearup-api:local
           args: ["--migrate-only"]
           envFrom:
             - configMapRef:
