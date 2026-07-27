@@ -18,4 +18,6 @@ COPY --from=build --chown=1001:root /app/publish .
 USER 1001
 ENV ASPNETCORE_URLS=http://+:8080
 EXPOSE 8080
+HEALTHCHECK --interval=10s --timeout=5s --start-period=20s --retries=5 \
+    CMD curl -f http://localhost:8080/health/live || exit 1
 ENTRYPOINT ["dotnet", "GearUp.Api.dll"]

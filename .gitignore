@@ -80,3 +80,9 @@ $RECYCLE.BIN/
 *.backup
 *.orig
 *~
+
+# Agent
+claude*.md
+.claude/
+skills-lock.json
+.mcp.json

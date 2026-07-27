@@ -3,9 +3,12 @@ using GearUp.Application;
 using GearUp.Infrastructure;
 using GearUp.Infrastructure.Persistence;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.Diagnostics.HealthChecks;
 using Microsoft.OpenApi;
 using Microsoft.IdentityModel.Tokens;
 using System.Text;
+
+var migrateOnly = args.Contains("--migrate-only");
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -67,26 +70,42 @@ builder.Services.AddInfrastructure(builder.Configuration);
 
 var app = builder.Build();
 
-if (app.Environment.IsDevelopment())
+if (!migrateOnly)
 {
-    app.UseStaticFiles();
-    app.UseSwagger();
-    app.UseSwaggerUI(options =>
+    if (app.Environment.IsDevelopment())
     {
-        options.EnablePersistAuthorization();
-        options.InjectJavascript("/swagger/swagger-auth.js");
+        app.UseStaticFiles();
+        app.UseSwagger();
+        app.UseSwaggerUI(options =>
+        {
+            options.EnablePersistAuthorization();
+            options.InjectJavascript("/swagger/swagger-auth.js");
+        });
+    }
+
+    app.UseExceptionHandler();
+    app.UseHttpsRedirection();
+    app.UseAuthentication();
+    app.UseAuthorization();
+    app.MapControllers();
+
+    // Liveness: processo no ar, sem checar dependências externas.
+    app.MapHealthChecks("/health/live", new HealthCheckOptions { Predicate = _ => false });
+    // Readiness: pronto para receber tráfego (ex.: conexão com o PostgreSQL ok).
+    app.MapHealthChecks("/health/ready", new HealthCheckOptions
+    {
+        Predicate = check => check.Tags.Contains("ready")
     });
 }
-
-app.UseExceptionHandler();
-app.UseHttpsRedirection();
-app.UseAuthentication();
-app.UseAuthorization();
-app.MapControllers();
 
 using (var scope = app.Services.CreateScope())
 {
     await scope.ServiceProvider.GetRequiredService<DatabaseInitializer>().InitializeAsync();
+}
+
+if (migrateOnly)
+{
+    return;
 }
 
 await app.RunAsync();

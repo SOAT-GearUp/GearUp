@@ -52,6 +52,9 @@ public static class DependencyInjection
         services.AddScoped<IUnitOfWork>(
             serviceProvider => serviceProvider.GetRequiredService<GearUpDbContext>());
 
+        services.AddHealthChecks()
+            .AddCheck<DatabaseHealthCheck>("postgresql", tags: ["ready"]);
+
         return services;
     }
 }

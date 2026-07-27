@@ -1,0 +1,15 @@
+# Headless Service exigido pelo StatefulSet — dá DNS estável por pod
+# (postgres-0.postgres.gearup.svc.cluster.local) e é o que o serviceName do StatefulSet referencia.
+apiVersion: v1
+kind: Service
+metadata:
+  name: postgres
+  namespace: gearup
+spec:
+  clusterIP: None
+  selector:
+    app: postgres
+  ports:
+    - port: 5432
+      targetPort: 5432
+      name: postgres

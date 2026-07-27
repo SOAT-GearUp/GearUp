@@ -14,6 +14,14 @@ services:
       interval: 10s
       timeout: 5s
       retries: 12
+    deploy:
+      resources:
+        limits:
+          cpus: "1.0"
+          memory: 512M
+        reservations:
+          cpus: "0.25"
+          memory: 256M
 
   api:
     build:
@@ -31,6 +39,19 @@ services:
     depends_on:
       postgres:
         condition: service_healthy
+    deploy:
+      resources:
+        limits:
+          cpus: "1.0"
+          memory: 512M
+        reservations:
+          cpus: "0.25"
+          memory: 256M
+
+  # Nota: hoje as migrations rodam automaticamente no boot da API (DatabaseInitializer).
+  # A mesma imagem também suporta rodar só as migrations, sem subir o Kestrel:
+  #   docker compose run --rm api --migrate-only
+  # Esse mesmo modo é usado pelo Job de migrations no Kubernetes (k8s/migrations-job.yaml).
 
 volumes:
   gearup-postgres-data:

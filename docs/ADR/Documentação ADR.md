@@ -343,6 +343,11 @@ Serão implementados:
 
 **Título:** Padronização do ambiente utilizando Docker
 
+**Revisão:** 27/07/2026 — atualização para PostgreSQL `18-alpine3.23`; adição de
+`HEALTHCHECK` no Dockerfile (via `/health/live`) e de limites de recursos
+(`deploy.resources`) no docker-compose, preparando o mesmo container para
+execução em Kubernetes (ver ADR-011).
+
 **Status:** Aceita
 
 ## Contexto
@@ -357,8 +362,12 @@ A aplicação será distribuída através de containers Docker.
 
 Serão fornecidos:
 
-- Dockerfile da API.
-- docker-compose para API e PostgreSQL (`postgres:16`), com healthcheck e volume persistente.
+- Dockerfile da API, multi-stage (build com `bitnami/dotnet-sdk`, imagem final
+  com `bitnami/aspnet-core`), rodando como usuário não-root e com `HEALTHCHECK`
+  apontando para `GET /health/live`.
+- docker-compose para API e PostgreSQL (`postgres:18-alpine3.23`), com
+  healthcheck, volume persistente e limites de CPU/memória equivalentes aos
+  `requests`/`limits` usados no Kubernetes.
 
 ## Consequências
 
@@ -449,3 +458,62 @@ OS Finalizada
 ### Negativas
 
 - Aumento do volume de dados armazenados.
+
+## ADR-011 - Orquestração com Kubernetes
+
+**Título:** Deploy declarativo em Kubernetes sobre a mesma imagem de container
+
+**Data:** 27/07/2026
+
+**Status:** Aceita
+
+## Contexto
+
+A aplicação já roda containerizada via Docker Compose (ADR-008), mas esse
+modelo não oferece deploy declarativo repetível, escalonamento automático da
+API conforme carga, nem separação clara entre configuração/segredos e a
+imagem — pontos necessários para levar o GearUp além do ambiente local de
+desenvolvimento.
+
+## Decisão
+
+O GearUp passa a poder ser implantado em um cluster Kubernetes, reaproveitando
+a mesma imagem Docker já construída (ADR-008), através dos manifestos em
+`k8s/`:
+
+- `Deployment` da API (stateless, múltiplas réplicas) com `Service` `ClusterIP`
+  e `Ingress` para exposição externa.
+- `ConfigMap`/`Secret` separando configuração não sensível de segredos (chave
+  JWT, senhas, connection string completa).
+- `StatefulSet` de PostgreSQL com `PersistentVolumeClaim` para ambientes de
+  estudo/homologação — com recomendação de substituição por banco gerenciado
+  (RDS, Cloud SQL, Azure Database for PostgreSQL — ver ADR-002) em produção.
+- `Job` de migrations, rodando a API em modo `--migrate-only` antes do rollout,
+  para evitar corrida entre réplicas aplicando a mesma migration.
+- `HorizontalPodAutoscaler` (2–10 réplicas, CPU 70% / memória 75%), dependente
+  de `metrics-server` no cluster.
+
+A API passou a expor `/health/live` (liveness, sem dependências) e
+`/health/ready` (readiness, verificando conexão com o PostgreSQL), consumidos
+pelas probes do Kubernetes e pelo `HEALTHCHECK` do Docker.
+
+## Consequências
+
+### Positivas
+
+- Deploy declarativo e repetível, com rollback via `kubectl rollout undo`.
+- Escalonamento automático da API conforme uso de CPU/memória.
+- Segredos e configuração desacoplados da imagem.
+- Reaproveita a containerização já existente (ADR-008), sem exigir mudança de
+  arquitetura da aplicação.
+
+### Negativas
+
+- Maior complexidade operacional em relação ao Docker Compose (exige
+  familiaridade com `kubectl`, probes, ConfigMap/Secret).
+- O `StatefulSet` de PostgreSQL não substitui um banco gerenciado em produção;
+  operar backup/failover do banco dentro do cluster fica como responsabilidade
+  adicional caso essa opção seja mantida.
+- Observabilidade (Prometheus/Grafana, logs centralizados), GitOps,
+  `NetworkPolicy`, `PodDisruptionBudget`, TLS automático no Ingress e rotação
+  de segredos ficam fora deste MVP.

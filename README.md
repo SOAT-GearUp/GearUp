@@ -145,6 +145,15 @@ As imagens .NET do Dockerfile vem do Docker Hub (`bitnami/dotnet-sdk` e
 `bitnami/aspnet-core`), para o build funcionar sem depender do registry da
 Microsoft (`mcr.microsoft.com`).
 
+A API expõe dois endpoints de health check, usados pelo `HEALTHCHECK` do
+Dockerfile e pelas probes do Kubernetes (veja seção
+[Kubernetes](#kubernetes)):
+
+| Endpoint | Verifica | Uso |
+|---|---|---|
+| `GET /health/live` | Processo no ar (sem checar dependências) | Liveness |
+| `GET /health/ready` | Conexão com o PostgreSQL | Readiness |
+
 Para parar os containers:
 
 ```powershell
@@ -314,6 +323,78 @@ Links relacionados:
 
 O fluxo de dependências é `Api -> Application/Infrastructure`,
 `Infrastructure -> Application/Domain` e `Application -> Domain`.
+
+## Kubernetes
+
+A pasta `k8s/` contém os manifestos para rodar o GearUp em um cluster Kubernetes,
+no namespace `gearup`:
+
+| Arquivo | Função |
+|---|---|
+| `k8s/namespace.yaml` | Namespace `gearup` |
+| `k8s/configmap.yaml` | Variáveis não sensíveis (ambiente, porta, dados estruturais do Postgres) |
+| `k8s/secret.yaml` | Template de segredos (connection string, `Jwt__Key`, senha do admin seed, senha do Postgres) — preencher via `kubectl create secret`, nunca versionar com valores reais |
+| `k8s/postgres-statefulset.yaml` | PostgreSQL com volume persistente (ambientes de estudo/homologação — trocar por banco gerenciado em produção) |
+| `k8s/postgres-service.yaml` | Service headless do Postgres |
+| `k8s/migrations-job.yaml` | `Job` que aplica as migrations antes do rollout da API |
+| `k8s/api-deployment.yaml` | `Deployment` da API (probes de liveness/readiness, `envFrom` de ConfigMap/Secret) |
+| `k8s/api-service.yaml` | Service `ClusterIP` da API |
+| `k8s/api-hpa.yaml` | `HorizontalPodAutoscaler` (2–10 réplicas, CPU 70% / memória 75%) |
+| `k8s/ingress.yaml` | Exposição externa via `ingress-nginx` |
+
+A imagem usada nos manifestos (`<registry>/gearup-api:<tag>`) precisa estar em um
+registry acessível pelo cluster antes do deploy. O CI (`.github/workflows/ci.yml`)
+já publica automaticamente em `ghcr.io/<owner>/<repo>` a cada push em `main`/`master`,
+taggeada com o SHA do commit e com `latest`. Para publicar manualmente:
+
+```bash
+docker build -t <registry>/gearup-api:<tag> -f src/GearUp.Api/Dockerfile .
+docker push <registry>/gearup-api:<tag>
+```
+
+As migrations rodam automaticamente no boot da API (comportamento herdado do
+Docker Compose), mas com múltiplas réplicas isso cria risco de corrida entre
+pods aplicando a mesma migration ao mesmo tempo. Por isso a mesma imagem
+suporta um modo dedicado, usado pelo `Job` de migrations:
+
+```bash
+dotnet GearUp.Api.dll --migrate-only
+```
+
+Esse modo aplica as migrations e faz o seed do usuário admin, sem subir o
+Kestrel. Como `Database.MigrateAsync` é idempotente, a auto-migration da API no
+boot não conflita com o `Job` — ela simplesmente não encontra nada pendente.
+
+Ordem de aplicação:
+
+```bash
+kubectl apply -f k8s/namespace.yaml
+
+kubectl apply -f k8s/configmap.yaml
+kubectl apply -f k8s/secret.yaml   # ajuste os valores antes, ou use 'kubectl create secret'
+
+kubectl apply -f k8s/postgres-statefulset.yaml
+kubectl apply -f k8s/postgres-service.yaml
+kubectl -n gearup rollout status statefulset/postgres
+
+kubectl apply -f k8s/migrations-job.yaml
+kubectl -n gearup wait --for=condition=complete job/gearup-migrations --timeout=120s
+
+kubectl apply -f k8s/api-deployment.yaml
+kubectl apply -f k8s/api-service.yaml
+kubectl apply -f k8s/api-hpa.yaml
+kubectl apply -f k8s/ingress.yaml
+
+kubectl -n gearup get pods,svc,hpa,ingress
+```
+
+Pré-requisitos do cluster: um `IngressController` (ex.: ingress-nginx) para o
+`Ingress` funcionar, e o `metrics-server` instalado para o HPA receber métricas
+de CPU/memória (sem ele os alvos ficam `<unknown>` e não há escalonamento).
+
+Fora do escopo deste MVP: observabilidade (Prometheus/Grafana, logs
+centralizados), GitOps (ArgoCD/Flux), `NetworkPolicy`, `PodDisruptionBudget`,
+TLS automático no Ingress (cert-manager) e rotação de segredos.
 
 ## Testes de Integração
 

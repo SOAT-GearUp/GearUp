@@ -1,0 +1,22 @@
+# Exemplo com ingress-nginx (controller mais comum). Ajuste ingressClassName e host
+# conforme o cluster real (minikube, EKS, AKS, GKE, ...).
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: gearup-ingress
+  namespace: gearup
+  annotations:
+    nginx.ingress.kubernetes.io/ssl-redirect: "false"
+spec:
+  ingressClassName: nginx
+  rules:
+    - host: gearup.example.com
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: gearup-api
+                port:
+                  number: 80
