@@ -1,0 +1,35 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: gearup-postgres
+  namespace: gearup
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: gearup-postgres
+  template:
+    metadata:
+      labels:
+        app: gearup-postgres
+    spec:
+      containers:
+        - name: postgres
+          image: postgres:18-alpine3.23
+          ports:
+            - containerPort: 5432
+          envFrom:
+            - secretRef:
+                name: gearup-secret
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: gearup-postgres
+  namespace: gearup
+spec:
+  selector:
+    app: gearup-postgres
+  ports:
+    - port: 5432
+      targetPort: 5432

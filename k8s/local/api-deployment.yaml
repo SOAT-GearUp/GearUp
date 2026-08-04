@@ -1,0 +1,26 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: gearup-api
+  namespace: gearup
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: gearup-api
+  template:
+    metadata:
+      labels:
+        app: gearup-api
+    spec:
+      containers:
+        - name: gearup-api
+          image: gearup-api:local
+          imagePullPolicy: Never
+          ports:
+            - containerPort: 8080
+          envFrom:
+            - configMapRef:
+                name: gearup-config
+            - secretRef:
+                name: gearup-secret

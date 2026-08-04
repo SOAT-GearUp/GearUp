@@ -1,0 +1,10 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: gearup-config
+  namespace: gearup
+data:
+  ASPNETCORE_ENVIRONMENT: Development
+  ASPNETCORE_HTTP_PORTS: "8080"
+  Seed__AdminUser: admin
+  Seed__AdminPassword: GearUp@123
