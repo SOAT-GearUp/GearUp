@@ -22,6 +22,7 @@ public sealed class OrdensServicoController(
     IRegistrarDiagnosticoUseCase registrarDiagnosticoUseCase,
     IAlterarStatusUseCase alterarStatusUseCase) : ControllerBase
 {
+    // Passar lista de Serviços e Peças no request de criação da OS, para que o sistema já calcule o valor total da OS.
     [HttpPost, Authorize(Roles = "Admin,Atendente")]
     [ProducesResponseType(StatusCodes.Status201Created)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]

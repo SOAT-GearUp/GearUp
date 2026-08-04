@@ -1,6 +1,6 @@
 using GearUp.Domain.Entities;
 
-namespace GearUp.Application.Cadastro.Clientes.Veiculos.Common.Interfaces;
+namespace GearUp.Application.Cadastro.Veiculos.Common.Interfaces;
 
 public interface IVeiculoRepository
 {

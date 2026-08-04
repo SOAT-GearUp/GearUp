@@ -1,7 +1,7 @@
 using GearUp.Application.Cadastro.Clientes.Common.Interfaces;
 using GearUp.Application.Cadastro.Clientes.Listar;
 using GearUp.Domain.Entities;
-using GearUp.Domain.ValueObjects;
+using GearUp.Domain.ValueObjects.Clientes;
 
 namespace GearUp.Application.UnitTests.Cadastro.Clientes.Listar;
 

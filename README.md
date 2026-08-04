@@ -26,6 +26,7 @@ abre direto no navegador; é preciso importar o arquivo no site.
 | [Linguagem Ubíqua](docs/Linguagem%20Ubíqua/Documentação%20Linguagem%20Ubíqua.md) | Glossário, bounded contexts e termos do domínio |
 | [Requisitos](docs/Requisitos/Documentação%20de%20Requisitos.md) | Personas, problema, requisitos funcionais e não funcionais |
 | [Matriz de Rastreabilidade](docs/Requisitos/Matriz%20de%20Rastreabilidade.md) | Rastreio requisito → implementação no código |
+| [Fase 2 - CI/CD, Kubernetes e AWS](docs/Fase2/README.md) | Documentação da evolução para Docker, Kubernetes, Terraform, pipeline CI/CD e deploy AWS |
 
 ### Domínio, subdomínios e bounded contexts
 

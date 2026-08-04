@@ -1,6 +1,6 @@
 using GearUp.Application.Cadastro.Clientes.Common.Interfaces;
 using GearUp.Domain.Entities;
-using GearUp.Domain.ValueObjects;
+using GearUp.Domain.ValueObjects.Clientes;
 using Microsoft.EntityFrameworkCore;
 
 namespace GearUp.Infrastructure.Persistence.Repositories;

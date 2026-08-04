@@ -1,4 +1,4 @@
-﻿namespace GearUp.Application.Autenticacao.Common
+﻿namespace GearUp.Application.Autenticacao.Common.Interfaces
 {
     public interface IPasswordHasher
     {

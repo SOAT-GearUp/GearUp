@@ -1,4 +1,4 @@
-using GearUp.Application.Autenticacao.Common;
+using GearUp.Application.Autenticacao.Common.Interfaces;
 using GearUp.Domain.Entities;
 using GearUp.Domain.Enums;
 using GearUp.Infrastructure.Persistence;

@@ -1,6 +1,6 @@
 using System.Net.Mail;
 
-namespace GearUp.Domain.ValueObjects;
+namespace GearUp.Domain.ValueObjects.Clientes;
 
 public sealed record Email
 {

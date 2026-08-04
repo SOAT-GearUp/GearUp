@@ -1,6 +1,6 @@
 ﻿using GearUp.Domain.Entities;
 
-namespace GearUp.Application.Autenticacao.Common
+namespace GearUp.Application.Autenticacao.Common.Interfaces
 {
     public interface IUsuarioRepository
     {

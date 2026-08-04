@@ -1,5 +1,5 @@
-using GearUp.Application.Autenticacao.Common;
-using GearUp.Application.Autenticacao.Exceptions;
+using GearUp.Application.Autenticacao.Common.Interfaces;
+using GearUp.Application.Autenticacao.Common.Exceptions;
 
 namespace GearUp.Application.Autenticacao.Autenticar;
 

@@ -1,4 +1,4 @@
-using GearUp.Application.Cadastro.Clientes.Veiculos.Common.Interfaces;
+using GearUp.Application.Cadastro.Veiculos.Common.Interfaces;
 using GearUp.Domain.Entities;
 using GearUp.Infrastructure.Persistence;
 using Microsoft.Extensions.DependencyInjection;

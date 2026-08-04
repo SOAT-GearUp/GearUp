@@ -1,12 +1,12 @@
 using GearUp.Application.Cadastro.Clientes.Common.Interfaces;
-using GearUp.Application.Cadastro.Clientes.Veiculos.Common.Interfaces;
 using GearUp.Application.OrdemDeServico.Common.Interfaces;
 using GearUp.Application.OrdemDeServico.Ordens.Criar;
 using GearUp.Application.Common.Exceptions;
 using GearUp.Application.Common.Interfaces;
 using GearUp.Domain.Entities;
 using GearUp.Domain.Enums;
-using GearUp.Domain.ValueObjects;
+using GearUp.Application.Cadastro.Veiculos.Common.Interfaces;
+using GearUp.Domain.ValueObjects.Clientes;
 
 namespace GearUp.Application.UnitTests.OrdemDeServico.Ordens.Criar;
 

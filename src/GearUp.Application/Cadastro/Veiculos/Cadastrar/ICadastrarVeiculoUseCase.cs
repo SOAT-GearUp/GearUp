@@ -1,4 +1,4 @@
-namespace GearUp.Application.Cadastro.Clientes.Veiculos.Cadastrar;
+namespace GearUp.Application.Cadastro.Veiculos.Cadastrar;
 
 public interface ICadastrarVeiculoUseCase
 {

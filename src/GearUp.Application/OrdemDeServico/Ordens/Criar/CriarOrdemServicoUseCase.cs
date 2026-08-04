@@ -1,8 +1,8 @@
 using GearUp.Application.Cadastro.Clientes.Common.Interfaces;
-using GearUp.Application.Cadastro.Clientes.Veiculos.Common.Interfaces;
 using GearUp.Application.OrdemDeServico.Common.Interfaces;
 using GearUp.Application.Common.Interfaces;
 using GearUp.Domain.Entities;
+using GearUp.Application.Cadastro.Veiculos.Common.Interfaces;
 
 namespace GearUp.Application.OrdemDeServico.Ordens.Criar;
 

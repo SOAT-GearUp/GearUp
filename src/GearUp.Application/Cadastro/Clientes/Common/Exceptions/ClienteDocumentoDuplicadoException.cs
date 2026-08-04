@@ -1,4 +1,4 @@
-namespace GearUp.Application.Cadastro.Clientes.Exceptions;
+namespace GearUp.Application.Cadastro.Clientes.Common.Exceptions;
 
 public sealed class ClienteDocumentoDuplicadoException(string documento)
     : InvalidOperationException($"Já existe um cliente cadastrado com o documento {documento}.");
