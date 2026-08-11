@@ -1,0 +1,34 @@
+# Roda as migrations (EF Core `Database.MigrateAsync`) antes do rollout da API, evitando que
+# múltiplas réplicas subindo ao mesmo tempo apliquem migration em corrida.
+# Usa a MESMA imagem da API, só com o argumento --migrate-only (ver src/GearUp.Api/Program.cs),
+# que roda a inicialização do banco e encerra sem subir o Kestrel.
+#
+# A API também aplica migrations automaticamente no boot (comportamento herdado do
+# docker-compose local); isso é seguro mesmo com o Job rodando antes, pois MigrateAsync
+# é idempotente — não faz nada se já não houver migration pendente.
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: gearup-migrations
+  namespace: gearup-dev
+spec:
+  backoffLimit: 3
+  template:
+    spec:
+      restartPolicy: Never
+      containers:
+        - name: migrations
+          image: gearup-api:local
+          args: ["--migrate-only"]
+          envFrom:
+            - configMapRef:
+                name: gearup-config
+            - secretRef:
+                name: gearup-secrets
+          resources:
+            requests:
+              cpu: "100m"
+              memory: "128Mi"
+            limits:
+              cpu: "500m"
+              memory: "256Mi"

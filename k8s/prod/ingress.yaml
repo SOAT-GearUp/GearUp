@@ -1,0 +1,22 @@
+# Ajuste ingressClassName e host conforme o cluster real de produção.
+# TLS automático é fora do escopo do MVP (ver ADR-011).
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: gearup-ingress
+  namespace: gearup-prod
+  annotations:
+    nginx.ingress.kubernetes.io/ssl-redirect: "false"
+spec:
+  ingressClassName: nginx
+  rules:
+    - host: gearup.example.com # TODO: trocar pelo domínio real de produção
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: gearup-api
+                port:
+                  number: 80

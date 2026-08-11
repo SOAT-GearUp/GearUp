@@ -4,7 +4,7 @@ apiVersion: autoscaling/v2
 kind: HorizontalPodAutoscaler
 metadata:
   name: gearup-api-hpa
-  namespace: gearup
+  namespace: gearup-prod
 spec:
   scaleTargetRef:
     apiVersion: apps/v1

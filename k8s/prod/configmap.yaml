@@ -1,0 +1,15 @@
+# Valores NÃO sensíveis. Segredos (senha do banco, chave JWT, connection string completa)
+# vêm do Secret gerado por k8s/prod/external-secret.yaml — nunca coloque aqui.
+#
+# Sem POSTGRES_DB/POSTGRES_USER: produção usa banco gerenciado (RDS — ver ADR-002), não
+# há StatefulSet local de Postgres neste diretório. A connection string completa (host do
+# RDS incluso) vem inteira do Secret.
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: gearup-config
+  namespace: gearup-prod
+data:
+  ASPNETCORE_ENVIRONMENT: "Production"
+  ASPNETCORE_HTTP_PORTS: "8080"
+  Seed__AdminUser: "admin"

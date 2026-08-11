@@ -1,0 +1,27 @@
+# Pré-requisito: metrics-server instalado no cluster (alimenta CPU/memória do HPA).
+# Sem ele os targets ficam <unknown> e o HPA não escala.
+apiVersion: autoscaling/v2
+kind: HorizontalPodAutoscaler
+metadata:
+  name: gearup-api-hpa
+  namespace: gearup-dev
+spec:
+  scaleTargetRef:
+    apiVersion: apps/v1
+    kind: Deployment
+    name: gearup-api
+  minReplicas: 1
+  maxReplicas: 2
+  metrics:
+    - type: Resource
+      resource:
+        name: cpu
+        target:
+          type: Utilization
+          averageUtilization: 70
+    - type: Resource
+      resource:
+        name: memory
+        target:
+          type: Utilization
+          averageUtilization: 75

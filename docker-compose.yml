@@ -51,7 +51,7 @@ services:
   # Nota: hoje as migrations rodam automaticamente no boot da API (DatabaseInitializer).
   # A mesma imagem também suporta rodar só as migrations, sem subir o Kestrel:
   #   docker compose run --rm api --migrate-only
-  # Esse mesmo modo é usado pelo Job de migrations no Kubernetes (k8s/migrations-job.yaml).
+  # Esse mesmo modo é usado pelo Job de migrations no Kubernetes (k8s/dev|prod/migrations-job.yaml).
 
 volumes:
   gearup-postgres-data:

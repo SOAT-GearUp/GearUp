@@ -517,3 +517,58 @@ pelas probes do Kubernetes e pelo `HEALTHCHECK` do Docker.
 - Observabilidade (Prometheus/Grafana, logs centralizados), GitOps,
   `NetworkPolicy`, `PodDisruptionBudget`, TLS automático no Ingress e rotação
   de segredos ficam fora deste MVP.
+
+## ADR-012 - Separação de configuração Kubernetes por ambiente
+
+**Título:** `k8s/dev/` e `k8s/prod/` como diretórios independentes, sem Kustomize/Helm
+
+**Data:** 11/08/2026
+
+**Status:** Aceita
+
+## Contexto
+
+Os manifestos de ADR-011 viviam num único `k8s/` flat, sem distinção entre
+ambientes. A troca dev↔prod era manual e não versionada: editar `image:`/
+`imagePullPolicy` à mão em cada manifesto, `kubectl patch` no `ConfigMap` para
+alternar `ASPNETCORE_ENVIRONMENT`, e segredo criado via `kubectl create
+secret` imperativo documentado só no README. Além disso, o `StatefulSet` de
+PostgreSQL (pensado para estudo/homologação, ver ADR-011) não tinha nenhuma
+barreira que impedisse de ser aplicado também em produção.
+
+## Decisão
+
+Dividir `k8s/` em dois diretórios completos e independentes, cada um
+aplicável isoladamente com `kubectl apply -f`:
+
+- **`k8s/dev/`** (namespace `gearup-dev`): mantém o fluxo atual — Postgres
+  local via `StatefulSet`, imagem `gearup-api:local` sem registry, 1 réplica,
+  `Secret` template preenchido via `kubectl create secret`.
+- **`k8s/prod/`** (namespace `gearup-prod`): sem `StatefulSet` de Postgres —
+  conecta em banco gerenciado (RDS, ADR-002) via `ExternalSecret` (External
+  Secrets Operator, lendo do AWS Secrets Manager). Imagem publicada em
+  registry, 2+ réplicas.
+
+Avaliamos Kustomize (`base/` + `overlays/`) e descartamos: para o tamanho
+atual do projeto (poucos manifestos, mudanças estruturais raras comparado a
+mudanças de valor por ambiente), a indireção de patches/transformers custava
+mais em complexidade de leitura do que economizava em duplicação. Cada
+arquivo em `dev/`/`prod/` é uma cópia integral e explícita, sem merge.
+
+## Consequências
+
+### Positivas
+
+- Cada ambiente é auto-contido e legível sem precisar renderizar/mergear nada
+  (`cat k8s/prod/api-deployment.yaml` já mostra o manifesto real aplicado).
+- Namespaces isolados (`gearup-dev`/`gearup-prod`) eliminam o risco de aplicar
+  o Postgres local ou a imagem de desenvolvimento em produção.
+- Nenhuma ferramenta nova requerida — `kubectl apply -f` já resolve.
+
+### Negativas
+
+- Duplicação entre os dois diretórios: uma mudança estrutural no `Deployment`
+  da API (nova probe, novo volume) precisa ser replicada manualmente nos dois
+  lugares.
+- Requer o External Secrets Operator instalado no cluster de produção
+  (dependência de infraestrutura externa a este repositório).

@@ -2,11 +2,11 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: gearup-api
-  namespace: gearup
+  namespace: gearup-dev
   labels:
     app: gearup-api
 spec:
-  replicas: 2
+  replicas: 1
   selector:
     matchLabels:
       app: gearup-api
@@ -22,10 +22,8 @@ spec:
     spec:
       containers:
         - name: gearup-api
-          # Tag imutável (SHA do commit) — nunca "latest" em produção.
-          # O CI (.github/workflows/ci.yml) deve publicar essa imagem no registry.
-          # image: <registry>/gearup-api:<tag>
-          # imagePullPolicy: IfNotPresent
+          # Imagem construída localmente e carregada no Minikube
+          # (minikube image load gearup-api:local) — ver README.
           image: gearup-api:local
           imagePullPolicy: Never
           ports:

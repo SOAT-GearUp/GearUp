@@ -1,16 +1,15 @@
-# Exemplo com ingress-nginx (controller mais comum). Ajuste ingressClassName e host
-# conforme o cluster real (minikube, EKS, AKS, GKE, ...).
+# Uso local com Minikube (addon ingress + minikube tunnel). Ver README.
 apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
   name: gearup-ingress
-  namespace: gearup
+  namespace: gearup-dev
   annotations:
     nginx.ingress.kubernetes.io/ssl-redirect: "false"
 spec:
   ingressClassName: nginx
   rules:
-    - host: gearup.example.com
+    - host: dev.gearup.local
       http:
         paths:
           - path: /

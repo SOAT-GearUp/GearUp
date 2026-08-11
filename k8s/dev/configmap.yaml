@@ -1,12 +1,12 @@
 # Valores NÃO sensíveis. Segredos (senhas, chave JWT, connection string completa)
-# ficam em k8s/secret.yaml — nunca coloque aqui.
+# ficam em k8s/dev/secret.yaml — nunca coloque aqui.
 apiVersion: v1
 kind: ConfigMap
 metadata:
   name: gearup-config
-  namespace: gearup
+  namespace: gearup-dev
 data:
-  ASPNETCORE_ENVIRONMENT: "Production"
+  ASPNETCORE_ENVIRONMENT: "Development"
   ASPNETCORE_HTTP_PORTS: "8080"
   Seed__AdminUser: "admin"
   # Dados estruturais do Postgres (host/porta/nome do banco). A senha vive só no Secret.
