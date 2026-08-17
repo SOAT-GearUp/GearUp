@@ -20,6 +20,11 @@ spec:
         - name: migrations
           # Deve ser exatamente a mesma tag aplicada em api-deployment.yaml.
           image: <ECR_URI>/gearup-api:<tag>
+          securityContext:
+            allowPrivilegeEscalation: false
+            capabilities:
+              drop: ["ALL"]
+            readOnlyRootFilesystem: false
           args: ["--migrate-only"]
           envFrom:
             - configMapRef:

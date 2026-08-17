@@ -20,12 +20,22 @@ spec:
       labels:
         app: gearup-api
     spec:
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 1001
+        seccompProfile:
+          type: RuntimeDefault
       containers:
         - name: gearup-api
           # Imagem construída localmente e carregada no Minikube
           # (minikube image load gearup-api:local) — ver README.
           image: gearup-api:local
           imagePullPolicy: Never
+          securityContext:
+            allowPrivilegeEscalation: false
+            capabilities:
+              drop: ["ALL"]
+            readOnlyRootFilesystem: false # Kestrel/ASP.NET Core grava em /tmp por padrão
           ports:
             - containerPort: 8080
               name: http

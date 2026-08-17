@@ -19,6 +19,11 @@ spec:
       containers:
         - name: migrations
           image: gearup-api:local
+          securityContext:
+            allowPrivilegeEscalation: false
+            capabilities:
+              drop: ["ALL"]
+            readOnlyRootFilesystem: false
           args: ["--migrate-only"]
           envFrom:
             - configMapRef:

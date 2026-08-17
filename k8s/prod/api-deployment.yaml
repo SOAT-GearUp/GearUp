@@ -20,12 +20,22 @@ spec:
       labels:
         app: gearup-api
     spec:
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 1001
+        seccompProfile:
+          type: RuntimeDefault
       containers:
         - name: gearup-api
           # Tag imutável (SHA do commit) — nunca "latest" em produção.
           # O CI/CD deve publicar essa imagem no ECR antes do deploy.
           image: <ECR_URI>/gearup-api:<tag>
           imagePullPolicy: IfNotPresent
+          securityContext:
+            allowPrivilegeEscalation: false
+            capabilities:
+              drop: ["ALL"]
+            readOnlyRootFilesystem: false # Kestrel/ASP.NET Core grava em /tmp por padrão
           ports:
             - containerPort: 8080
               name: http
