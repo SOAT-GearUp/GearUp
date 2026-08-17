@@ -145,7 +145,10 @@ imagem nova) → `api-deployment`/`api-service`/`api-hpa`/`ingress` →
 
 Autenticação na AWS via **GitHub OIDC** (`aws-actions/configure-aws-credentials`
 com `role-to-assume`) — sem access key/secret estático como secret do
-GitHub. Pré-requisitos de configuração da conta AWS (fora deste repositório):
+GitHub. Pré-requisitos de configuração da conta AWS (fora deste repositório —
+passo a passo completo em [Configuração AWS](Configuração%20AWS.md)) e do
+lado do GitHub (secrets/variables, environment protection) em
+[Configuração GitHub Actions](Configuração%20GitHub%20Actions.md):
 
 - IAM Role em `secrets.AWS_DEPLOY_ROLE_ARN` com trust policy liberando o OIDC
   provider do GitHub Actions, e permissão pra ECR push + `eks:DescribeCluster`
