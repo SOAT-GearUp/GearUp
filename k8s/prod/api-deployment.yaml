@@ -20,6 +20,7 @@ spec:
       labels:
         app: gearup-api
     spec:
+      serviceAccountName: gearup-api-sa
       securityContext:
         runAsNonRoot: true
         runAsUser: 1001

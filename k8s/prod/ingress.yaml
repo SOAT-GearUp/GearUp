@@ -1,14 +1,21 @@
-# Ajuste ingressClassName e host conforme o cluster real de produção.
-# TLS automático é fora do escopo do MVP (ver ADR-011).
+# Requer o AWS Load Balancer Controller (https://kubernetes-sigs.github.io/aws-load-balancer-controller/)
+# instalado no cluster EKS. Ajuste certificate-arn, load-balancer-name e host
+# conforme o cluster real de produção.
 apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
   name: gearup-ingress
   namespace: gearup-prod
   annotations:
-    nginx.ingress.kubernetes.io/ssl-redirect: "false"
+    kubernetes.io/ingress.class: "alb"
+    alb.ingress.kubernetes.io/scheme: internet-facing
+    alb.ingress.kubernetes.io/target-type: ip
+    alb.ingress.kubernetes.io/listen-ports: '[{"HTTPS": 443}, {"HTTP": 80}]'
+    alb.ingress.kubernetes.io/ssl-redirect: "443"
+    alb.ingress.kubernetes.io/certificate-arn: "<ACM_CERTIFICATE_ARN>"
+    alb.ingress.kubernetes.io/healthcheck-path: /health/ready
+    alb.ingress.kubernetes.io/load-balancer-name: gearup-prod
 spec:
-  ingressClassName: nginx
   rules:
     - host: gearup.example.com # TODO: trocar pelo domínio real de produção
       http:

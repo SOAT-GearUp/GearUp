@@ -15,6 +15,7 @@ spec:
   backoffLimit: 3
   template:
     spec:
+      serviceAccountName: gearup-api-sa
       restartPolicy: Never
       containers:
         - name: migrations

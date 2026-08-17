@@ -25,3 +25,60 @@ jobs:
           Write-Host "Domain line coverage: $($rate * 100)%"
           if ($rate -lt 0.80) { throw "Domain coverage is below 80%." }
       - run: docker build -f src/GearUp.Api/Dockerfile -t gearup-api:ci .
+
+  deploy-prod:
+    needs: build-test
+    if: github.event_name == 'push' && (github.ref == 'refs/heads/main' || github.ref == 'refs/heads/master')
+    runs-on: ubuntu-latest
+    permissions:
+      id-token: write # necessário pro OIDC do configure-aws-credentials
+      contents: read
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: ${{ secrets.AWS_DEPLOY_ROLE_ARN }}
+          aws-region: ${{ vars.AWS_REGION }}
+
+      - id: ecr-login
+        uses: aws-actions/amazon-ecr-login@v2
+
+      - name: Build e push da imagem
+        env:
+          ECR_REGISTRY: ${{ steps.ecr-login.outputs.registry }}
+          TAG: ${{ github.sha }}
+        run: |
+          docker build -f src/GearUp.Api/Dockerfile -t "$ECR_REGISTRY/gearup-api:$TAG" .
+          docker push "$ECR_REGISTRY/gearup-api:$TAG"
+
+      - name: Configurar kubectl
+        run: aws eks update-kubeconfig --name "${{ vars.EKS_CLUSTER_NAME }}" --region "${{ vars.AWS_REGION }}"
+
+      - name: Deploy no EKS
+        env:
+          ECR_REGISTRY: ${{ steps.ecr-login.outputs.registry }}
+          TAG: ${{ github.sha }}
+        run: |
+          set -euo pipefail
+          NAMESPACE=gearup-prod
+
+          kubectl apply -f k8s/prod/namespace.yaml
+          kubectl apply -f k8s/prod/serviceaccount.yaml
+          kubectl apply -f k8s/prod/configmap.yaml
+          kubectl apply -f k8s/prod/external-secret.yaml
+          kubectl -n "$NAMESPACE" wait --for=condition=Ready externalsecret/gearup-secrets --timeout=60s
+
+          sed -e "s|<ECR_URI>/gearup-api:<tag>|$ECR_REGISTRY/gearup-api:$TAG|g" k8s/prod/migrations-job.yaml \
+            | kubectl -n "$NAMESPACE" delete -f - --ignore-not-found
+          sed -e "s|<ECR_URI>/gearup-api:<tag>|$ECR_REGISTRY/gearup-api:$TAG|g" k8s/prod/migrations-job.yaml \
+            | kubectl -n "$NAMESPACE" apply -f -
+          kubectl -n "$NAMESPACE" wait --for=condition=complete job/gearup-migrations --timeout=120s
+
+          sed -e "s|<ECR_URI>/gearup-api:<tag>|$ECR_REGISTRY/gearup-api:$TAG|g" k8s/prod/api-deployment.yaml \
+            | kubectl -n "$NAMESPACE" apply -f -
+          kubectl apply -f k8s/prod/api-service.yaml
+          kubectl apply -f k8s/prod/api-hpa.yaml
+          kubectl apply -f k8s/prod/ingress.yaml
+
+          kubectl -n "$NAMESPACE" rollout status deployment/gearup-api --timeout=180s
