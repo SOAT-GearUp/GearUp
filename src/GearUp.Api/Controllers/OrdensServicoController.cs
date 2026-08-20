@@ -1,8 +1,10 @@
 using GearUp.Api.Authorization;
 using GearUp.Api.Contracts.OrdemServico;
 using GearUp.Application.OrdemDeServico.Ordens.Consultar;
+using GearUp.Application.OrdemDeServico.Ordens.ConsultarStatus;
 using GearUp.Application.OrdemDeServico.Ordens.Criar;
 using GearUp.Application.OrdemDeServico.Ordens.Listar;
+using GearUp.Application.OrdemDeServico.Orcamentos.Criar;
 using GearUp.Application.OrdemDeServico.Diagnosticos.IniciarDiagnostico;
 using GearUp.Application.OrdemDeServico.Diagnosticos.RegistrarDiagnostico;
 using GearUp.Application.OrdemDeServico.Execucao.AlterarStatus;
@@ -18,6 +20,7 @@ public sealed class OrdensServicoController(
     ICriarOrdemServicoUseCase criarOrdemServicoUseCase,
     IListarOrdemServicoUseCase listarOrdemServicoUseCase,
     IConsultarOrdemServicoUseCase consultarOrdemServicoUseCase,
+    IConsultarStatusOrdemServicoUseCase consultarStatusOrdemServicoUseCase,
     IIniciarDiagnosticoUseCase iniciarDiagnosticoUseCase,
     IRegistrarDiagnosticoUseCase registrarDiagnosticoUseCase,
     IAlterarStatusUseCase alterarStatusUseCase) : ControllerBase
@@ -29,13 +32,18 @@ public sealed class OrdensServicoController(
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<IActionResult> Criar(CriarOrdemServicoRequest request, CancellationToken ct)
     {
+        var itens = request.Itens?
+            .Select(i => new CriarItemOrcamentoCommand(i.Tipo, i.Descricao, i.Quantidade, i.ValorUnitario, i.EstoqueItemId))
+            .ToList();
+
         var os = await criarOrdemServicoUseCase.CriarAsync(
             new CriarOrdemServicoCommand(
                 request.ClienteId,
                 request.VeiculoId,
                 request.SolicitacaoInicial,
                 request.Prioridade,
-                request.Prazo
+                request.Prazo,
+                itens
             ), ct);
 
         return Created($"/api/ordens-servico/{os.Id}", os);
@@ -67,6 +75,20 @@ public sealed class OrdensServicoController(
             return NotFound(new { code = "OS_NAO_ENCONTRADA", message = "Ordem de serviço não encontrada." });
 
         return Ok(os);
+    }
+
+    [HttpGet("{ordemServicoId:guid}/status")]
+    [ProducesResponseType<ConsultarStatusOrdemServicoResult>(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    public async Task<IActionResult> ObterStatus(Guid ordemServicoId, CancellationToken ct)
+    {
+        var status = await consultarStatusOrdemServicoUseCase.ObterAsync(new ConsultarStatusOrdemServicoCommand(ordemServicoId), ct);
+
+        if (!User.PodeAcessarOrdemServico(status.ClienteId))
+            return NotFound(new { code = "OS_NAO_ENCONTRADA", message = "Ordem de serviço não encontrada." });
+
+        return Ok(status);
     }
 
     [HttpPost("{ordemServicoId:guid}/diagnostico/iniciar"), Authorize(Roles = "Admin,Mecanico")]
