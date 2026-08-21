@@ -16,8 +16,8 @@ Evoluir o GearUp com melhorias na aplicação, conteinerização, Kubernetes, in
 | [Kubernetes local](Kubernetes/Deploy%20Local%20com%20Kubernetes.md) | Criado |
 | [Kubernetes AWS com EKS](Kubernetes/Deploy%20AWS%20com%20EKS.md) | Criado |
 | [Terraform](Infraestrutura/Provisionamento%20com%20Terraform.md) | Criado |
-| Pipeline CI/CD | A criar |
-| Deploy AWS | A criar |
+| [Pipeline CI/CD](Pipeline/Pipeline%20CI-CD.md) | Criado |
+| Deploy AWS | Criado |
 
 ## Evolução inicial da aplicação
 
