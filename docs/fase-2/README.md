@@ -10,8 +10,9 @@ Evoluir o GearUp com melhorias na aplicação, conteinerização, Kubernetes, in
 
 | Documento | Status |
 |---|---|
+| [ADR-001 - Evolução para Cloud Native e CI/CD](ADR/ADR-001%20-%20Evolucao%20para%20Cloud%20Native%20e%20CI-CD.md) | Criado |
 | Evolução da aplicação | Em andamento |
-| Docker e execução local | A criar |
+| [Docker e execução local](Docker/Conteinerizacao.md) | Criado |
 | Kubernetes | A criar |
 | Terraform | A criar |
 | Pipeline CI/CD | A criar |
