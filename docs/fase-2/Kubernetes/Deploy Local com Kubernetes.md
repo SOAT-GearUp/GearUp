@@ -95,6 +95,15 @@ Logs da API:
 kubectl logs -n gearup deployment/gearup-api
 ```
 
+## Health checks
+
+A API expõe endpoints de health check usados pelas probes do Kubernetes:
+
+- `/health/live`: usado pela liveness probe para verificar se o processo da API está em execução;
+- `/health/ready`: usado pela readiness probe para verificar se a API está pronta para receber tráfego e se consegue conectar ao PostgreSQL.
+
+A API possui probes de liveness e readiness; o Kubernetes só envia tráfego quando a aplicação está pronta.
+
 ## Acessar a API
 
 Use port-forward:

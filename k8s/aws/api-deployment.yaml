@@ -10,6 +10,11 @@ spec:
   selector:
     matchLabels:
       app: gearup-api
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxUnavailable: 0
+      maxSurge: 1
   template:
     metadata:
       labels:
@@ -17,8 +22,8 @@ spec:
     spec:
       containers:
         - name: gearup-api
-          image: gearup-api:local
-          imagePullPolicy: Never
+          image: 469257649079.dkr.ecr.us-east-1.amazonaws.com/gearup:20260821082601
+          imagePullPolicy: Always
           ports:
             - containerPort: 8080
           envFrom:

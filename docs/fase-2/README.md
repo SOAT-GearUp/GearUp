@@ -14,10 +14,20 @@ Evoluir o GearUp com melhorias na aplicação, conteinerização, Kubernetes, in
 | Evolução da aplicação | Em andamento |
 | [Docker e execução local](Docker/Conteinerizacao.md) | Criado |
 | [Kubernetes local](Kubernetes/Deploy%20Local%20com%20Kubernetes.md) | Criado |
-| Terraform | A criar |
+| [Kubernetes AWS com EKS](Kubernetes/Deploy%20AWS%20com%20EKS.md) | Criado |
+| [Terraform](Infraestrutura/Provisionamento%20com%20Terraform.md) | Criado |
 | Pipeline CI/CD | A criar |
 | Deploy AWS | A criar |
 
 ## Evolução inicial da aplicação
 
 Nesta fase, a aplicação está sendo ajustada para atender aos fluxos exigidos no desafio: abertura de OS com serviços e peças, consulta de status, aprovação externa de orçamento e listagem de ordens de serviço com ordenação por status.
+
+## Observabilidade e disponibilidade
+
+A API possui endpoints de health check para apoiar a execução em Kubernetes:
+
+- `/health/live`: indica se o processo da API está em execução;
+- `/health/ready`: indica se a aplicação está pronta para receber tráfego, incluindo validação de conexão com o PostgreSQL.
+
+A API possui probes de liveness e readiness; o Kubernetes só envia tráfego quando a aplicação está pronta.
