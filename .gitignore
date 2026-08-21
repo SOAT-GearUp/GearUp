@@ -59,6 +59,7 @@ secrets.json
 *.pfx
 *.p12
 *.key
+secret.local.yaml
 
 # Databases and local container data
 *.db
