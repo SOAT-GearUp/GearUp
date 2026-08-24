@@ -124,6 +124,7 @@ O Kubernetes só envia tráfego para a API quando a aplicação está pronta.
 | Tema | Documento |
 |---|---|
 | Decisão arquitetural | [ADR-001 - Evolução para Cloud Native e CI/CD](docs/fase-2/ADR/ADR-001%20-%20Evolucao%20para%20Cloud%20Native%20e%20CI-CD.md) |
+| Arquitetura | [Arquitetura da Solução](docs/fase-2/Arquitetura/Arquitetura%20da%20Solucao.md) |
 | Docker | [Conteinerização](docs/fase-2/Docker/Conteinerizacao.md) |
 | Kubernetes local | [Deploy Local com Kubernetes](docs/fase-2/Kubernetes/Deploy%20Local%20com%20Kubernetes.md) |
 | Kubernetes AWS | [Deploy AWS com EKS](docs/fase-2/Kubernetes/Deploy%20AWS%20com%20EKS.md) |
