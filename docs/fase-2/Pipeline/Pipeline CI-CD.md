@@ -34,7 +34,7 @@ O workflow `ci.yml` executa:
 
 ## CD AWS
 
-O workflow `cd-aws.yml` pode ser executado manualmente pelo GitHub Actions e também em push para a branch `master`.
+O workflow `cd-aws.yml` pode ser executado manualmente pelo GitHub Actions e também em push para as branches `master` e `jose-henrique-fase-2`.
 
 Ele executa:
 

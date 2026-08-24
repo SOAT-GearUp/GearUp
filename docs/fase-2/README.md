@@ -31,3 +31,11 @@ A API possui endpoints de health check para apoiar a execução em Kubernetes:
 - `/health/ready`: indica se a aplicação está pronta para receber tráfego, incluindo validação de conexão com o PostgreSQL.
 
 A API possui probes de liveness e readiness; o Kubernetes só envia tráfego quando a aplicação está pronta.
+
+## Escalabilidade horizontal
+
+O HPA da API foi configurado em Kubernetes para escalar o deployment `gearup-api` entre 1 e 3 réplicas, considerando CPU e memória.
+
+Durante a validação em AWS, o Metrics Server foi usado no EKS para disponibilizar a API `metrics.k8s.io`. Com isso, o HPA passou a exibir métricas reais e escalou a aplicação para 3 réplicas.
+
+Documento detalhado: [Deploy AWS com EKS](Kubernetes/Deploy%20AWS%20com%20EKS.md).
