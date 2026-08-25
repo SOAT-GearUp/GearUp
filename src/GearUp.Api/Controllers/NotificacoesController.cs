@@ -12,7 +12,7 @@ namespace GearUp.Api.Controllers
     public class NotificacoesController(
         IListarNotificacaoUseCase listarNotificacaoUseCase) : ControllerBase
     {
-        [HttpGet("notificacoes")]
+        [HttpGet]
         public async Task<IActionResult> Notificacoes(CancellationToken ct)
         {
             var destinatario = User.IsInRole("Cliente")
@@ -32,7 +32,7 @@ namespace GearUp.Api.Controllers
         {
             return Guid.TryParse(User.FindFirstValue("cliente_id"), out var id)
                 ? id
-                : throw new UnauthorizedAccessException("Usuário não vinculado a um cliente.");
+                : throw new UnauthorizedAccessException("Usuario nao vinculado a um cliente.");
         }
     }
 }

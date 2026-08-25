@@ -18,6 +18,7 @@ Evoluir o GearUp com melhorias na aplicação, conteinerização, Kubernetes, in
 | [Kubernetes AWS com EKS](Kubernetes/Deploy%20AWS%20com%20EKS.md) | Criado |
 | [Terraform](Infraestrutura/Provisionamento%20com%20Terraform.md) | Criado |
 | [Pipeline CI/CD](Pipeline/Pipeline%20CI-CD.md) | Criado |
+| [Collection Postman](Postman/GearUp%20-%20Fase%202%20-%20Caminho%20Feliz.postman_collection.json) | Criado |
 | Deploy AWS | Criado |
 
 ## Evolução inicial da aplicação

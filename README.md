@@ -130,6 +130,7 @@ O Kubernetes só envia tráfego para a API quando a aplicação está pronta.
 | Kubernetes AWS | [Deploy AWS com EKS](docs/fase-2/Kubernetes/Deploy%20AWS%20com%20EKS.md) |
 | Terraform | [Provisionamento com Terraform](docs/fase-2/Infraestrutura/Provisionamento%20com%20Terraform.md) |
 | Pipeline CI/CD | [Pipeline CI/CD](docs/fase-2/Pipeline/Pipeline%20CI-CD.md) |
+| Collection Postman | [GearUp - Fase 2 - Caminho Feliz](docs/fase-2/Postman/GearUp%20-%20Fase%202%20-%20Caminho%20Feliz.postman_collection.json) |
 
 ## Código-fonte
 
