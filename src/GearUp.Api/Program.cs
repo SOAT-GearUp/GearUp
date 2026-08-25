@@ -1,8 +1,10 @@
 using GearUp.Api.ErrorHandling;
+using GearUp.Api.HealthChecks;
 using GearUp.Application;
 using GearUp.Infrastructure;
 using GearUp.Infrastructure.Persistence;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.Diagnostics.HealthChecks;
 using Microsoft.OpenApi;
 using Microsoft.IdentityModel.Tokens;
 using System.Text;
@@ -65,6 +67,12 @@ builder.Services.AddExceptionHandler<GlobalExceptionHandler>();
 builder.Services.AddApplication();
 builder.Services.AddInfrastructure(builder.Configuration);
 
+// Health checks consumidos pelas probes do Kubernetes (ver k8s/deployment.yaml).
+builder.Services.AddHealthChecks()
+    .AddCheck<BancoDeDadosHealthCheck>(
+        BancoDeDadosHealthCheck.Nome,
+        tags: [BancoDeDadosHealthCheck.TagProntidao]);
+
 var app = builder.Build();
 
 if (app.Environment.IsDevelopment())
@@ -83,6 +91,20 @@ app.UseHttpsRedirection();
 app.UseAuthentication();
 app.UseAuthorization();
 app.MapControllers();
+
+// livenessProbe/startupProbe: responde 200 se o processo está de pé. Não checa
+// dependências externas — reiniciar o pod não conserta um banco fora do ar.
+app.MapHealthChecks("/health/live", new HealthCheckOptions
+{
+    Predicate = _ => false
+}).AllowAnonymous();
+
+// readinessProbe: só entra no balanceamento do Service quando o PostgreSQL
+// responde.
+app.MapHealthChecks("/health/ready", new HealthCheckOptions
+{
+    Predicate = registro => registro.Tags.Contains(BancoDeDadosHealthCheck.TagProntidao)
+}).AllowAnonymous();
 
 using (var scope = app.Services.CreateScope())
 {

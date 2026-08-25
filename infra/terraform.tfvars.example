@@ -1,0 +1,39 @@
+# Copie para terraform.tfvars e ajuste. NÃO versione o terraform.tfvars
+# (já está no .gitignore) — ele conterá a senha do banco.
+#
+# ESCOPO: configuração da infraestrutura. As credenciais da sessão do lab, que
+# mudam a cada Start Lab, ficam em `.env.aws` — ver .env.aws.example.
+
+# ------------------------------- Obrigatório -------------------------------
+# Senha do usuário master do RDS. Mínimo 12 caracteres; evite / @ " e espaço.
+senha_banco = "SUBSTITUA_por_uma_senha_forte_de_12+_caracteres"
+
+# --------------------------------- Rede ------------------------------------
+# Restrinja o acesso à API do Kubernetes ao seu IP quando possível.
+# cidrs_acesso_api_kubernetes = ["203.0.113.10/32"]
+
+# --------------------------------- EKS -------------------------------------
+# nome_cluster       = "gearup-eks"
+# tipo_instancia_nos = "t3.medium"   # t3.small (US$ 0,0208/h) para economizar
+# nos_desejados      = 2
+# nos_minimos        = 2
+# nos_maximos        = 3
+
+# As roles do EKS são descobertas automaticamente (o sufixo muda em cada conta
+# de lab). Preencha SÓ se quiser forçar uma role específica:
+#   aws iam list-roles --query 'Roles[?contains(RoleName, `Lab`)].RoleName'
+# role_cluster = "c2205...-LabEksClusterRole-XXXX"
+# role_nos     = "c2205...-LabEksNodeRole-XXXX"
+
+# --------------------------------- RDS -------------------------------------
+# criar_banco_rds        = true      # false = PostgreSQL como StatefulSet no cluster
+# versao_postgres        = "17"
+# classe_instancia_banco = "db.t3.micro"
+# armazenamento_banco_gb = 20
+# nome_banco             = "gearup"
+# usuario_banco          = "gearup"
+
+# Para rodar migrations/psql da máquina local (expõe o banco na internet —
+# use apenas temporariamente e com o seu IP):
+# banco_publicamente_acessivel = true
+# cidrs_admin_banco            = ["203.0.113.10/32"]

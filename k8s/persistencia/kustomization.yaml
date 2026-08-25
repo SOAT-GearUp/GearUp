@@ -1,0 +1,16 @@
+# PostgreSQL em cluster — alternativa ao RDS.
+# Aplique somente se `criar_banco_rds = false` no Terraform:
+#   kubectl apply -k .
+#
+# Depende do namespace e do secret criados pelos manifestos da pasta pai
+# (`kubectl apply -k ..`).
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+
+namespace: gearup
+
+resources:
+  - pv.yaml # cluster-scoped: o `namespace` acima não se aplica a ele
+  - pvc.yaml
+  - statefulset.yaml
+  - service.yaml

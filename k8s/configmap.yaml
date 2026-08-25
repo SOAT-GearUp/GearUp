@@ -1,0 +1,56 @@
+# ---------------------------------------------------------------------------
+# ConfigMap — configuração NÃO sensível da API.
+#
+# As chaves usam o formato de variável de ambiente do .NET, onde `__` (dois
+# underscores) representa o `:` da hierarquia do appsettings.json.
+# Ex.: Jwt__Issuer  ->  "Jwt": { "Issuer": ... }
+#
+# Tudo aqui é injetado no container de uma vez via `envFrom` (ver
+# deployment.yaml). NUNCA coloque senha, chave JWT ou connection string neste
+# arquivo — eles ficam no secret.yaml.
+# ---------------------------------------------------------------------------
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: gearup-api-config
+  namespace: gearup
+  labels:
+    app.kubernetes.io/name: gearup-api
+    app.kubernetes.io/component: api
+    app.kubernetes.io/part-of: gearup
+data:
+  # --- ASP.NET Core -------------------------------------------------------
+  # "Development" mantém o Swagger disponível em /swagger, útil para a
+  # demonstração do Tech Challenge. Em produção real use "Production".
+  ASPNETCORE_ENVIRONMENT: "Development"
+  # Porta HTTP dentro do container (a mesma exposta no Dockerfile).
+  ASPNETCORE_HTTP_PORTS: "8080"
+  # GC workstation em vez de server: em pods pequenos (< 1 vCPU de limite) o GC
+  # server reserva heap por núcleo e mantém a memória alta de propósito, o que
+  # faria o HPA por memória escalar sem carga real.
+  DOTNET_gcServer: "0"
+
+  # --- JWT (a chave de assinatura fica no Secret) -------------------------
+  Jwt__Issuer: "GearUp"
+  Jwt__Audience: "GearUp.Clients"
+  Jwt__ExpirationMinutes: "60"
+
+  # --- Seed do usuário administrador --------------------------------------
+  # A senha correspondente fica no Secret (seed-admin-password).
+  Seed__AdminUser: "admin"
+
+  # --- Log ----------------------------------------------------------------
+  # Só chaves com nome válido de variável de ambiente (letras, números e `_`).
+  # `Logging__LogLevel__Microsoft.AspNetCore` tem ponto e seria ignorado pelo
+  # kubelet no `envFrom` — esse nível fica no appsettings.json.
+  Logging__LogLevel__Default: "Information"
+
+  # --- Banco de dados (host/porta/nome — informativo) ---------------------
+  # A connection string completa (com usuário e senha) está no Secret. Estas
+  # chaves documentam para onde a aplicação aponta e servem de referência
+  # rápida em troubleshooting.
+  #   RDS ...........: <identificador>.xxxxx.us-east-1.rds.amazonaws.com
+  #   PostgreSQL local: postgres.gearup.svc.cluster.local
+  DB_HOST: "SUBSTITUA.xxxxx.us-east-1.rds.amazonaws.com"
+  DB_PORT: "5432"
+  DB_NAME: "gearup"

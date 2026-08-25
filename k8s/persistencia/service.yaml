@@ -1,0 +1,26 @@
+# Service headless (clusterIP: None) do PostgreSQL.
+#
+# Headless porque, num StatefulSet, quem consulta o DNS quer o endereço do pod
+# específico e não um balanceamento entre réplicas. Nomes resolvidos:
+#   postgres.gearup.svc.cluster.local            (o pod pronto)
+#   gearup-postgres-0.postgres.gearup.svc.cluster.local
+#
+# Sem `type: LoadBalancer` de propósito: banco não se expõe na internet.
+apiVersion: v1
+kind: Service
+metadata:
+  name: postgres
+  namespace: gearup
+  labels:
+    app.kubernetes.io/name: postgres
+    app.kubernetes.io/component: database
+    app.kubernetes.io/part-of: gearup
+spec:
+  clusterIP: None
+  selector:
+    app.kubernetes.io/name: postgres
+  ports:
+    - name: postgres
+      port: 5432
+      targetPort: postgres
+      protocol: TCP

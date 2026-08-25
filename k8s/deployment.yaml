@@ -1,0 +1,184 @@
+# ---------------------------------------------------------------------------
+# Deployment da API do GearUp
+#
+# Antes de aplicar, troque a imagem em `spec.template.spec.containers[0].image`
+# pela sua. Como o LabRole tem acesso somente-leitura ao ECR, o caminho mais
+# simples no Learner Lab é publicar no Docker Hub:
+#
+#   docker build -f src/GearUp.Api/Dockerfile -t SEU_USUARIO/gearup-api:1.0.0 .
+#   docker push SEU_USUARIO/gearup-api:1.0.0
+# ---------------------------------------------------------------------------
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: gearup-api
+  namespace: gearup
+  labels:
+    app.kubernetes.io/name: gearup-api
+    app.kubernetes.io/component: api
+    app.kubernetes.io/part-of: gearup
+spec:
+  # Réplicas iniciais. O HPA (hpa.yaml) assume o controle depois; por isso este
+  # valor deve ser igual ao `minReplicas` do HPA para evitar um sobe-e-desce no
+  # primeiro apply.
+  replicas: 2
+  revisionHistoryLimit: 3
+
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: gearup-api
+
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxSurge: 1
+      # Zero indisponibilidade: só derruba um pod antigo depois que o novo
+      # ficou Ready (readinessProbe).
+      maxUnavailable: 0
+
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: gearup-api
+        app.kubernetes.io/component: api
+        app.kubernetes.io/part-of: gearup
+      annotations:
+        # Força um rollout quando o ConfigMap/Secret muda (atualize a data ou
+        # rode `kubectl rollout restart deployment/gearup-api -n gearup`).
+        gearup.io/config-revision: "1"
+    spec:
+      # Encerramento gracioso: tempo para terminar requisições em andamento.
+      terminationGracePeriodSeconds: 30
+
+      # A imagem bitnami/aspnet-core roda como UID 1001 (não-root).
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 1001
+        runAsGroup: 1001
+        fsGroup: 1001
+        seccompProfile:
+          type: RuntimeDefault
+
+      # Espalha as réplicas entre os nós/AZs quando possível — resiliência a
+      # perda de um nó sem travar o agendamento se só houver um nó livre.
+      topologySpreadConstraints:
+        - maxSkew: 1
+          topologyKey: kubernetes.io/hostname
+          whenUnsatisfiable: ScheduleAnyway
+          labelSelector:
+            matchLabels:
+              app.kubernetes.io/name: gearup-api
+
+      containers:
+        - name: api
+          image: docker.io/SUBSTITUA_SEU_USUARIO/gearup-api:1.0.0
+          imagePullPolicy: IfNotPresent
+
+          ports:
+            - name: http
+              containerPort: 8080
+              protocol: TCP
+
+          # ---------------- Configuração não sensível (ConfigMap) ----------
+          envFrom:
+            - configMapRef:
+                name: gearup-api-config
+
+          # ---------------- Configuração sensível (Secret) -----------------
+          # Injetada chave por chave para deixar explícito o que a aplicação
+          # consome e evitar vazar variáveis não usadas no ambiente do processo.
+          env:
+            - name: ConnectionStrings__GearUpDatabase
+              valueFrom:
+                secretKeyRef:
+                  name: gearup-api-secret
+                  key: connection-string
+            - name: Jwt__Key
+              valueFrom:
+                secretKeyRef:
+                  name: gearup-api-secret
+                  key: jwt-key
+            - name: Seed__AdminPassword
+              valueFrom:
+                secretKeyRef:
+                  name: gearup-api-secret
+                  key: seed-admin-password
+            # Metadados úteis nos logs e no troubleshooting.
+            - name: POD_NAME
+              valueFrom:
+                fieldRef:
+                  fieldPath: metadata.name
+            - name: POD_NAMESPACE
+              valueFrom:
+                fieldRef:
+                  fieldPath: metadata.namespace
+
+          # ---------------- Requests e Limits ------------------------------
+          # `requests` é o que o scheduler reserva e a base de cálculo do HPA
+          # (75% de CPU = 75% de 200m = 150m). `limits` protege o nó de um pod
+          # que saia do controle: CPU é throttled, memória estourada = OOMKill.
+          # A folga entre request e limit de memória é pequena de propósito: o
+          # GC do .NET cresce até perto do limite, e um request muito baixo
+          # deixaria o HPA por memória permanentemente saturado.
+          resources:
+            requests:
+              cpu: 200m
+              memory: 320Mi
+            limits:
+              cpu: 800m
+              memory: 512Mi
+
+          # ---------------- Probes de saúde --------------------------------
+          # startupProbe: cobre a inicialização (a API roda as migrations do EF
+          # Core e o seed no start). Enquanto ela não passa, liveness e
+          # readiness ficam suspensas — é o que evita o kubelet matar o pod no
+          # meio da migration. Tolera até 30 x 10s = 5 min.
+          startupProbe:
+            httpGet:
+              path: /health/live
+              port: http
+            initialDelaySeconds: 10
+            periodSeconds: 10
+            timeoutSeconds: 3
+            failureThreshold: 30
+
+          # livenessProbe: o processo está vivo e respondendo? Não checa o
+          # banco de propósito — reiniciar o pod não conserta um banco fora do
+          # ar e só provocaria um ciclo de restarts.
+          livenessProbe:
+            httpGet:
+              path: /health/live
+              port: http
+            periodSeconds: 15
+            timeoutSeconds: 3
+            failureThreshold: 3
+
+          # readinessProbe: pode receber tráfego? Aqui SIM checamos o
+          # PostgreSQL: sem banco a API não serve requisição útil, então o pod
+          # sai do balanceamento do Service até se recuperar (sem reiniciar).
+          readinessProbe:
+            httpGet:
+              path: /health/ready
+              port: http
+            initialDelaySeconds: 5
+            periodSeconds: 10
+            timeoutSeconds: 3
+            successThreshold: 1
+            failureThreshold: 3
+
+          # ---------------- Endurecimento do container ---------------------
+          securityContext:
+            allowPrivilegeEscalation: false
+            readOnlyRootFilesystem: true
+            capabilities:
+              drop: ["ALL"]
+
+          volumeMounts:
+            # Com o filesystem raiz somente-leitura, o .NET ainda precisa de
+            # um /tmp gravável.
+            - name: tmp
+              mountPath: /tmp
+
+      volumes:
+        - name: tmp
+          emptyDir: {}

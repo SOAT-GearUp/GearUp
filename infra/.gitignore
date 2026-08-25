@@ -1,0 +1,19 @@
+# State local (contém a senha do banco em texto claro) e caches do Terraform.
+.terraform/
+terraform.tfstate
+terraform.tfstate.*
+crash.log
+crash.*.log
+
+# Nunca versionar valores reais de variáveis (senhas, IPs, credenciais).
+terraform.tfvars
+*.auto.tfvars
+!terraform.tfvars.example
+
+# Credenciais temporárias do Learner Lab. Só o .example vai para o Git.
+.env.aws
+.env.aws.local
+!.env.aws.example
+
+# Planos salvos podem conter valores sensíveis.
+*.tfplan

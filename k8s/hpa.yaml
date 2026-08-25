@@ -1,0 +1,77 @@
+# ---------------------------------------------------------------------------
+# Horizontal Pod Autoscaler da API
+#
+# PRÉ-REQUISITO: metrics-server instalado no cluster. O Terraform já provisiona
+# o addon (`instalar_metrics_server = true`). Sem ele o HPA mostra
+# `<unknown>/75%` em `kubectl get hpa` e nunca escala. Fallback manual:
+#   kubectl apply -f https://github.com/kubernetes-sigs/metrics-server/releases/latest/download/components.yaml
+#
+# As métricas de `Utilization` são percentuais sobre o `resources.requests` do
+# container, não sobre a capacidade do nó:
+#   CPU     75% de 200m  = 150m por pod
+#   Memória 85% de 320Mi = ~272Mi por pod
+# Basta UMA das métricas estourar para o HPA escalar para cima (ele calcula a
+# réplica necessária por métrica e usa o maior valor).
+#
+# Sobre a métrica de memória: o GC do .NET tende a manter a memória alta por
+# design, então ela é um sinal fraco de carga. O ConfigMap já define
+# `DOTNET_gcServer=0` para conter isso. Se mesmo assim o HPA ficar preso no
+# máximo de réplicas sem carga, remova o bloco da métrica `memory` e deixe
+# apenas a de CPU.
+#
+# ATENÇÃO AO ORÇAMENTO: 10 réplicas com 200m/320Mi de request exigem ~2 vCPU e
+# ~3,2 GB só de reserva. Em 2 nós t3.medium (4 vCPU / 8 GB no total) isso cabe,
+# mas passar disso deixaria pods em Pending — e subir mais nós custa dinheiro.
+# ---------------------------------------------------------------------------
+apiVersion: autoscaling/v2
+kind: HorizontalPodAutoscaler
+metadata:
+  name: gearup-api
+  namespace: gearup
+  labels:
+    app.kubernetes.io/name: gearup-api
+    app.kubernetes.io/component: api
+    app.kubernetes.io/part-of: gearup
+spec:
+  scaleTargetRef:
+    apiVersion: apps/v1
+    kind: Deployment
+    name: gearup-api
+
+  minReplicas: 2 # igual ao `replicas` do Deployment; 2 garante HA básica
+  maxReplicas: 10
+
+  metrics:
+    - type: Resource
+      resource:
+        name: cpu
+        target:
+          type: Utilization
+          averageUtilization: 75
+    - type: Resource
+      resource:
+        name: memory
+        target:
+          type: Utilization
+          averageUtilization: 85
+
+  # Política de escala: sobe rápido para absorver picos, desce devagar para não
+  # oscilar (flapping) quando a carga é intermitente.
+  behavior:
+    scaleUp:
+      stabilizationWindowSeconds: 30
+      policies:
+        - type: Percent
+          value: 100 # pode dobrar a quantidade de pods...
+          periodSeconds: 30
+        - type: Pods
+          value: 4 # ...com teto de 4 pods a cada 30s
+          periodSeconds: 30
+      selectPolicy: Max
+    scaleDown:
+      stabilizationWindowSeconds: 300 # observa 5 min de calma antes de reduzir
+      policies:
+        - type: Pods
+          value: 1 # remove no máximo 1 pod por minuto
+          periodSeconds: 60
+      selectPolicy: Min

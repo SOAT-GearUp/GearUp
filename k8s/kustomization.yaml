@@ -1,0 +1,27 @@
+# Aplica todos os manifestos da API na ordem correta de dependência:
+#   kubectl apply -k .
+#
+# O PostgreSQL em cluster (pasta persistencia/) fica de fora de propósito: ele
+# é a alternativa ao RDS, não um complemento. Para usá-lo:
+#   kubectl apply -k persistencia
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+
+namespace: gearup
+
+resources:
+  - namespace.yaml
+  - configmap.yaml
+  - secret.yaml
+  - deployment.yaml
+  - service.yaml
+  - hpa.yaml
+
+# `includeSelectors: false` de propósito: labels extras dentro de
+# `selector.matchLabels` de um Deployment são imutáveis e quebrariam
+# atualizações futuras.
+labels:
+  - includeSelectors: false
+    pairs:
+      app.kubernetes.io/part-of: gearup
+      app.kubernetes.io/managed-by: kustomize

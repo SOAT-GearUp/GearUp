@@ -1,0 +1,66 @@
+# ---------------------------------------------------------------------------
+# Services da API
+#
+# Dois objetos, com papéis distintos:
+#   1. gearup-api    (ClusterIP)    — endereço estável interno, usado por
+#                                     outros pods e pelo `kubectl port-forward`.
+#   2. gearup-api-lb (LoadBalancer) — expõe a API na internet via NLB da AWS.
+#
+# CUSTO: o LoadBalancer provisiona um NLB de verdade (~US$ 0,0225/h + LCU) e
+# CONTINUA COBRANDO com a sessão do lab encerrada. Se a demonstração puder ser
+# feita localmente, aplique só o ClusterIP e use:
+#   kubectl port-forward -n gearup svc/gearup-api 8080:80
+#
+# Lembre-se de `kubectl delete -f service.yaml` ANTES do `terraform destroy`:
+# um LB órfão criado pelo Kubernetes impede a exclusão da VPC.
+# ---------------------------------------------------------------------------
+apiVersion: v1
+kind: Service
+metadata:
+  name: gearup-api
+  namespace: gearup
+  labels:
+    app.kubernetes.io/name: gearup-api
+    app.kubernetes.io/component: api
+    app.kubernetes.io/part-of: gearup
+spec:
+  type: ClusterIP
+  selector:
+    app.kubernetes.io/name: gearup-api
+  ports:
+    - name: http
+      port: 80
+      targetPort: http # porta 8080 do container
+      protocol: TCP
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: gearup-api-lb
+  namespace: gearup
+  labels:
+    app.kubernetes.io/name: gearup-api
+    app.kubernetes.io/component: api-publica
+    app.kubernetes.io/part-of: gearup
+  annotations:
+    # NLB (mais barato e simples que ALB, e não exige o AWS Load Balancer
+    # Controller instalado no cluster).
+    service.beta.kubernetes.io/aws-load-balancer-type: "nlb"
+    service.beta.kubernetes.io/aws-load-balancer-scheme: "internet-facing"
+    # Health check do target group aponta para o endpoint de readiness.
+    service.beta.kubernetes.io/aws-load-balancer-healthcheck-protocol: "HTTP"
+    service.beta.kubernetes.io/aws-load-balancer-healthcheck-path: "/health/ready"
+    service.beta.kubernetes.io/aws-load-balancer-healthcheck-port: "traffic-port"
+spec:
+  type: LoadBalancer
+  selector:
+    app.kubernetes.io/name: gearup-api
+  ports:
+    - name: http
+      port: 80
+      targetPort: http
+      protocol: TCP
+  # Restrinja a origem do tráfego externo (o Service programa isso no security
+  # group do LB). Ex.: ["203.0.113.10/32"] para liberar somente o seu IP.
+  loadBalancerSourceRanges:
+    - 0.0.0.0/0

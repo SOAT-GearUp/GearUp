@@ -1,0 +1,28 @@
+# ---------------------------------------------------------------------------
+# PersistentVolumeClaim — o pedido de disco que o StatefulSet do PostgreSQL
+# monta. O Kubernetes o liga ao PV com a mesma storageClassName, accessMode e
+# capacidade suficiente.
+#
+# Para provisionamento DINÂMICO no EKS (recomendado quando não se usa o RDS mas
+# se quer sobreviver à troca de nó):
+#   1. Instale o driver: addon `aws-ebs-csi-driver` no cluster.
+#   2. Troque `storageClassName: manual` por `storageClassName: gp2`.
+#   3. Apague o pv.yaml — o volume EBS passa a ser criado automaticamente.
+#   Custo: ~US$ 0,08/GB-mês (5 GB ≈ US$ 0,40/mês). Lembre que o Learner Lab
+#   permite no máximo 100 GB de EBS e apenas gp2/gp3/sc1/standard.
+# ---------------------------------------------------------------------------
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: gearup-postgres-pvc
+  namespace: gearup
+  labels:
+    app.kubernetes.io/name: postgres
+    app.kubernetes.io/part-of: gearup
+spec:
+  accessModes:
+    - ReadWriteOnce
+  storageClassName: manual
+  resources:
+    requests:
+      storage: 5Gi

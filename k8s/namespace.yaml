@@ -1,0 +1,9 @@
+# Namespace dedicado: isola a aplicação e permite aplicar quotas/limites
+# depois sem tocar no resto do cluster.
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: gearup
+  labels:
+    app.kubernetes.io/part-of: gearup
+    name: gearup

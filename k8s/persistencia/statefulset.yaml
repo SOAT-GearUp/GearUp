@@ -1,0 +1,109 @@
+# ---------------------------------------------------------------------------
+# PostgreSQL em cluster — ALTERNATIVA ao RDS (não usar os dois ao mesmo tempo).
+#
+# StatefulSet e não Deployment porque o banco tem identidade e disco próprios:
+# nome estável (`gearup-postgres-0`), ordem de start previsível e vínculo fixo
+# com o volume.
+#
+# Réplica única de propósito: PostgreSQL não replica por cópia de disco. Escalar
+# este StatefulSet para 2 corromperia os dados.
+#
+# Depois de aplicar, aponte a API para cá trocando o `connection-string` do
+# secret gearup-api-secret por:
+#   Host=postgres.gearup.svc.cluster.local;Port=5432;Database=gearup;Username=gearup;Password=<senha>
+# (sem `SSL Mode=Require` — a imagem oficial não habilita TLS por padrão).
+# ---------------------------------------------------------------------------
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: gearup-postgres
+  namespace: gearup
+  labels:
+    app.kubernetes.io/name: postgres
+    app.kubernetes.io/component: database
+    app.kubernetes.io/part-of: gearup
+spec:
+  serviceName: postgres # Service headless que dá DNS estável ao pod
+  replicas: 1
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: postgres
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: postgres
+        app.kubernetes.io/component: database
+        app.kubernetes.io/part-of: gearup
+    spec:
+      terminationGracePeriodSeconds: 30
+      securityContext:
+        # UID/GID do usuário postgres na imagem oficial.
+        runAsUser: 999
+        runAsGroup: 999
+        fsGroup: 999
+      containers:
+        - name: postgres
+          image: postgres:18-alpine3.23 # mesma versão do docker-compose.yml
+          imagePullPolicy: IfNotPresent
+
+          ports:
+            - name: postgres
+              containerPort: 5432
+
+          env:
+            - name: POSTGRES_DB
+              valueFrom:
+                configMapKeyRef:
+                  name: gearup-api-config
+                  key: DB_NAME
+            - name: POSTGRES_USER
+              value: gearup
+            - name: POSTGRES_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: gearup-api-secret
+                  key: postgres-password
+            # Subdiretório dedicado: o initdb exige um diretório vazio e o
+            # ponto de montagem pode conter metadados (ex.: lost+found).
+            - name: PGDATA
+              value: /var/lib/postgresql/data/pgdata
+
+          resources:
+            requests:
+              cpu: 100m
+              memory: 256Mi
+            limits:
+              cpu: 500m
+              memory: 512Mi
+
+          # Probes via pg_isready: verificam o banco de fato, não só o processo.
+          startupProbe:
+            exec:
+              command: ["pg_isready", "-U", "gearup", "-d", "gearup"]
+            periodSeconds: 5
+            timeoutSeconds: 3
+            failureThreshold: 24 # até 2 min para o initdb terminar
+          livenessProbe:
+            exec:
+              command: ["pg_isready", "-U", "gearup", "-d", "gearup"]
+            periodSeconds: 15
+            timeoutSeconds: 5
+            failureThreshold: 3
+          readinessProbe:
+            exec:
+              command: ["pg_isready", "-U", "gearup", "-d", "gearup"]
+            periodSeconds: 10
+            timeoutSeconds: 5
+            failureThreshold: 3
+
+          volumeMounts:
+            - name: dados
+              mountPath: /var/lib/postgresql/data
+
+      volumes:
+        # Referencia o PVC do pvc.yaml em vez de usar volumeClaimTemplates, para
+        # funcionar também com o PV estático (hostPath), sem provisionador
+        # dinâmico no cluster.
+        - name: dados
+          persistentVolumeClaim:
+            claimName: gearup-postgres-pvc

@@ -1,0 +1,39 @@
+# ---------------------------------------------------------------------------
+# PersistentVolume — armazenamento para o PostgreSQL em cluster.
+#
+# QUANDO USAR ESTA PASTA: apenas se você optar por NÃO provisionar o RDS
+# (`criar_banco_rds = false` no Terraform), seja para economizar ~US$ 0,43/dia
+# do orçamento, seja para rodar tudo localmente (kind/minikube/Docker Desktop).
+# Com o RDS ativo, nada aqui é necessário.
+#
+# Este PV usa `hostPath`: o diretório vive no disco do NÓ onde o pod for
+# agendado. Simples e sem custo, mas o dado NÃO acompanha o pod se ele mudar de
+# nó — por isso o StatefulSet fixa a réplica em 1 e o PV usa `Retain`.
+#
+# Em cluster EKS de verdade, prefira provisionamento dinâmico por EBS: apague
+# este arquivo, instale o addon `aws-ebs-csi-driver` e deixe o PVC pedir
+# `storageClassName: gp2` (ver comentário em pvc.yaml).
+# ---------------------------------------------------------------------------
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: gearup-postgres-pv
+  labels:
+    app.kubernetes.io/name: postgres
+    app.kubernetes.io/part-of: gearup
+spec:
+  capacity:
+    storage: 5Gi
+  accessModes:
+    # RWO: montado como leitura/escrita por um único nó — o que um PostgreSQL
+    # single-instance precisa (e o que hostPath suporta).
+    - ReadWriteOnce
+  # Retain: ao apagar o PVC o volume NÃO é apagado, evitando perder o banco por
+  # um `kubectl delete` distraído. A limpeza passa a ser manual.
+  persistentVolumeReclaimPolicy: Retain
+  # StorageClass fictícia "manual": impede que um provisionador dinâmico
+  # atenda o PVC e garante o casamento com este PV específico.
+  storageClassName: manual
+  hostPath:
+    path: /mnt/data/gearup-postgres
+    type: DirectoryOrCreate
