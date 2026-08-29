@@ -9,7 +9,7 @@ using Microsoft.Extensions.Diagnostics.HealthChecks;
 using Microsoft.OpenApi;
 using Microsoft.IdentityModel.Tokens;
 using System.Text;
-// GearUp
+// GearUp - Dev
 var builder = WebApplication.CreateBuilder(args);
 
 builder.Services.AddControllers();
