@@ -1,0 +1,18 @@
+project_name = "gearup"
+environment  = "dev"
+
+aws_region  = "us-east-1"
+aws_profile = "gearup"
+
+cluster_name    = "gearup-dev"
+cluster_version = "1.36"
+
+eks_node_instance_types = ["t3.small"]
+
+ecr_repository_name = "gearup"
+
+db_name     = "GearUp"
+db_username = "gearup"
+db_password = "change-me-with-a-strong-password-without-at-slash-quotes-or-spaces"
+
+db_engine_version = "18.4"

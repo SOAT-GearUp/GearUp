@@ -44,7 +44,7 @@ public sealed class ComunicacaoFluxoTests(GearUpApiFactory factory) : Integratio
         });
         orcamento.EnsureSuccessStatusCode();
 
-        var notificacoesAtendente = await adminClient.GetAsync("/api/notificacoes/notificacoes");
+        var notificacoesAtendente = await adminClient.GetAsync("/api/notificacoes");
         notificacoesAtendente.EnsureSuccessStatusCode();
 
         var usuarioCliente = $"cliente.login.{Guid.NewGuid():N}";
@@ -54,7 +54,7 @@ public sealed class ComunicacaoFluxoTests(GearUpApiFactory factory) : Integratio
         var tokenCliente = await LoginAsync(clienteClient, usuarioCliente, "Cliente@123");
         clienteClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", tokenCliente);
 
-        var notificacoesCliente = await clienteClient.GetAsync("/api/notificacoes/notificacoes");
+        var notificacoesCliente = await clienteClient.GetAsync("/api/notificacoes");
         notificacoesCliente.EnsureSuccessStatusCode();
     }
 }

@@ -1,12 +1,15 @@
 using GearUp.Application.Cadastro.Clientes.Common.Interfaces;
-using GearUp.Application.Cadastro.Clientes.Veiculos.Common.Interfaces;
 using GearUp.Application.OrdemDeServico.Common.Interfaces;
 using GearUp.Application.OrdemDeServico.Ordens.Criar;
 using GearUp.Application.Common.Exceptions;
 using GearUp.Application.Common.Interfaces;
 using GearUp.Domain.Entities;
 using GearUp.Domain.Enums;
-using GearUp.Domain.ValueObjects;
+using GearUp.Application.Cadastro.Veiculos.Common.Interfaces;
+using GearUp.Domain.ValueObjects.Clientes;
+using GearUp.Application.OrdemDeServico.Orcamentos.Criar;
+
+using IOrcamentoRepository = GearUp.Application.OrdemDeServico.Orcamentos.Common.Interfaces.IOrcamentoRepository;
 
 namespace GearUp.Application.UnitTests.OrdemDeServico.Ordens.Criar;
 
@@ -21,8 +24,9 @@ public sealed class CriarOrdemServicoUseCaseTests
         var clienteRepository = new ClienteRepositoryFake(cliente);
         var veiculoRepository = new VeiculoRepositoryFake(veiculo);
         var ordemRepository = new OrdemServicoRepositoryFake();
+        var orcamentoRepository = new OrcamentoRepositoryFake();
         var unitOfWork = new UnitOfWorkFake();
-        var useCase = new CriarOrdemServicoUseCase(clienteRepository, veiculoRepository, ordemRepository, unitOfWork);
+        var useCase = new CriarOrdemServicoUseCase(clienteRepository, veiculoRepository, ordemRepository, orcamentoRepository, unitOfWork);
         var command = CriarCommand(cliente.Id, veiculo.Id);
 
         var result = await useCase.CriarAsync(command, CancellationToken.None);
@@ -32,6 +36,36 @@ public sealed class CriarOrdemServicoUseCaseTests
         Assert.Equal(result.Id, ordemRepository.OrdemAdicionada.Id);
         Assert.Equal(cliente.Id, ordemRepository.OrdemAdicionada.ClienteId);
         Assert.Equal(veiculo.Id, ordemRepository.OrdemAdicionada.VeiculoId);
+        Assert.Null(orcamentoRepository.OrcamentoAdicionado);
+        Assert.Equal(1, unitOfWork.SaveChangesChamadas);
+    }
+
+    [Fact]
+    public async Task CriarAsync_ComItens_DeveGerarOrcamentoEAguardarAprovacao()
+    {
+        var cliente = Cliente.Criar("Maria da Silva", "52998224725", "maria@email.com", "11999999999");
+        var veiculo = Veiculo.Criar(cliente.Id, "ABC1D23", "Fiat", "Uno", 2015);
+
+        var clienteRepository = new ClienteRepositoryFake(cliente);
+        var veiculoRepository = new VeiculoRepositoryFake(veiculo);
+        var ordemRepository = new OrdemServicoRepositoryFake();
+        var orcamentoRepository = new OrcamentoRepositoryFake();
+        var unitOfWork = new UnitOfWorkFake();
+        var useCase = new CriarOrdemServicoUseCase(clienteRepository, veiculoRepository, ordemRepository, orcamentoRepository, unitOfWork);
+        var command = CriarCommand(
+            cliente.Id,
+            veiculo.Id,
+            [
+                new CriarItemOrcamentoCommand(TipoItemOrcamento.Servico, "Troca de oleo", 1, 120m, null)
+            ]);
+
+        var result = await useCase.CriarAsync(command, CancellationToken.None);
+
+        Assert.NotEqual(Guid.Empty, result.Id);
+        Assert.NotNull(ordemRepository.OrdemAdicionada);
+        Assert.NotNull(orcamentoRepository.OrcamentoAdicionado);
+        Assert.Equal(ordemRepository.OrdemAdicionada.Id, orcamentoRepository.OrcamentoAdicionado.OrdemServicoId);
+        Assert.Equal(StatusOrdemServico.AguardandoAprovacao, ordemRepository.OrdemAdicionada.Status);
         Assert.Equal(1, unitOfWork.SaveChangesChamadas);
     }
 
@@ -41,8 +75,9 @@ public sealed class CriarOrdemServicoUseCaseTests
         var clienteRepository = new ClienteRepositoryFake(cliente: null);
         var veiculoRepository = new VeiculoRepositoryFake(veiculo: null);
         var ordemRepository = new OrdemServicoRepositoryFake();
+        var orcamentoRepository = new OrcamentoRepositoryFake();
         var unitOfWork = new UnitOfWorkFake();
-        var useCase = new CriarOrdemServicoUseCase(clienteRepository, veiculoRepository, ordemRepository, unitOfWork);
+        var useCase = new CriarOrdemServicoUseCase(clienteRepository, veiculoRepository, ordemRepository, orcamentoRepository, unitOfWork);
         var command = CriarCommand(Guid.NewGuid(), Guid.NewGuid());
 
         var excecao = await Assert.ThrowsAsync<RecursoNaoEncontradoException>(
@@ -61,8 +96,9 @@ public sealed class CriarOrdemServicoUseCaseTests
         var clienteRepository = new ClienteRepositoryFake(cliente);
         var veiculoRepository = new VeiculoRepositoryFake(veiculo: null);
         var ordemRepository = new OrdemServicoRepositoryFake();
+        var orcamentoRepository = new OrcamentoRepositoryFake();
         var unitOfWork = new UnitOfWorkFake();
-        var useCase = new CriarOrdemServicoUseCase(clienteRepository, veiculoRepository, ordemRepository, unitOfWork);
+        var useCase = new CriarOrdemServicoUseCase(clienteRepository, veiculoRepository, ordemRepository, orcamentoRepository, unitOfWork);
         var command = CriarCommand(cliente.Id, Guid.NewGuid());
 
         var excecao = await Assert.ThrowsAsync<RecursoNaoEncontradoException>(
@@ -82,8 +118,9 @@ public sealed class CriarOrdemServicoUseCaseTests
         var clienteRepository = new ClienteRepositoryFake(cliente);
         var veiculoRepository = new VeiculoRepositoryFake(veiculo);
         var ordemRepository = new OrdemServicoRepositoryFake();
+        var orcamentoRepository = new OrcamentoRepositoryFake();
         var unitOfWork = new UnitOfWorkFake();
-        var useCase = new CriarOrdemServicoUseCase(clienteRepository, veiculoRepository, ordemRepository, unitOfWork);
+        var useCase = new CriarOrdemServicoUseCase(clienteRepository, veiculoRepository, ordemRepository, orcamentoRepository, unitOfWork);
         var command = CriarCommand(cliente.Id, veiculo.Id);
 
         var excecao = await Assert.ThrowsAsync<RecursoNaoEncontradoException>(
@@ -94,13 +131,17 @@ public sealed class CriarOrdemServicoUseCaseTests
         Assert.Equal(0, unitOfWork.SaveChangesChamadas);
     }
 
-    private static CriarOrdemServicoCommand CriarCommand(Guid clienteId, Guid veiculoId) =>
+    private static CriarOrdemServicoCommand CriarCommand(
+        Guid clienteId,
+        Guid veiculoId,
+        IReadOnlyCollection<CriarItemOrcamentoCommand>? itens = null) =>
         new(
             clienteId,
             veiculoId,
             "Barulho no motor ao acelerar.",
             PrioridadeOrdemServico.Normal,
-            null);
+            null,
+            itens);
 
     private sealed class ClienteRepositoryFake(Cliente? cliente) : IClienteRepository
     {
@@ -130,6 +171,20 @@ public sealed class CriarOrdemServicoUseCaseTests
 
         public Task<OrdemServico?> ObterAsync(Guid id, CancellationToken ct) => Task.FromResult<OrdemServico?>(null);
         public Task<IReadOnlyList<OrdemServico>> ListarAsync(bool somenteEmAndamento, Guid? clienteId, CancellationToken ct) => Task.FromResult<IReadOnlyList<OrdemServico>>([]);
+    }
+
+    private sealed class OrcamentoRepositoryFake : IOrcamentoRepository
+    {
+        public Orcamento? OrcamentoAdicionado { get; private set; }
+
+        public Task AdicionarAsync(Orcamento orcamento, CancellationToken ct)
+        {
+            OrcamentoAdicionado = orcamento;
+            return Task.CompletedTask;
+        }
+
+        public Task<Orcamento?> ObterAsync(Guid id, CancellationToken ct) => Task.FromResult<Orcamento?>(null);
+        public Task<int> ContarPorOrdemServicoAsync(Guid ordemServicoId, CancellationToken ct) => Task.FromResult(0);
     }
 
     private sealed class UnitOfWorkFake : IUnitOfWork

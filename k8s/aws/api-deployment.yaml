@@ -1,0 +1,52 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: gearup-api
+  namespace: gearup
+  labels:
+    app: gearup-api
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: gearup-api
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxUnavailable: 0
+      maxSurge: 1
+  template:
+    metadata:
+      labels:
+        app: gearup-api
+    spec:
+      containers:
+        - name: gearup-api
+          image: 469257649079.dkr.ecr.us-east-1.amazonaws.com/gearup:20260821082601
+          imagePullPolicy: Always
+          ports:
+            - containerPort: 8080
+          envFrom:
+            - configMapRef:
+                name: gearup-config
+            - secretRef:
+                name: gearup-secret
+          resources:
+            requests:
+              cpu: 100m
+              memory: 256Mi
+            limits:
+              cpu: 500m
+              memory: 512Mi
+          readinessProbe:
+            httpGet:
+              path: /health/ready
+              port: 8080
+            initialDelaySeconds: 20
+            periodSeconds: 10
+          livenessProbe:
+            httpGet:
+              path: /health/live
+              port: 8080
+            initialDelaySeconds: 40
+            periodSeconds: 20

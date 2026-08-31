@@ -1,7 +1,7 @@
 using System.Reflection;
 using GearUp.Application.Autenticacao.Autenticar;
-using GearUp.Application.Autenticacao.Common;
-using GearUp.Application.Autenticacao.Exceptions;
+using GearUp.Application.Autenticacao.Common.Exceptions;
+using GearUp.Application.Autenticacao.Common.Interfaces;
 using GearUp.Domain.Entities;
 using GearUp.Domain.Enums;
 

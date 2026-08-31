@@ -1,0 +1,780 @@
+{
+  "info": {
+    "_postman_id": "656c831e-d1cd-431e-b413-d550126339de",
+    "name": "GearUp - Fase 2 - Caminho Feliz",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+    "_exporter_id": "8001515"
+  },
+  "item": [
+    {
+      "name": "00 - Health Check",
+      "item": [
+        {
+          "name": "GET Liveness",
+          "request": {
+            "method": "GET",
+            "header": []
+          },
+          "response": []
+        },
+        {
+          "name": "GET Readiness",
+          "request": {
+            "method": "GET",
+            "header": []
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "01 - Autenticação",
+      "item": [
+        {
+          "name": "POST Login Admin",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Login admin realizado com sucesso\", function () {\r",
+                  "    pm.response.to.have.status(200);\r",
+                  "});\r",
+                  "\r",
+                  "const json = pm.response.json();\r",
+                  "\r",
+                  "pm.test(\"Token retornado\", function () {\r",
+                  "    pm.expect(json.accessToken).to.not.be.empty;\r",
+                  "});\r",
+                  "\r",
+                  "pm.environment.set(\"tokenAdmin\", json.accessToken);"
+                ],
+                "type": "text/javascript",
+                "packages": {},
+                "requests": {}
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "{\r\n  \"usuario\": \"admin\",\r\n  \"senha\": \"{{senhaAdmin}}\"\r\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/autenticacao/login",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "autenticacao",
+                "login"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "POST Login Atendente",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Login atendente realizado com sucesso\", function () {\r",
+                  "    pm.response.to.have.status(200);\r",
+                  "});\r",
+                  "\r",
+                  "const json = pm.response.json();\r",
+                  "\r",
+                  "pm.test(\"Token retornado\", function () {\r",
+                  "    pm.expect(json.accessToken).to.not.be.empty;\r",
+                  "});\r",
+                  "\r",
+                  "pm.environment.set(\"tokenAtendente\", json.accessToken);"
+                ],
+                "type": "text/javascript",
+                "packages": {},
+                "requests": {}
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "{\r\n  \"usuario\": \"atendente\",\r\n  \"senha\": \"{{senhaAtendente}}\"\r\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/autenticacao/login",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "autenticacao",
+                "login"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "POST Login Mecanico",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Login mecanico realizado com sucesso\", function () {\r",
+                  "    pm.response.to.have.status(200);\r",
+                  "});\r",
+                  "\r",
+                  "const json = pm.response.json();\r",
+                  "\r",
+                  "pm.test(\"Token retornado\", function () {\r",
+                  "    pm.expect(json.accessToken).to.not.be.empty;\r",
+                  "});\r",
+                  "\r",
+                  "pm.environment.set(\"tokenMecanico\", json.accessToken);"
+                ],
+                "type": "text/javascript",
+                "packages": {},
+                "requests": {}
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "{\r\n  \"usuario\": \"mecanico\",\r\n  \"senha\": \"{{senhaMecanico}}\"\r\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/autenticacao/login",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "autenticacao",
+                "login"
+              ]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "02 - Preparação de Dados",
+      "item": [
+        {
+          "name": "POST Criar Usuário Atendente",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  ""
+                ],
+                "type": "text/javascript",
+                "packages": {},
+                "requests": {}
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "{\r\n  \"usuario\": \"usuarioAtendente\",\r\n  \"senha\": \"{{senhaAtendente}}\",\r\n  \"perfil\": 1\r\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/usuarios",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "usuarios"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "POST Criar Usuário Mecânico",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "{\r\n  \"usuario\": \"usuarioMecanico\",\r\n  \"senha\": \"{{senhaMecanico}}\",\r\n  \"perfil\": 2\r\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/usuarios",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "usuarios"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "POST Criar Cliente",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Cliente cadastrado com sucesso\", function () {\r",
+                  "    pm.response.to.have.status(201);\r",
+                  "});\r",
+                  "\r",
+                  "const json = pm.response.json();\r",
+                  "\r",
+                  "pm.test(\"Id retornado\", function () {\r",
+                  "    pm.expect(json.id).to.not.be.empty;\r",
+                  "});\r",
+                  "\r",
+                  "pm.environment.set(\"clienteId\", json.id);"
+                ],
+                "type": "text/javascript",
+                "packages": {},
+                "requests": {}
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "{\r\n  \"nome\": \"Maria José\",\r\n  \"documento\": \"423.237.740-93\",\r\n  \"email\": \"maria.jose-teste@gmail.com\",\r\n  \"telefone\": \"51995771888\"\r\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/clientes",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "clientes"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "POST Criar Veículo",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Veículo cadastrado com sucesso\", function () {\r",
+                  "    pm.response.to.have.status(201);\r",
+                  "});\r",
+                  "\r",
+                  "const json = pm.response.json();\r",
+                  "\r",
+                  "pm.test(\"Id retornado\", function () {\r",
+                  "    pm.expect(json.veiculoId).to.not.be.empty;\r",
+                  "});\r",
+                  "\r",
+                  "pm.environment.set(\"veiculoId\", json.veiculoId);"
+                ],
+                "type": "text/javascript",
+                "packages": {},
+                "requests": {}
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "{\r\n  \"placa\": \"RTA4J82\",\r\n  \"marca\": \"Chevrolet\",\r\n  \"modelo\": \"Onix Plus LT\",\r\n  \"ano\": 2023\r\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/clientes/{{clienteId}}/veiculos",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "clientes",
+                "{{clienteId}}",
+                "veiculos"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "POST Criar Item de Estoque",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Estoque cadastrado com sucesso\", function () {\r",
+                  "    pm.response.to.have.status(201);\r",
+                  "});\r",
+                  "\r",
+                  "const json = pm.response.json();\r",
+                  "\r",
+                  "pm.test(\"Id retornado\", function () {\r",
+                  "    pm.expect(json.id).to.not.be.empty;\r",
+                  "});\r",
+                  "\r",
+                  "pm.environment.set(\"estoqueItemId\", json.id);"
+                ],
+                "type": "text/javascript",
+                "packages": {},
+                "requests": {}
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": " {\r\n    \"nome\": \"Filtro de Óleo\",\r\n    \"tipo\": 1,\r\n    \"precoUnitario\": 35.90,\r\n    \"quantidadeInicial\": 20\r\n  }\r\n  /*\r\n  {\r\n    \"nome\": \"Filtro de Ar\",\r\n    \"tipo\": 1,\r\n    \"precoUnitario\": 59.90,\r\n    \"quantidadeInicial\": 15\r\n  }\r\n  */\r\n  /*\r\n  {\r\n    \"nome\": \"Pastilha de Freio Dianteira\",\r\n    \"tipo\": 1,\r\n    \"precoUnitario\": 189.90,\r\n    \"quantidadeInicial\": 10\r\n  }\r\n  */\r\n  /*\r\n  {\r\n    \"nome\": \"Correia Dentada\",\r\n    \"tipo\": 1,\r\n    \"precoUnitario\": 145.00,\r\n    \"quantidadeInicial\": 8\r\n  }\r\n  */\r\n  /*\r\n  {\r\n    \"nome\": \"Óleo de Motor 5W30 - 1L\",\r\n    \"tipo\": 2,\r\n    \"precoUnitario\": 42.90,\r\n    \"quantidadeInicial\": 50\r\n  }\r\n  */\r\n  /*\r\n  {\r\n    \"nome\": \"Fluido de Freio DOT 4 - 500ml\",\r\n    \"tipo\": 2,\r\n    \"precoUnitario\": 29.90,\r\n    \"quantidadeInicial\": 20\r\n  }\r\n  */\r\n  /*\r\n  {\r\n    \"nome\": \"Aditivo para Radiador - 1L\",\r\n    \"tipo\": 2,\r\n    \"precoUnitario\": 24.90,\r\n    \"quantidadeInicial\": 30\r\n  }\r\n  */\r\n  /*\r\n  {\r\n    \"nome\": \"Desengripante Spray - 300ml\",\r\n    \"tipo\": 2,\r\n    \"precoUnitario\": 19.90,\r\n    \"quantidadeInicial\": 12\r\n  }\r\n  */",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/estoque",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "estoque"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "POST Movimentar Estoque",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "{\r\n  \"tipo\": 1,\r\n  \"quantidade\": 10,\r\n  \"motivo\": \"Compra\"\r\n}\r\n\r\n/*\r\n{\r\n  \"tipo\": 2,\r\n  \"quantidade\": 5,\r\n  \"motivo\": \"Venda\"\r\n}\r\n*/",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/estoque/{{estoqueItemId}}/movimentacoes",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "estoque",
+                "{{estoqueItemId}}",
+                "movimentacoes"
+              ]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "03 - OS com Serviços e Peças",
+      "item": [
+        {
+          "name": "POST Abrir OS com serviços e peças",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"OS cadastrado com sucesso\", function () {\r",
+                  "    pm.response.to.have.status(201);\r",
+                  "});\r",
+                  "\r",
+                  "const json = pm.response.json();\r",
+                  "\r",
+                  "pm.test(\"Id retornado\", function () {\r",
+                  "    pm.expect(json.id).to.not.be.empty;\r",
+                  "});\r",
+                  "\r",
+                  "pm.environment.set(\"ordemServicoId\", json.id);"
+                ],
+                "type": "text/javascript",
+                "packages": {},
+                "requests": {}
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "{\r\n  \"clienteId\": \"{{clienteId}}\",\r\n  \"veiculoId\": \"{{veiculoId}}\",\r\n  \"solicitacaoInicial\": \"Troca do filtro de oleo\",\r\n  \"prioridade\": 1,\r\n  \"prazo\": \"2026-08-25T00:09:32.455Z\",\r\n  \"itens\": [\r\n    {\r\n      \"tipo\": 1,\r\n      \"descricao\": \"Filtro do oleo\",\r\n      \"quantidade\": 2,\r\n      \"valorUnitario\": 35.90,\r\n      \"estoqueItemId\": \"{{estoqueItemId}}\"\r\n    }\r\n  ]\r\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/ordens-servico",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "ordens-servico"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "GET Consultar Status da OS",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  ""
+                ],
+                "type": "text/javascript",
+                "packages": {},
+                "requests": {}
+              }
+            }
+          ],
+          "protocolProfileBehavior": {
+            "disableBodyPruning": true
+          },
+          "request": {
+            "method": "GET",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/ordens-servico/{{ordemServicoId}}/status",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "ordens-servico",
+                "{{ordemServicoId}}",
+                "status"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "GET Consultar OS",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Ordem de serviço recuperado com sucesso\", function () {\r",
+                  "    pm.response.to.have.status(200);\r",
+                  "});\r",
+                  "\r",
+                  "const json = pm.response.json();\r",
+                  "\r",
+                  "pm.test(\"Id retornado\", function () {\r",
+                  "    pm.expect(json.orcamentos[0].id).to.not.be.empty;\r",
+                  "});\r",
+                  "\r",
+                  "pm.environment.set(\"orcamentoId\", json.orcamentos[0].id);"
+                ],
+                "type": "text/javascript",
+                "packages": {},
+                "requests": {}
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/ordens-servico/{{ordemServicoId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "ordens-servico",
+                "{{ordemServicoId}}"
+              ]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "04 - Orçamento",
+      "item": [
+        {
+          "name": "POST Aprovação Externa de Orçamento",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/orcamentos/{{orcamentoId}}/decisao-externa",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "orcamentos",
+                "{{orcamentoId}}",
+                "decisao-externa"
+              ]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "05 - Fluxo Operacional da OS",
+      "item": [
+        {
+          "name": "PUT Alterar Status para Execução",
+          "request": {
+            "method": "PATCH",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "{\r\n  \"status\": 8\r\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/ordens-servico/{{ordemServicoId}}/status",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "ordens-servico",
+                "{{ordemServicoId}}",
+                "status"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "PUT Alterar Status para Finalizada",
+          "request": {
+            "method": "PATCH",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "{\r\n  \"status\": 9\r\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/ordens-servico/{{ordemServicoId}}/status",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "ordens-servico",
+                "{{ordemServicoId}}",
+                "status"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "PUT Alterar Status para Entregue",
+          "request": {
+            "method": "PATCH",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "{\r\n  \"status\": 10\r\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/ordens-servico/{{ordemServicoId}}/status",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "ordens-servico",
+                "{{ordemServicoId}}",
+                "status"
+              ]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "06 - Listagem Ordenada",
+      "item": [
+        {
+          "name": "GET Listar OS ordenadas por status",
+          "request": {
+            "method": "GET",
+            "header": []
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "07 - Comunicação / Notificações",
+      "item": [
+        {
+          "name": "GET Listar Notificações",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/notificacoes",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "notificacoes"
+              ]
+            }
+          },
+          "response": []
+        }
+      ]
+    }
+  ],
+  "auth": {
+    "type": "bearer",
+    "bearer": [
+      {
+        "key": "token",
+        "value": "{{tokenAdmin}}",
+        "type": "string"
+      }
+    ]
+  },
+  "event": [
+    {
+      "listen": "prerequest",
+      "script": {
+        "type": "text/javascript",
+        "packages": {},
+        "requests": {},
+        "exec": [
+          ""
+        ]
+      }
+    },
+    {
+      "listen": "test",
+      "script": {
+        "type": "text/javascript",
+        "packages": {},
+        "requests": {},
+        "exec": [
+          ""
+        ]
+      }
+    }
+  ]
+}

@@ -3,6 +3,7 @@ using GearUp.Api.Contracts.Orcamentos;
 using GearUp.Application.OrdemDeServico.Ordens.Consultar;
 using GearUp.Application.OrdemDeServico.Orcamentos.Criar;
 using GearUp.Application.OrdemDeServico.Orcamentos.Decidir;
+using GearUp.Application.OrdemDeServico.Orcamentos.DecidirExterno;
 using GearUp.Application.OrdemDeServico.Orcamentos.Itens.Adicionar;
 using GearUp.Application.OrdemDeServico.Orcamentos.Itens.Atualizar;
 using GearUp.Application.OrdemDeServico.Orcamentos.Itens.Remover;
@@ -16,6 +17,7 @@ namespace GearUp.Api.Controllers;
 public class OrcamentosController(
     ICriarOrcamentoUseCase criarOrcamentoUseCase,
     IDecidirOrcamentoUseCase decidirOrcamentoUseCase,
+    IDecidirOrcamentoExternoUseCase decidirOrcamentoExternoUseCase,
     IConsultarOrdemServicoUseCase consultarOrdemServicoUseCase,
     IAdicionarItemOrcamentoUseCase adicionarItemOrcamentoUseCase,
     IAtualizarItemOrcamentoUseCase atualizarItemOrcamentoUseCase,
@@ -49,6 +51,17 @@ public class OrcamentosController(
             return NotFound(new { code = "OS_NAO_ENCONTRADA", message = "Ordem de serviço não encontrada." });
 
         await decidirOrcamentoUseCase.DecidirAsync(new DecidirOrcamentoCommand(ordemServicoId, orcamentoId, request.Aprovado), ct);
+
+        return NoContent();
+    }
+
+    [HttpPost("/api/orcamentos/{orcamentoId:guid}/decisao-externa"), Authorize(Roles = "Admin,Atendente")]
+    [ProducesResponseType(StatusCodes.Status204NoContent)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    [ProducesResponseType(StatusCodes.Status422UnprocessableEntity)]
+    public async Task<IActionResult> DecidirExterno(Guid orcamentoId, DecisaoOrcamentoRequest request, CancellationToken ct)
+    {
+        await decidirOrcamentoExternoUseCase.DecidirAsync(new DecidirOrcamentoExternoCommand(orcamentoId, request.Aprovado), ct);
 
         return NoContent();
     }

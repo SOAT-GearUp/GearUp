@@ -2,21 +2,26 @@ name: CI
 
 on:
   push:
-    branches: [main, master]
+    branches: ["**"]
   pull_request:
 
 jobs:
   build-test:
     runs-on: ubuntu-latest
+    timeout-minutes: 20
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-dotnet@v4
+      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4.3.1
+      - uses: actions/setup-dotnet@67a3573c9a986a3f9c594539f4ab511d57bb3ce9 # v4.3.1
         with:
           dotnet-version: 10.0.x
-      - run: dotnet restore GearUp.slnx
-      - run: dotnet build GearUp.slnx --configuration Release --no-restore
-      - run: dotnet test GearUp.slnx --configuration Release --no-build
-      - run: dotnet test tests/GearUp.Domain.UnitTests/GearUp.Domain.UnitTests.csproj --configuration Release --no-build --collect:"XPlat Code Coverage" --results-directory TestResults/Domain
+      - name: Restore
+        run: dotnet restore GearUp.slnx
+      - name: Build
+        run: dotnet build GearUp.slnx --configuration Release --no-restore
+      - name: Test
+        run: dotnet test GearUp.slnx --configuration Release --no-build
+      - name: Domain coverage
+        run: dotnet test tests/GearUp.Domain.UnitTests/GearUp.Domain.UnitTests.csproj --configuration Release --no-build --collect:"XPlat Code Coverage" --results-directory TestResults/Domain
       - name: Enforce 80% Domain line coverage
         shell: pwsh
         run: |
@@ -24,4 +29,5 @@ jobs:
           $rate = [double]$report.coverage.'line-rate'
           Write-Host "Domain line coverage: $($rate * 100)%"
           if ($rate -lt 0.80) { throw "Domain coverage is below 80%." }
-      - run: docker build -f src/GearUp.Api/Dockerfile -t gearup-api:ci .
+      - name: Docker build
+        run: docker build -f src/GearUp.Api/Dockerfile -t gearup-api:ci .

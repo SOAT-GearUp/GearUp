@@ -1,5 +1,5 @@
 using GearUp.Application.Autenticacao.Autenticar;
-using GearUp.Application.Autenticacao.Common;
+using GearUp.Application.Autenticacao.Common.Interfaces;
 using GearUp.Domain.Entities;
 using Microsoft.Extensions.Configuration;
 using Microsoft.IdentityModel.Tokens;

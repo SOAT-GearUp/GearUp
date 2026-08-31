@@ -1,0 +1,107 @@
+name: CD AWS
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [master, jose-henrique-fase-2]
+
+env:
+  AWS_REGION: us-east-1
+  ECR_REPOSITORY: gearup
+  EKS_CLUSTER_NAME: gearup-dev
+  K8S_NAMESPACE: gearup
+
+jobs:
+  deploy:
+    name: Build, push and deploy
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    environment: aws-dev
+    permissions:
+      contents: read
+
+    steps:
+      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4.3.1
+
+      - uses: actions/setup-dotnet@67a3573c9a986a3f9c594539f4ab511d57bb3ce9 # v4.3.1
+        with:
+          dotnet-version: 10.0.x
+
+      - name: Restore
+        run: dotnet restore GearUp.slnx
+
+      - name: Build
+        run: dotnet build GearUp.slnx --configuration Release --no-restore
+
+      - name: Test
+        run: dotnet test GearUp.slnx --configuration Release --no-build
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@7474bc4690e29a8392af63c5b98e7449536d5c3a # v4.3.1
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ env.AWS_REGION }}
+
+      - name: Resolve ECR image
+        id: image
+        run: |
+          AWS_ACCOUNT_ID=$(aws sts get-caller-identity --query Account --output text)
+          ECR_REGISTRY="$AWS_ACCOUNT_ID.dkr.ecr.$AWS_REGION.amazonaws.com"
+          IMAGE_TAG="${GITHUB_SHA}-${GITHUB_RUN_NUMBER}"
+          IMAGE_URI="$ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG"
+          echo "registry=$ECR_REGISTRY" >> "$GITHUB_OUTPUT"
+          echo "tag=$IMAGE_TAG" >> "$GITHUB_OUTPUT"
+          echo "uri=$IMAGE_URI" >> "$GITHUB_OUTPUT"
+
+      - name: Login to ECR
+        run: |
+          aws ecr get-login-password --region "$AWS_REGION" \
+            | docker login --username AWS --password-stdin "${{ steps.image.outputs.registry }}"
+
+      - name: Build Docker image
+        run: docker build -f src/GearUp.Api/Dockerfile -t "${{ steps.image.outputs.uri }}" .
+
+      - name: Push Docker image
+        run: docker push "${{ steps.image.outputs.uri }}"
+
+      - name: Setup kubectl
+        uses: azure/setup-kubectl@776406bce94f63e41d621b960d78ee25c8b76ede # v4.0.1
+
+      - name: Configure kubeconfig
+        run: aws eks update-kubeconfig --region "$AWS_REGION" --name "$EKS_CLUSTER_NAME"
+
+      - name: Apply namespace and configuration
+        run: |
+          kubectl apply -f k8s/aws/namespace.yaml
+          kubectl apply -f k8s/aws/configmap.yaml
+
+      - name: Apply application secrets
+        env:
+          JWT_KEY: ${{ secrets.JWT_KEY }}
+          SEED_ADMIN_PASSWORD: ${{ secrets.SEED_ADMIN_PASSWORD }}
+          GEARUP_DATABASE_CONNECTION_STRING: ${{ secrets.GEARUP_DATABASE_CONNECTION_STRING }}
+        run: |
+          kubectl create secret generic gearup-secret \
+            --namespace "$K8S_NAMESPACE" \
+            --from-literal=Jwt__Key="$JWT_KEY" \
+            --from-literal=Seed__AdminPassword="$SEED_ADMIN_PASSWORD" \
+            --from-literal=ConnectionStrings__GearUpDatabase="$GEARUP_DATABASE_CONNECTION_STRING" \
+            --dry-run=client -o yaml | kubectl apply -f -
+
+      - name: Apply Kubernetes manifests
+        run: |
+          cp k8s/aws/api-deployment.yaml /tmp/gearup-api-deployment.yaml
+          sed -i "s#image: .*#image: ${{ steps.image.outputs.uri }}#" /tmp/gearup-api-deployment.yaml
+          kubectl apply -f k8s/aws/api-service.yaml
+          kubectl apply -f k8s/aws/hpa.yaml
+          kubectl apply -f /tmp/gearup-api-deployment.yaml
+
+      - name: Deploy database migrations and wait for rollout
+        run: |
+          kubectl rollout status deployment/gearup-api --namespace "$K8S_NAMESPACE" --timeout=300s
+
+      - name: Validate health checks
+        run: |
+          kubectl get pods --namespace "$K8S_NAMESPACE"
+          kubectl get svc gearup-api --namespace "$K8S_NAMESPACE"

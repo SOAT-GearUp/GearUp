@@ -257,14 +257,14 @@ Accept: application/json
 ###
 
 ### 18 - Listar notificacoes do atendente
-GET {{GearUp.Api_HostAddress}}/api/notificacoes/notificacoes
+GET {{GearUp.Api_HostAddress}}/api/notificacoes
 Authorization: Bearer {{AdminToken}}
 Accept: application/json
 
 ###
 
 ### 19 - Listar notificacoes do cliente
-GET {{GearUp.Api_HostAddress}}/api/notificacoes/notificacoes
+GET {{GearUp.Api_HostAddress}}/api/notificacoes
 Authorization: Bearer {{ClienteToken}}
 Accept: application/json
 

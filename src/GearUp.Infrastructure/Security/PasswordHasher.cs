@@ -1,5 +1,5 @@
 using System.Security.Cryptography;
-using GearUp.Application.Autenticacao.Common;
+using GearUp.Application.Autenticacao.Common.Interfaces;
 
 namespace GearUp.Infrastructure.Security;
 

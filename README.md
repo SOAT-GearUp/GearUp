@@ -1,259 +1,150 @@
 # GearUp
 
-[![Quality Gate Status](https://sonarcloud.io/api/project_badges/measure?project=SOAT-GearUp_GearUp&metric=alert_status)](https://sonarcloud.io/summary/new_code?id=SOAT-GearUp_GearUp)
+API REST para gestão de oficina mecânica, construída em .NET 10, PostgreSQL, DDD e Clean Architecture.
 
-API REST para gestão de oficina mecânica, construída em .NET 10, PostgreSQL,
-DDD e Clean Architecture.
+O projeto evoluiu na Fase 2 do Tech Challenge para uma arquitetura cloud native, com conteinerização, Kubernetes, infraestrutura como código, pipeline CI/CD e escalabilidade automática.
 
-## Documentação (DDD)
+## Objetivos da Fase 2
 
-Artefatos de descoberta, modelagem e decisões arquiteturais desta entrega.
+- Evoluir a aplicação mantendo Clean Architecture, DDD e testes automatizados.
+- Containerizar a API com Docker e manter ambiente local com Docker Compose.
+- Executar a aplicação em Kubernetes local e em AWS EKS.
+- Provisionar infraestrutura AWS com Terraform.
+- Automatizar build, testes, publicação da imagem Docker e deploy no cluster com GitHub Actions.
+- Validar escalabilidade horizontal com HPA baseado em CPU e memória.
 
-### Descoberta e modelagem
+## Arquitetura da Solução
 
-| Artefato | Como acessar |
-|---|---|
-| **Event Storming** | [Quadro no Miro](https://miro.com/app/board/uXjVHaE40W8=/?share_link_id=725212077212) |
-| **Storytelling** | Abra [egon.io](https://egon.io/app/), clique em **Import** e selecione o arquivo [`docs/Storytelling/GearUp - Storytelling da Oficina Mecânica.egn`](docs/Storytelling/GearUp%20-%20Storytelling%20da%20Oficina%20Mec%C3%A2nica.egn) |
+Fluxo principal da arquitetura proposta:
 
-O arquivo `.egn` é o mapa narrativo do fluxo da oficina (storytelling). O
-[egon.io](https://egon.io/app/) é a ferramenta online para visualizá-lo — não
-abre direto no navegador; é preciso importar o arquivo no site.
+```text
+Desenvolvedor
+   |
+   v
+GitHub / GitHub Actions
+   |
+   |-- CI: restore, build, testes, cobertura e Docker build
+   |-- SonarQube Cloud: análise de qualidade e segurança
+   |-- CD: build da imagem, push no ECR e deploy no EKS
+   v
+Amazon ECR
+   |
+   v
+Amazon EKS
+   |
+   |-- Load Balancer expõe a API
+   |-- Deployment executa pods da GearUp API
+   |-- ConfigMap e Secret configuram a aplicação
+   |-- HPA escala réplicas conforme CPU/memória
+   |-- Metrics Server fornece métricas para o HPA
+   v
+Amazon RDS PostgreSQL
+```
 
-### Artefatos escritos
+O provisionamento da infraestrutura AWS é feito com Terraform, criando VPC, subnets, ECR, EKS, node group, RDS PostgreSQL e regras de rede necessárias.
 
-| Documento | Descrição |
-|---|---|
-| [ADRs](docs/ADR/Documentação%20ADR.md) | Registro de decisões arquiteturais (monólito modular, DDD, Clean Architecture, etc.) |
-| [Linguagem Ubíqua](docs/Linguagem%20Ubíqua/Documetação%20Linguagem%20Ubíqua.md) | Glossário, bounded contexts e termos do domínio |
-| [Requisitos](docs/Requisitos/Documentação%20de%20Requisitos.md) | Personas, problema, requisitos funcionais e não funcionais |
-| [Matriz de Rastreabilidade](docs/Requisitos/Matriz%20de%20Rastreabilidade.md) | Rastreio requisito → implementação no código |
+## Execução Local
 
-## Como executar o projeto
-
-### Pre-requisitos
-
-- Docker Desktop
-- .NET SDK 10, apenas se for executar a API fora do Docker
-- Terminal de sua preferencia, como PowerShell, Bash ou zsh
-
-### Configurar variaveis de ambiente
-
-Crie o arquivo `.env` a partir do exemplo:
+Com Docker Compose:
 
 ```powershell
 Copy-Item .env.example .env
-```
-
-No Linux/macOS, o comando equivalente e:
-
-```bash
-cp .env.example .env
-```
-
-Depois preencha `JWT_KEY` no arquivo `.env`. Essa chave deve ter pelo menos 32
-caracteres.
-
-Para desenvolvimento local, se nao quiser gerar uma chave, use esta chave
-publica e conhecida:
-
-```env
-JWT_KEY=gearup-local-development-key-change-me
-```
-
-Essa chave e apenas para ambiente local. Nao use em homologacao, producao ou
-qualquer ambiente compartilhado.
-
-Se preferir gerar uma chave propria, use qualquer gerador seguro de senha/token.
-Exemplos:
-
-```bash
-openssl rand -hex 32
-```
-
-ou, em PowerShell:
-
-```powershell
-[guid]::NewGuid().ToString("N") + [guid]::NewGuid().ToString("N")
-```
-
-O `.env` deve ficar com valores parecidos com estes:
-
-```env
-POSTGRES_PASSWORD=Your_strong!Pass123
-JWT_KEY=gearup-local-development-key-change-me
-SEED_ADMIN_USER=admin
-SEED_ADMIN_PASSWORD=GearUp@123
-```
-
-Nao versionar o arquivo .env, pois ele contem segredos locais.
-
-### Executar com Docker
-
-Na pasta raiz do projeto, onde esta o arquivo `docker-compose.yml`, execute:
-
-```powershell
 docker compose up --build
 ```
 
-A API estara em `http://localhost:8080` e o Swagger em
-`http://localhost:8080/swagger`. O banco e as migrations sao inicializados
-automaticamente.
-
-As imagens .NET do Dockerfile vem do Docker Hub (`bitnami/dotnet-sdk` e
-`bitnami/aspnet-core`), para o build funcionar sem depender do registry da
-Microsoft (`mcr.microsoft.com`).
-
-Para parar os containers:
+Com Kubernetes local:
 
 ```powershell
-docker compose down
+docker build -f .\src\GearUp.Api\Dockerfile -t gearup-api:local .
+kubectl apply -f .\k8s\local\namespace.yaml
+kubectl apply -f .\k8s\local\configmap.yaml
+kubectl apply -f .\k8s\local\secret.local.yaml
+kubectl apply -f .\k8s\local\postgres.yaml
+kubectl apply -f .\k8s\local\api-deployment.yaml
+kubectl apply -f .\k8s\local\api-service.yaml
+kubectl apply -f .\k8s\local\hpa.yaml
 ```
 
-Para remover tambem o volume do banco local:
+## Deploy AWS
 
-```powershell
-docker compose down -v
+O ambiente AWS usa:
+
+- Amazon EKS para orquestração;
+- Amazon ECR para armazenamento da imagem Docker;
+- Amazon RDS PostgreSQL como banco de dados;
+- Load Balancer para expor a API;
+- HPA para escalabilidade horizontal;
+- GitHub Actions para CI/CD.
+
+O deploy automatizado é executado pelo workflow `CD AWS`, que publica a imagem no ECR e aplica os manifests Kubernetes no EKS.
+
+## Escalabilidade Horizontal
+
+O HPA da API está configurado com:
+
+- mínimo de 1 réplica;
+- máximo de 3 réplicas;
+- alvo de 70% de CPU;
+- alvo de 80% de memória.
+
+Durante a validação em AWS, o Metrics Server foi usado para disponibilizar métricas reais de CPU e memória ao HPA. Com a memória acima do alvo configurado, a API escalou automaticamente para 3 réplicas.
+
+Evidência observada:
+
+```text
+gearup-api-hpa   Deployment/gearup-api   cpu: 3%/70%, memory: 90%/80%   1   3   3
 ```
 
-### Executar localmente sem Docker para a API
+Pods da API após escala:
 
-Se preferir rodar a API pelo `dotnet run`, mantenha pelo menos o PostgreSQL em
-execucao pelo Docker:
-
-```powershell
-docker compose up postgres
+```text
+gearup-api-5c6b8758ff-9vl85   1/1   Running
+gearup-api-5c6b8758ff-wzk82   1/1   Running
+gearup-api-5c6b8758ff-zp9rz   1/1   Running
 ```
 
-Em outro terminal, configure as variaveis esperadas pela API:
+## Health Checks
 
-```powershell
-$env:ASPNETCORE_ENVIRONMENT="Development"
-$env:ConnectionStrings__GearUpDatabase="Host=localhost;Port=5433;Database=GearUp;Username=gearup;Password=Your_strong!Pass123"
-$env:Jwt__Key="cole_a_chave_gerada_aqui"
-$env:Seed__AdminUser="admin"
-$env:Seed__AdminPassword="GearUp@123"
-dotnet run --project src/GearUp.Api/GearUp.Api.csproj
-```
+A API possui endpoints de saúde usados pelas probes do Kubernetes:
 
-Nesse modo, a API usara a porta configurada pelo perfil local do projeto.
+- `/health/live`: liveness probe;
+- `/health/ready`: readiness probe com validação de conexão ao PostgreSQL.
 
-### Debug pelo Visual Studio
+O Kubernetes só envia tráfego para a API quando a aplicação está pronta.
 
-Para executar pelo botao **Play** do Visual Studio, o arquivo
-`src/GearUp.Api/Properties/launchSettings.json` deve manter apenas configuracoes
-locais nao sensiveis, como:
+## Documentação
 
-```json
-"environmentVariables": {
-  "ASPNETCORE_ENVIRONMENT": "Development"
-}
-```
-
-As configuracoes sensiveis devem ficar no **User Secrets** da sua maquina.
-Execute uma vez:
-
-```powershell
-dotnet user-secrets set "ConnectionStrings:GearUpDatabase" "Host=localhost;Port=5433;Database=GearUp;Username=gearup;Password=Your_strong!Pass123" --project src/GearUp.Api/GearUp.Api.csproj
-dotnet user-secrets set "Jwt:Key" "gearup-local-development-key-change-me" --project src/GearUp.Api/GearUp.Api.csproj
-dotnet user-secrets set "Seed:AdminUser" "admin" --project src/GearUp.Api/GearUp.Api.csproj
-dotnet user-secrets set "Seed:AdminPassword" "GearUp@123" --project src/GearUp.Api/GearUp.Api.csproj
-```
-
-Antes de clicar em **Play**, mantenha o PostgreSQL local rodando:
-
-```powershell
-docker compose up postgres
-```
-
-Depois selecione o profile `http` ou `https` no Visual Studio e execute a API.
-O Swagger ficara disponivel em `/swagger`.
-
-### Usuario inicial
-
-No primeiro boot, se a tabela de usuarios estiver vazia, o sistema cria um
-unico usuario **admin** com as credenciais do `.env`:
-
-| Variavel | Descricao |
+| Fase | Documentação |
 |---|---|
-| `SEED_ADMIN_USER` | Nome de usuario do admin inicial |
-| `SEED_ADMIN_PASSWORD` | Senha do admin inicial |
+| Fase 1 | [Documentação da Fase 1](docs/fase-1/README.md) |
+| Fase 2 | [Documentação da Fase 2](docs/fase-2/README.md) |
 
-Com o admin logado, use `POST /api/usuarios` para cadastrar os demais perfis
-(`Atendente`, `Auxiliar`, `Mecanico`, `Cliente`). O **Atendente** pode criar
-apenas usuarios do tipo **Cliente**; o **Admin** pode criar qualquer perfil.
+## Documentos da Fase 2
 
-Altere a senha padrao do admin antes de publicar em producao.
-
-## Testes e cobertura
-
-Para executar os testes e conferir a cobertura deste projeto, use os comandos
-abaixo na pasta **`GearUp/`** (onde está `GearUp.slnx`).
-
-### Rodar a suíte
-
-```powershell
-dotnet test GearUp.slnx
-```
-
-Projetos de teste:
-
-| Projeto | O que valida |
+| Tema | Documento |
 |---|---|
-| `tests/GearUp.Domain.UnitTests` | Regras de domínio, invariantes e agregados |
-| `tests/GearUp.Application.UnitTests` | Casos de uso da camada de aplicação |
-| `tests/GearUp.Api.IntegrationTests` | Endpoints HTTP ponta a ponta |
+| Decisão arquitetural | [ADR-001 - Evolução para Cloud Native e CI/CD](docs/fase-2/ADR/ADR-001%20-%20Evolucao%20para%20Cloud%20Native%20e%20CI-CD.md) |
+| Arquitetura | [Arquitetura da Solução](docs/fase-2/Arquitetura/Arquitetura%20da%20Solucao.md) |
+| Docker | [Conteinerização](docs/fase-2/Docker/Conteinerizacao.md) |
+| Kubernetes local | [Deploy Local com Kubernetes](docs/fase-2/Kubernetes/Deploy%20Local%20com%20Kubernetes.md) |
+| Kubernetes AWS | [Deploy AWS com EKS](docs/fase-2/Kubernetes/Deploy%20AWS%20com%20EKS.md) |
+| Terraform | [Provisionamento com Terraform](docs/fase-2/Infraestrutura/Provisionamento%20com%20Terraform.md) |
+| Pipeline CI/CD | [Pipeline CI/CD](docs/fase-2/Pipeline/Pipeline%20CI-CD.md) |
+| Collection Postman | [GearUp - Fase 2 - Caminho Feliz](docs/fase-2/Postman/GearUp%20-%20Fase%202%20-%20Caminho%20Feliz.postman_collection.json) |
 
-Para um projeto só:
+## Código-fonte
 
-```powershell
-dotnet test tests/GearUp.Domain.UnitTests
-```
+| Pasta | Conteúdo |
+|---|---|
+| `src/` | Projetos da aplicação |
+| `tests/` | Testes unitários e de integração |
+| `docs/` | Documentação organizada por fase |
+| `k8s/` | Manifests Kubernetes local e AWS |
+| `infra/` | Scripts Terraform |
+| `.github/workflows/` | Pipelines de CI, SonarQube e CD AWS |
 
-### Ver cobertura no terminal
+## Qualidade
 
-Exibe uma **tabela por assembly** ao final da execução — forma mais rápida de
-ver o percentual:
+O projeto usa testes automatizados e SonarQube Cloud para acompanhar qualidade, segurança e cobertura.
 
-```powershell
-dotnet test GearUp.slnx /p:CollectCoverage=true /p:CoverletOutputFormat=opencover --tl:off
-```
-
-O `--tl:off` evita que os logs do build cubram a tabela de cobertura.
-
-### Cobertura em arquivo (como no CI)
-
-Gera XML em `TestResults/` para ferramentas externas ou para conferir o mesmo
-formato do pipeline:
-
-```powershell
-dotnet test GearUp.slnx --collect:"XPlat Code Coverage"
-```
-
-Apenas domínio (escopo verificado no CI):
-
-```powershell
-dotnet test tests/GearUp.Domain.UnitTests --collect:"XPlat Code Coverage"
-```
-
-O relatório fica em algo como
-`TestResults/<guid>/coverage.cobertura.xml`. Abra o XML e procure
-`line-rate` no elemento raiz `<coverage>` — o valor é a fração de linhas
-cobertas (ex.: `0.85` = 85%).
-
-### Critério do CI
-
-O workflow em `.github/workflows/ci.yml` exige **pelo menos 80% de cobertura
-de linhas** em `GearUp.Domain`; abaixo disso o build falha. A cobertura pode
-ser conferida pela tabela do Coverlet ou pelo `line-rate` no XML gerado por
-`GearUp.Domain.UnitTests`.
-
-## Camadas
-
-- `GearUp.Domain`: agregados, entidades, value objects e invariantes.
-- `GearUp.Application`: use cases e contratos de persistência/serviços.
-- `GearUp.Infrastructure`: EF Core, PostgreSQL, JWT e implementações.
-- `GearUp.Api`: autenticação, autorização e contratos HTTP.
-
-O fluxo de dependências é `Api -> Application/Infrastructure`,
-`Infrastructure -> Application/Domain` e `Application -> Domain`.
+[![Quality Gate Status](https://sonarcloud.io/api/project_badges/measure?project=SOAT-GearUp_GearUp&metric=alert_status)](https://sonarcloud.io/summary/new_code?id=SOAT-GearUp_GearUp)

@@ -59,6 +59,7 @@ secrets.json
 *.pfx
 *.p12
 *.key
+secret.local.yaml
 
 # Databases and local container data
 *.db
@@ -68,6 +69,20 @@ secrets.json
 *.sqlite3
 docker-data/
 .docker-data/
+
+# Terraform
+**/.terraform/
+*.tfstate
+*.tfstate.*
+*.tfvars
+!*.tfvars.example
+*.tfplan
+crash.log
+crash.*.log
+override.tf
+override.tf.json
+*_override.tf
+*_override.tf.json
 
 # Operating system files
 .DS_Store

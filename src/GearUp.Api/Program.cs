@@ -1,12 +1,15 @@
 using GearUp.Api.ErrorHandling;
+using GearUp.Api.HealthChecks;
 using GearUp.Application;
 using GearUp.Infrastructure;
 using GearUp.Infrastructure.Persistence;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.Diagnostics.HealthChecks;
+using Microsoft.Extensions.Diagnostics.HealthChecks;
 using Microsoft.OpenApi;
 using Microsoft.IdentityModel.Tokens;
 using System.Text;
-
+// GearUp - Dev
 var builder = WebApplication.CreateBuilder(args);
 
 builder.Services.AddControllers();
@@ -64,6 +67,9 @@ builder.Services.AddExceptionHandler<GlobalExceptionHandler>();
 
 builder.Services.AddApplication();
 builder.Services.AddInfrastructure(builder.Configuration);
+builder.Services.AddHealthChecks()
+    .AddCheck("self", () => HealthCheckResult.Healthy(), tags: ["live"])
+    .AddCheck<PostgresHealthCheck>("postgres", tags: ["ready"]);
 
 var app = builder.Build();
 
@@ -82,6 +88,14 @@ app.UseExceptionHandler();
 app.UseHttpsRedirection();
 app.UseAuthentication();
 app.UseAuthorization();
+app.MapHealthChecks("/health/live", new HealthCheckOptions
+{
+    Predicate = healthCheck => healthCheck.Tags.Contains("live")
+});
+app.MapHealthChecks("/health/ready", new HealthCheckOptions
+{
+    Predicate = healthCheck => healthCheck.Tags.Contains("ready")
+});
 app.MapControllers();
 
 using (var scope = app.Services.CreateScope())

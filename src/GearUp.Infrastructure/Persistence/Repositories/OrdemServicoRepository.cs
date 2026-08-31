@@ -29,15 +29,21 @@ internal sealed class OrdemServicoRepository(GearUpDbContext db) : IAtendimentoR
             .Include(x => x.Historico)
             .AsQueryable();
 
+        query = query.Where(x =>
+            x.Status != StatusOrdemServico.Finalizada &&
+            x.Status != StatusOrdemServico.Entregue);
+
         if (somenteEmAndamento)
-            query = query.Where(x => x.Status != StatusOrdemServico.Entregue && x.Status != StatusOrdemServico.Cancelada);
+            query = query.Where(x => x.Status != StatusOrdemServico.Cancelada);
 
         if (clienteId.HasValue)
             query = query.Where(x => x.ClienteId == clienteId.Value);
 
         return await query
-            .OrderByDescending(x => x.Prioridade)
-            .ThenBy(x => x.Prazo)
+            .OrderBy(x => x.Status == StatusOrdemServico.EmExecucao ? 0 :
+                x.Status == StatusOrdemServico.AguardandoAprovacao ? 1 :
+                x.Status == StatusOrdemServico.EmDiagnostico ? 2 :
+                x.Status == StatusOrdemServico.Recebida ? 3 : 4)
             .ThenBy(x => x.CriadaEm)
             .ToListAsync(ct);
     }

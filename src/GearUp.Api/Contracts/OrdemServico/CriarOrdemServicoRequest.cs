@@ -1,4 +1,5 @@
-﻿using GearUp.Domain.Enums;
+using GearUp.Api.Contracts.Orcamentos;
+using GearUp.Domain.Enums;
 using System.ComponentModel.DataAnnotations;
 
 namespace GearUp.Api.Contracts.OrdemServico
@@ -8,5 +9,6 @@ namespace GearUp.Api.Contracts.OrdemServico
         [Required] Guid VeiculoId, 
         [Required] string SolicitacaoInicial, 
         [Required] PrioridadeOrdemServico Prioridade, 
-        DateTimeOffset? Prazo);
+        DateTimeOffset? Prazo,
+        IReadOnlyCollection<ItemOrcamentoRequest>? Itens);
 }

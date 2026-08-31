@@ -1,11 +1,11 @@
 using GearUp.Application.Cadastro.Clientes.Common.Interfaces;
-using GearUp.Application.Autenticacao.Common;
+using GearUp.Application.Autenticacao.Common.Interfaces;
 using GearUp.Application.Autenticacao.GerenciarUsuarios;
 using GearUp.Application.Common.Exceptions;
 using GearUp.Application.Common.Interfaces;
 using GearUp.Domain.Entities;
 using GearUp.Domain.Enums;
-using GearUp.Domain.ValueObjects;
+using GearUp.Domain.ValueObjects.Clientes;
 
 namespace GearUp.Application.UnitTests.Autenticacao;
 

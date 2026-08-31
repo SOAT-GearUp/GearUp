@@ -1,5 +1,6 @@
 using GearUp.Domain.Common;
 using GearUp.Domain.ValueObjects;
+using GearUp.Domain.ValueObjects.Clientes;
 
 namespace GearUp.Domain.Entities;
 
