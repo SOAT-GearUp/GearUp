@@ -1,15 +1,41 @@
+# ---------------------------------------------------------------------------
+# Horizontal Pod Autoscaler da API (EKS)
+#
+# PRÉ-REQUISITO: metrics-server instalado no cluster. Sem ele o HPA mostra
+# `<unknown>/70%` em `kubectl get hpa` e nunca escala:
+#   kubectl apply -f https://github.com/kubernetes-sigs/metrics-server/releases/latest/download/components.yaml
+#
+# A métrica de `Utilization` é um percentual sobre o `resources.requests` do
+# container (api-deployment.yaml), não sobre a capacidade do nó:
+#   70% de 100m de CPU = 70m por pod
+#
+# Por que só CPU: na validação registrada em
+# `docs/fase-2/Kubernetes/Deploy AWS com EKS.md` a métrica de memória marcava
+# `memory: 90%/80%` com a CPU em 3%, prendendo o HPA em 3/3 réplicas sem carga
+# nenhuma. O GC do .NET segura memória por design, então ela é um sinal ruim de
+# carga. Para reativá-la seria preciso subir o request para ~320Mi, definir
+# `DOTNET_gcServer=0` no ConfigMap e mirar em 85%.
+#
+# ORÇAMENTO (Learner Lab): 6 réplicas x 100m/256Mi = 600m de CPU e 1,5Gi de
+# reserva, o que cabe folgado nos 2 nós t3.small já provisionados. Subir o teto
+# além disso empurraria o node group a criar nós novos — custo extra.
+# ---------------------------------------------------------------------------
 apiVersion: autoscaling/v2
 kind: HorizontalPodAutoscaler
 metadata:
   name: gearup-api-hpa
   namespace: gearup
+  labels:
+    app: gearup-api
 spec:
   scaleTargetRef:
     apiVersion: apps/v1
     kind: Deployment
     name: gearup-api
+
   minReplicas: 1
-  maxReplicas: 3
+  maxReplicas: 6
+
   metrics:
     - type: Resource
       resource:
@@ -17,9 +43,24 @@ spec:
         target:
           type: Utilization
           averageUtilization: 70
-    - type: Resource
-      resource:
-        name: memory
-        target:
-          type: Utilization
-          averageUtilization: 80
+
+  # Política de escala: sobe rápido para absorver picos, desce devagar para não
+  # oscilar (flapping) quando a carga é intermitente.
+  behavior:
+    scaleUp:
+      stabilizationWindowSeconds: 30
+      policies:
+        - type: Percent
+          value: 100 # pode dobrar a quantidade de pods...
+          periodSeconds: 30
+        - type: Pods
+          value: 2 # ...com teto de 2 pods a cada 30s
+          periodSeconds: 30
+      selectPolicy: Max
+    scaleDown:
+      stabilizationWindowSeconds: 300 # observa 5 min de calma antes de reduzir
+      policies:
+        - type: Pods
+          value: 1 # remove no máximo 1 pod por minuto
+          periodSeconds: 60
+      selectPolicy: Min

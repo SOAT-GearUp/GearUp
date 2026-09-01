@@ -1,15 +1,35 @@
+# ---------------------------------------------------------------------------
+# Horizontal Pod Autoscaler da API (cluster local)
+#
+# PRÉ-REQUISITO: metrics-server no cluster. No Docker Desktop / kind ele não
+# vem por padrão e precisa de `--kubelet-insecure-tls`:
+#   kubectl apply -f https://github.com/kubernetes-sigs/metrics-server/releases/latest/download/components.yaml
+#   kubectl patch deployment metrics-server -n kube-system --type=json \
+#     -p='[{"op":"add","path":"/spec/template/spec/containers/0/args/-","value":"--kubelet-insecure-tls"}]'
+#
+# 70% de Utilization = 70% do `requests.cpu` (100m no api-deployment.yaml),
+# ou seja 70m por pod. Só CPU: a métrica de memória fica saturada pelo GC do
+# .NET e prende o HPA no teto (ver comentário em k8s/aws/hpa.yaml).
+#
+# Teto menor que o da AWS de propósito — aqui o cluster é a máquina do dev, e
+# o Postgres roda como StatefulSet no mesmo nó.
+# ---------------------------------------------------------------------------
 apiVersion: autoscaling/v2
 kind: HorizontalPodAutoscaler
 metadata:
   name: gearup-api-hpa
   namespace: gearup
+  labels:
+    app: gearup-api
 spec:
   scaleTargetRef:
     apiVersion: apps/v1
     kind: Deployment
     name: gearup-api
+
   minReplicas: 1
-  maxReplicas: 3
+  maxReplicas: 4
+
   metrics:
     - type: Resource
       resource:
@@ -17,3 +37,22 @@ spec:
         target:
           type: Utilization
           averageUtilization: 70
+
+  behavior:
+    scaleUp:
+      stabilizationWindowSeconds: 30
+      policies:
+        - type: Percent
+          value: 100
+          periodSeconds: 30
+        - type: Pods
+          value: 2
+          periodSeconds: 30
+      selectPolicy: Max
+    scaleDown:
+      stabilizationWindowSeconds: 120 # local pode reagir mais rápido que a AWS
+      policies:
+        - type: Pods
+          value: 1
+          periodSeconds: 60
+      selectPolicy: Min
