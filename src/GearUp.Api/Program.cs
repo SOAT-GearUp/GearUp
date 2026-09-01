@@ -4,7 +4,6 @@ using GearUp.Application;
 using GearUp.Infrastructure;
 using GearUp.Infrastructure.Persistence;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
-using Microsoft.AspNetCore.Diagnostics.HealthChecks;
 using Microsoft.Extensions.Diagnostics.HealthChecks;
 using Microsoft.OpenApi;
 using Microsoft.IdentityModel.Tokens;
@@ -88,14 +87,6 @@ app.UseExceptionHandler();
 app.UseHttpsRedirection();
 app.UseAuthentication();
 app.UseAuthorization();
-app.MapHealthChecks("/health/live", new HealthCheckOptions
-{
-    Predicate = healthCheck => healthCheck.Tags.Contains("live")
-});
-app.MapHealthChecks("/health/ready", new HealthCheckOptions
-{
-    Predicate = healthCheck => healthCheck.Tags.Contains("ready")
-});
 app.MapControllers();
 
 using (var scope = app.Services.CreateScope())

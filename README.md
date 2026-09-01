@@ -112,6 +112,20 @@ A API possui endpoints de saúde usados pelas probes do Kubernetes:
 
 O Kubernetes só envia tráfego para a API quando a aplicação está pronta.
 
+Ambos respondem em JSON com o status agregado, a versão da aplicação (propriedade
+`Version` de `GearUp.Api.csproj`) e o detalhe de cada verificação:
+
+```json
+{
+  "status": "Healthy",
+  "versao": "1.0.0",
+  "duracaoMs": 12.34,
+  "verificacoes": [
+    { "nome": "postgres", "status": "Healthy", "descricao": "PostgreSQL disponível." }
+  ]
+}
+```
+
 ## Documentação
 
 | Fase | Documentação |

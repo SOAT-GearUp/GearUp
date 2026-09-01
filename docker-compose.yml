@@ -8,7 +8,7 @@ services:
     ports:
       - "5433:5432"
     volumes:
-      - gearup-postgres-data:/var/lib/postgresql/data
+      - gearup-postgres-data:/var/lib/postgresql
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U gearup -d GearUp"]
       interval: 10s
