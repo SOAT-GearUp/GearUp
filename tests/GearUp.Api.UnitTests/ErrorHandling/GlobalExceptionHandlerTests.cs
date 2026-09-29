@@ -1,5 +1,6 @@
 using System.Text.Json;
 using GearUp.Api.ErrorHandling;
+using GearUp.Api.Observability;
 using GearUp.Application.Common.Exceptions;
 using GearUp.Domain.Common.Exceptions;
 using Microsoft.AspNetCore.Http;
@@ -19,7 +20,8 @@ public sealed class GlobalExceptionHandlerTests
     {
         var httpContext = new DefaultHttpContext();
         httpContext.Response.Body = new MemoryStream();
-        var handler = new GlobalExceptionHandler(NullLogger<GlobalExceptionHandler>.Instance);
+        using var apiMetrics = new ApiMetrics();
+        var handler = new GlobalExceptionHandler(NullLogger<GlobalExceptionHandler>.Instance, apiMetrics);
         var exception = CriarExcecao(excecaoMapeada);
 
         var handled = await handler.TryHandleAsync(httpContext, exception, CancellationToken.None);
@@ -68,7 +70,8 @@ public sealed class GlobalExceptionHandlerTests
     {
         var httpContext = new DefaultHttpContext();
         httpContext.Response.Body = new MemoryStream();
-        var handler = new GlobalExceptionHandler(NullLogger<GlobalExceptionHandler>.Instance);
+        using var apiMetrics = new ApiMetrics();
+        var handler = new GlobalExceptionHandler(NullLogger<GlobalExceptionHandler>.Instance, apiMetrics);
 
         await handler.TryHandleAsync(httpContext, new InvalidOperationException("Falha sensivel."), CancellationToken.None);
 

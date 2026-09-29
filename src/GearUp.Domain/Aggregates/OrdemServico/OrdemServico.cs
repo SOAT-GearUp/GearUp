@@ -23,7 +23,7 @@ public sealed class OrdemServico : AggregateRoot
         Prazo = prazo;
         Status = StatusOrdemServico.Recebida;
         CriadaEm = DateTimeOffset.UtcNow;
-        RegistrarEvento("OS_CRIADA", "Ordem de serviço recebida.");
+        RegistrarEvento("OS_CRIADA", "Ordem de serviço recebida.", CriadaEm);
         AdicionarDomainEvent(new OrdemServicoCriadaDomainEvent(Id, clienteId, veiculoId, DateTimeOffset.UtcNow));
     }
 
@@ -153,12 +153,27 @@ public sealed class OrdemServico : AggregateRoot
 
     private void AlterarStatusInterno(StatusOrdemServico status, string evento, string descricao)
     {
+        var statusAnterior = Status;
+        var ocorridoEm = DateTimeOffset.UtcNow;
+        var inicioStatusAnterior = _historico.Count == 0
+            ? CriadaEm
+            : _historico[^1].CriadoEm;
+        var tempoNoStatusAnterior = ocorridoEm >= inicioStatusAnterior
+            ? ocorridoEm - inicioStatusAnterior
+            : TimeSpan.Zero;
+
         Status = status;
-        RegistrarEvento(evento, descricao);
+        RegistrarEvento(evento, descricao, ocorridoEm);
+        AdicionarDomainEvent(new StatusOrdemServicoAlteradoDomainEvent(
+            Id,
+            statusAnterior,
+            status,
+            tempoNoStatusAnterior,
+            ocorridoEm));
     }
 
-    private void RegistrarEvento(string tipo, string descricao)
-        => _historico.Add(HistoricoOrdemServico.Criar(Id, tipo, descricao));
+    private void RegistrarEvento(string tipo, string descricao, DateTimeOffset ocorridoEm)
+        => _historico.Add(HistoricoOrdemServico.Criar(Id, tipo, descricao, ocorridoEm));
 
     private void Notificar(DestinatarioNotificacao destinatario, string mensagem)
         => AdicionarDomainEvent(new NotificacaoSolicitadaDomainEvent(Id, ClienteId, destinatario, mensagem, DateTimeOffset.UtcNow));

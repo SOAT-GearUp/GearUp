@@ -1,5 +1,6 @@
 using GearUp.Api.ErrorHandling;
 using GearUp.Api.HealthChecks;
+using GearUp.Api.Observability;
 using GearUp.Application;
 using GearUp.Infrastructure;
 using GearUp.Infrastructure.Persistence;
@@ -11,6 +12,7 @@ using System.Text;
 // GearUp
 var builder = WebApplication.CreateBuilder(args);
 
+builder.Logging.AddGearUpStructuredLogging(builder.Configuration, builder.Environment);
 builder.Services.AddControllers();
 
 // Swagger / OpenAPI
@@ -66,6 +68,7 @@ builder.Services.AddExceptionHandler<GlobalExceptionHandler>();
 
 builder.Services.AddApplication();
 builder.Services.AddInfrastructure(builder.Configuration);
+builder.Services.AddGearUpObservability(builder.Configuration, builder.Environment);
 builder.Services.AddHealthChecks()
     .AddCheck("self", () => HealthCheckResult.Healthy(), tags: ["live"])
     .AddCheck<PostgresHealthCheck>("postgres", tags: ["ready"]);
@@ -83,6 +86,7 @@ if (app.Environment.IsDevelopment())
     });
 }
 
+app.UseMiddleware<CorrelationIdMiddleware>();
 app.UseExceptionHandler();
 app.UseHttpsRedirection();
 app.UseAuthentication();

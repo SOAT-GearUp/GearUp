@@ -36,4 +36,29 @@ public sealed class HealthCheckTests(GearUpApiFactory factory) : IntegrationTest
         Assert.NotNull(verificacoes);
         Assert.Contains(verificacoes, item => item?["nome"]?.GetValue<string>() == "postgres");
     }
+
+    [Fact]
+    public async Task HealthLive_SemCorrelationId_DeveGerarHeaderNaResposta()
+    {
+        var client = CreateClient();
+
+        var response = await client.GetAsync("/health/live");
+
+        Assert.True(response.Headers.TryGetValues("X-Correlation-ID", out var values));
+        Assert.False(string.IsNullOrWhiteSpace(Assert.Single(values)));
+    }
+
+    [Fact]
+    public async Task HealthLive_ComCorrelationIdValido_DevePropagarHeaderNaResposta()
+    {
+        const string correlationId = "teste-integracao-123";
+        var client = CreateClient();
+        using var request = new HttpRequestMessage(HttpMethod.Get, "/health/live");
+        request.Headers.Add("X-Correlation-ID", correlationId);
+
+        var response = await client.SendAsync(request);
+
+        Assert.True(response.Headers.TryGetValues("X-Correlation-ID", out var values));
+        Assert.Equal(correlationId, Assert.Single(values));
+    }
 }
