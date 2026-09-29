@@ -1,4 +1,5 @@
 using GearUp.Domain.Common.Exceptions;
+using GearUp.Domain.DomainEvents.Atendimento;
 using GearUp.Domain.DomainEvents.Execucao;
 using GearUp.Domain.DomainEvents.DiagnosticoOrcamento;
 using GearUp.Domain.Entities;
@@ -180,6 +181,19 @@ public sealed class OrdemServicoAdicionaisTests
 
         Assert.Equal(mecanicoId, os.MecanicoId);
         Assert.Equal(StatusOrdemServico.EmDiagnostico, os.Status);
+    }
+
+    [Fact]
+    public void IniciarDiagnostico_DeveRegistrarEventoDeAlteracaoDeStatus()
+    {
+        var os = Criar();
+
+        os.IniciarDiagnostico(Guid.NewGuid());
+
+        var evento = Assert.Single(os.DomainEvents.OfType<StatusOrdemServicoAlteradoDomainEvent>());
+        Assert.Equal(StatusOrdemServico.Recebida, evento.StatusAnterior);
+        Assert.Equal(StatusOrdemServico.EmDiagnostico, evento.StatusAtual);
+        Assert.True(evento.TempoNoStatusAnterior >= TimeSpan.Zero);
     }
 
     [Fact]

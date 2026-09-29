@@ -1,0 +1,14 @@
+name: gearup-observability-debug
+
+services:
+  otel-collector:
+    image: otel/opentelemetry-collector-contrib:0.154.0
+    container_name: gearup-otel-collector
+    command: ["--config=/etc/otelcol-contrib/config.yaml"]
+    ports:
+      - "127.0.0.1:4317:4317"
+      - "127.0.0.1:4318:4318"
+      - "127.0.0.1:13133:13133"
+    volumes:
+      - ./otel-collector-config.debug.yaml:/etc/otelcol-contrib/config.yaml:ro
+    restart: unless-stopped

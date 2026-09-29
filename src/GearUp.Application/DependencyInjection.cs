@@ -14,6 +14,8 @@ using GearUp.Application.OrdemDeServico.Ordens.Listar;
 using GearUp.Application.Autenticacao.Autenticar;
 using GearUp.Application.Autenticacao.GerenciarUsuarios;
 using GearUp.Application.Common.DomainEvents;
+using GearUp.Application.Common.Observability;
+using GearUp.Application.Observability.EventHandlers;
 using GearUp.Application.OrdemDeServico.Diagnosticos.IniciarDiagnostico;
 using GearUp.Application.OrdemDeServico.Orcamentos.Criar;
 using GearUp.Application.OrdemDeServico.Orcamentos.Decidir;
@@ -28,10 +30,12 @@ using GearUp.Application.Estoque.Movimentar;
 using GearUp.Application.OrdemDeServico.Execucao.AlterarStatus;
 using GearUp.Application.OrdemDeServico.Execucao.EventHandlers;
 using GearUp.Application.OrdemDeServico.Execucao.Metricas;
+using GearUp.Domain.DomainEvents.Atendimento;
 using GearUp.Domain.DomainEvents.DiagnosticoOrcamento;
 using GearUp.Domain.DomainEvents.Execucao;
 using GearUp.Domain.DomainEvents.Notificacoes;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.DependencyInjection.Extensions;
 
 namespace GearUp.Application;
 
@@ -76,6 +80,12 @@ public static class DependencyInjection
         services.AddScoped<IDomainEventHandler<ExecucaoIniciadaDomainEvent>, ExecucaoIniciadaDomainEventHandler>();
         services.AddScoped<IDomainEventHandler<OrcamentoDisponivelDomainEvent>, OrcamentoDisponivelDomainEventHandler>();
         services.AddScoped<IDomainEventHandler<NotificacaoSolicitadaDomainEvent>, NotificacaoSolicitadaDomainEventHandler>();
+        services.TryAddSingleton<IOrdemServicoMetrics, NullOrdemServicoMetrics>();
+        services.AddScoped<OrdemServicoObservabilityEventHandler>();
+        services.AddScoped<IDomainEventHandler<OrdemServicoCriadaDomainEvent>>(
+            serviceProvider => serviceProvider.GetRequiredService<OrdemServicoObservabilityEventHandler>());
+        services.AddScoped<IDomainEventHandler<StatusOrdemServicoAlteradoDomainEvent>>(
+            serviceProvider => serviceProvider.GetRequiredService<OrdemServicoObservabilityEventHandler>());
 
         return services;
     }

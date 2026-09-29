@@ -1,4 +1,5 @@
 using GearUp.Application.Cadastro.Clientes.Common.Exceptions;
+using GearUp.Api.Observability;
 using GearUp.Application.Common.Exceptions;
 using GearUp.Domain.Common.Exceptions;
 using Microsoft.AspNetCore.Diagnostics;
@@ -6,7 +7,9 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace GearUp.Api.ErrorHandling;
 
-internal sealed class GlobalExceptionHandler(ILogger<GlobalExceptionHandler> logger)
+internal sealed class GlobalExceptionHandler(
+    ILogger<GlobalExceptionHandler> logger,
+    ApiMetrics apiMetrics)
     : IExceptionHandler
 {
     public async ValueTask<bool> TryHandleAsync(
@@ -54,6 +57,8 @@ internal sealed class GlobalExceptionHandler(ILogger<GlobalExceptionHandler> log
         {
             logger.LogError(exception, "Erro não tratado ao processar a requisição.");
         }
+
+        apiMetrics.RegistrarFalha(httpContext, exception, code, statusCode);
 
         httpContext.Response.StatusCode = statusCode;
 

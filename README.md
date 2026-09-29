@@ -2,7 +2,7 @@
 
 API REST para gestão de oficina mecânica, construída em .NET 10, PostgreSQL, DDD e Clean Architecture.
 
-O projeto evoluiu na Fase 2 do Tech Challenge para uma arquitetura cloud native, com conteinerização, Kubernetes, infraestrutura como código, pipeline CI/CD e escalabilidade automática.
+O projeto evoluiu na Fase 2 do Tech Challenge para uma arquitetura cloud native, com conteinerização, Kubernetes, infraestrutura como código, pipeline CI/CD e escalabilidade automática. Na Fase 3, a solução passa a incorporar observabilidade com OpenTelemetry e Datadog.
 
 ## Objetivos da Fase 2
 
@@ -132,6 +132,27 @@ Ambos respondem em JSON com o status agregado, a versão da aplicação (proprie
 |---|---|
 | Fase 1 | [Documentação da Fase 1](docs/fase-1/README.md) |
 | Fase 2 | [Documentação da Fase 2](docs/fase-2/README.md) |
+| Fase 3 | [Documentação da Fase 3](docs/fase-3/README.md) |
+
+## Observabilidade
+
+A API envia logs, métricas e traces por OTLP para um OpenTelemetry Collector. O Collector processa a telemetria e utiliza um exporter configurável para encaminhá-la ao Datadog. Dessa forma, a aplicação permanece independente do fornecedor.
+
+Para executar API, PostgreSQL e Collector na mesma rede Docker com o exporter de debug:
+
+```powershell
+docker compose `
+  -f .\docker-compose.yml `
+  -f .\docker-compose.observability.yml `
+  up --build -d
+```
+
+A API utiliza o endereço interno `http://otel-collector:4317`; nenhuma configuração com `localhost` ou `host.docker.internal` é necessária entre os contêineres.
+
+| Tema | Documento |
+|---|---|
+| Arquitetura e portabilidade | [OpenTelemetry Collector e Datadog](docs/fase-3/Observabilidade/OpenTelemetry%20Collector%20e%20Datadog.md) |
+| Execução local | [Ambiente local de observabilidade](infra/observability/datadog/README.md) |
 
 ## Documentos da Fase 2
 
