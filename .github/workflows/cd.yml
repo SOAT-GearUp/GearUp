@@ -171,11 +171,14 @@ jobs:
             sleep 5
           done
           [ -n "$HOST" ] || { echo "::error::O NLB não recebeu hostname."; exit 1; }
-          aws ssm put-parameter --name "/gearup/${AMBIENTE}/api/url" --type String --overwrite --value "http://${HOST}" >/dev/null
+          # HTTP entre API Gateway e NLB é o trade-off documentado na ADR-002:
+          # o cliente fala HTTPS com o gateway; o trecho gateway -> NLB não tem
+          # certificado (sem domínio próprio no lab). Evolução: VPC Link.
+          aws ssm put-parameter --name "/gearup/${AMBIENTE}/api/url" --type String --overwrite --value "http://${HOST}" >/dev/null # NOSONAR
 
           GATEWAY=$(aws ssm get-parameter --name "/gearup/${AMBIENTE}/gateway/url" --query Parameter.Value --output text 2>/dev/null || true)
-          echo "url=${GATEWAY:-http://${HOST}}" >> "$GITHUB_OUTPUT"
-          echo "nlb=http://${HOST}" >> "$GITHUB_OUTPUT"
+          echo "url=${GATEWAY:-http://${HOST}}" >> "$GITHUB_OUTPUT" # NOSONAR (ver ADR-002)
+          echo "nlb=http://${HOST}" >> "$GITHUB_OUTPUT" # NOSONAR (ver ADR-002)
 
       - name: Smoke test
         if: env.ACAO == 'deploy'

@@ -36,7 +36,8 @@ spec:
           type: RuntimeDefault
       containers:
         - name: gearup-api
-          image: gearup-api
+          # Substituída pela pipeline (overlays/<amb>, bloco images): tag = SHA do commit.
+          image: gearup-api:definida-pela-pipeline
           imagePullPolicy: IfNotPresent
           ports:
             - name: http

@@ -34,7 +34,7 @@ jobs:
         env:
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
         run: |
-          dotnet-sonarscanner begin /k:"SOAT-GearUp_GearUp" /o:"soat-gearup" /d:sonar.token="${SONAR_TOKEN}" /d:sonar.cs.opencover.reportsPaths="**/coverage.opencover.xml"
+          dotnet-sonarscanner begin /k:"SOAT-GearUp_GearUp" /o:"soat-gearup" /d:sonar.token="${SONAR_TOKEN}" /d:sonar.cs.opencover.reportsPaths="**/coverage.opencover.xml" /d:sonar.exclusions="**/Migrations/**"
           dotnet build GearUp.slnx
           dotnet test GearUp.slnx --no-build --collect:"XPlat Code Coverage;Format=opencover"
           dotnet-sonarscanner end /d:sonar.token="${SONAR_TOKEN}"
