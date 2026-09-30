@@ -2,6 +2,8 @@
 
 Documentação da evolução da aplicação para a Fase 2 do Tech Challenge.
 
+> **Nota (Fase 3):** a infraestrutura AWS (`infra/aws`), os manifests `k8s/aws` e o workflow `cd-aws.yml` descritos aqui foram substituídos pelos repositórios [gearup-infra-k8s](https://github.com/SOAT-GearUp/gearup-infra-k8s) e [gearup-infra-db](https://github.com/SOAT-GearUp/gearup-infra-db), pelos overlays `k8s/overlays/*` e pelo workflow `cd.yml`. Este documento é mantido como registro histórico da Fase 2. Ver [Fase 3](../fase-3/README.md).
+
 ## Objetivo
 
 Evoluir o GearUp com melhorias na aplicação, conteinerização, Kubernetes, infraestrutura como código e pipeline CI/CD.

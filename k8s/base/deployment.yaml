@@ -1,0 +1,84 @@
+# ---------------------------------------------------------------------------
+# API GearUp no EKS (base comum aos ambientes homolog e production)
+#
+# A imagem é definida pela pipeline (overlays/<amb>/kustomization.yaml,
+# bloco images) com a tag = SHA do commit. O Secret gearup-secret é criado
+# pela pipeline a partir do SSM; nunca é versionado.
+# ---------------------------------------------------------------------------
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: gearup-api
+  labels:
+    app: gearup-api
+spec:
+  replicas: 1 # o HPA assume a partir daqui
+  selector:
+    matchLabels:
+      app: gearup-api
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxUnavailable: 0
+      maxSurge: 1
+  template:
+    metadata:
+      labels:
+        app: gearup-api
+        # Unified service tagging do Datadog: env/service/version nas
+        # métricas de CPU e memória do Kubernetes coletadas pelo Agent.
+        tags.datadog.com/service: gearup-api
+    spec:
+      automountServiceAccountToken: false
+      securityContext:
+        runAsNonRoot: true
+        seccompProfile:
+          type: RuntimeDefault
+      containers:
+        - name: gearup-api
+          image: gearup-api
+          imagePullPolicy: IfNotPresent
+          ports:
+            - name: http
+              containerPort: 8080
+          envFrom:
+            - configMapRef:
+                name: gearup-config
+            - secretRef:
+                name: gearup-secret
+          env:
+            - name: OTEL_EXPORTER_OTLP_ENDPOINT
+              value: http://otel-collector.observabilidade.svc.cluster.local:4317
+            - name: K8S_POD_NAME
+              valueFrom:
+                fieldRef:
+                  fieldPath: metadata.name
+            - name: OTEL_RESOURCE_ATTRIBUTES
+              value: k8s.pod.name=$(K8S_POD_NAME)
+          securityContext:
+            allowPrivilegeEscalation: false
+            capabilities:
+              drop: ["ALL"]
+          resources:
+            requests:
+              cpu: 100m
+              memory: 256Mi
+            limits:
+              cpu: 500m
+              memory: 512Mi
+          startupProbe:
+            httpGet:
+              path: /health/live
+              port: http
+            periodSeconds: 5
+            failureThreshold: 24 # até 2 min para migrations na primeira subida
+          readinessProbe:
+            httpGet:
+              path: /health/ready
+              port: http
+            periodSeconds: 10
+          livenessProbe:
+            httpGet:
+              path: /health/live
+              port: http
+            periodSeconds: 20

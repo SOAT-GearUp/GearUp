@@ -13,6 +13,8 @@ internal sealed class NotificacaoConfiguration : IEntityTypeConfiguration<Notifi
         b.Property(x => x.Id).ValueGeneratedNever();
         b.Property(x => x.Mensagem).HasMaxLength(500);
         b.HasIndex(x => new { x.Destinatario, x.LidaEm });
+        b.HasIndex(x => new { x.ClienteId, x.CriadaEm });
+        b.HasOne<Cliente>().WithMany().HasForeignKey(x => x.ClienteId).OnDelete(DeleteBehavior.Restrict);
         b.HasOne<OrdemServico>().WithMany().HasForeignKey(x => x.OrdemServicoId).OnDelete(DeleteBehavior.Cascade);
     }
 }

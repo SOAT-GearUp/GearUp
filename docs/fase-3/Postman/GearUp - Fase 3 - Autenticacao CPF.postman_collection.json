@@ -1,0 +1,598 @@
+{
+  "info": {
+    "name": "GearUp - Fase 3 - Autenticação por CPF via API Gateway",
+    "description": "Fluxo da Fase 3: login de funcionário, cadastro de cliente e abertura de OS, autenticação do cliente por CPF na Lambda e consumo das APIs protegidas. Todas as chamadas passam pelo API Gateway. Defina gatewayUrl (output url_gateway do gearup-lambda-auth) e senhaAdmin (aws ssm get-parameter --name /gearup/homolog/api/senha-admin --with-decryption).",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    {
+      "key": "gatewayUrl",
+      "value": "https://SUBSTITUA.execute-api.us-east-1.amazonaws.com"
+    },
+    {
+      "key": "senhaAdmin",
+      "value": ""
+    },
+    {
+      "key": "cpf",
+      "value": ""
+    },
+    {
+      "key": "placa",
+      "value": ""
+    },
+    {
+      "key": "tokenFuncionario",
+      "value": ""
+    },
+    {
+      "key": "tokenCliente",
+      "value": ""
+    },
+    {
+      "key": "clienteId",
+      "value": ""
+    },
+    {
+      "key": "veiculoId",
+      "value": ""
+    },
+    {
+      "key": "ordemServicoId",
+      "value": ""
+    }
+  ],
+  "event": [
+    {
+      "listen": "prerequest",
+      "script": {
+        "type": "text/javascript",
+        "exec": [
+          "// Gera um CPF válido e uma placa únicos por execução, se ainda não houver.",
+          "if (!pm.collectionVariables.get(\"cpf\")) {",
+          "  const d = Array.from({length: 9}, () => Math.floor(Math.random() * 10));",
+          "  const dv = (b, p) => { const r = b.reduce((s, n, i) => s + n * (p - i), 0) % 11; return r < 2 ? 0 : 11 - r; };",
+          "  d.push(dv(d, 10)); d.push(dv(d, 11));",
+          "  pm.collectionVariables.set(\"cpf\", d.join(\"\"));",
+          "}",
+          "if (!pm.collectionVariables.get(\"placa\")) {",
+          "  const L = () => String.fromCharCode(65 + Math.floor(Math.random() * 26));",
+          "  pm.collectionVariables.set(\"placa\", L() + L() + L() + Math.floor(Math.random() * 10) + L() + Math.floor(10 + Math.random() * 89));",
+          "}"
+        ]
+      }
+    }
+  ],
+  "item": [
+    {
+      "name": "1. Funcionário (login via gateway)",
+      "item": [
+        {
+          "name": "Login do admin",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"status 200\", () => pm.response.to.have.status(200));",
+                  "pm.collectionVariables.set(\"tokenFuncionario\", pm.response.json().accessToken);"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "X-Correlation-ID",
+                "value": "postman-{{$guid}}"
+              }
+            ],
+            "url": {
+              "raw": "{{gatewayUrl}}/api/autenticacao/login",
+              "host": [
+                "{{gatewayUrl}}"
+              ],
+              "path": [
+                "api",
+                "autenticacao",
+                "login"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"usuario\": \"admin\",\n  \"senha\": \"{{senhaAdmin}}\"\n}"
+            }
+          }
+        },
+        {
+          "name": "Cadastrar cliente",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"status 201\", () => pm.response.to.have.status(201));",
+                  "pm.collectionVariables.set(\"clienteId\", pm.response.json().id);"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "X-Correlation-ID",
+                "value": "postman-{{$guid}}"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{tokenFuncionario}}"
+              }
+            ],
+            "url": {
+              "raw": "{{gatewayUrl}}/api/clientes",
+              "host": [
+                "{{gatewayUrl}}"
+              ],
+              "path": [
+                "api",
+                "clientes"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"nome\": \"Cliente Demonstração\",\n  \"documento\": \"{{cpf}}\",\n  \"email\": \"demo.{{$timestamp}}@gearup.test\",\n  \"telefone\": \"11999998888\"\n}"
+            }
+          }
+        },
+        {
+          "name": "Cadastrar veículo",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"status 201\", () => pm.response.to.have.status(201));",
+                  "pm.collectionVariables.set(\"veiculoId\", pm.response.json().veiculoId);"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "X-Correlation-ID",
+                "value": "postman-{{$guid}}"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{tokenFuncionario}}"
+              }
+            ],
+            "url": {
+              "raw": "{{gatewayUrl}}/api/clientes/{{clienteId}}/veiculos",
+              "host": [
+                "{{gatewayUrl}}"
+              ],
+              "path": [
+                "api",
+                "clientes",
+                "{{clienteId}}",
+                "veiculos"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"placa\": \"{{placa}}\",\n  \"marca\": \"Honda\",\n  \"modelo\": \"Civic\",\n  \"ano\": 2022\n}"
+            }
+          }
+        },
+        {
+          "name": "Abrir ordem de serviço",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"status 201\", () => pm.response.to.have.status(201));",
+                  "pm.collectionVariables.set(\"ordemServicoId\", pm.response.json().id);"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "X-Correlation-ID",
+                "value": "postman-{{$guid}}"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{tokenFuncionario}}"
+              }
+            ],
+            "url": {
+              "raw": "{{gatewayUrl}}/api/ordens-servico",
+              "host": [
+                "{{gatewayUrl}}"
+              ],
+              "path": [
+                "api",
+                "ordens-servico"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"clienteId\": \"{{clienteId}}\",\n  \"veiculoId\": \"{{veiculoId}}\",\n  \"solicitacaoInicial\": \"Barulho na suspensão dianteira\",\n  \"prioridade\": 2,\n  \"prazo\": \"2030-01-01T12:00:00Z\"\n}"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "2. Cliente (autenticação por CPF na Lambda)",
+      "item": [
+        {
+          "name": "CPF inválido -> 400",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"status 400\", () => pm.response.to.have.status(400));",
+                  "pm.test(\"código CPF_INVALIDO\", () => pm.expect(pm.response.json().code).to.eql(\"CPF_INVALIDO\"));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "X-Correlation-ID",
+                "value": "postman-{{$guid}}"
+              }
+            ],
+            "url": {
+              "raw": "{{gatewayUrl}}/auth/cpf",
+              "host": [
+                "{{gatewayUrl}}"
+              ],
+              "path": [
+                "auth",
+                "cpf"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"cpf\": \"123.456.789-00\"\n}"
+            }
+          }
+        },
+        {
+          "name": "CPF não cadastrado -> 404",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"status 404\", () => pm.response.to.have.status(404));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "X-Correlation-ID",
+                "value": "postman-{{$guid}}"
+              }
+            ],
+            "url": {
+              "raw": "{{gatewayUrl}}/auth/cpf",
+              "host": [
+                "{{gatewayUrl}}"
+              ],
+              "path": [
+                "auth",
+                "cpf"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"cpf\": \"935.411.347-80\"\n}"
+            }
+          }
+        },
+        {
+          "name": "Autenticar por CPF -> JWT",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"status 200\", () => pm.response.to.have.status(200));",
+                  "const corpo = pm.response.json();",
+                  "pm.test(\"token do cliente\", () => pm.expect(corpo.cliente.id).to.eql(pm.collectionVariables.get(\"clienteId\")));",
+                  "pm.collectionVariables.set(\"tokenCliente\", corpo.accessToken);"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "X-Correlation-ID",
+                "value": "postman-{{$guid}}"
+              }
+            ],
+            "url": {
+              "raw": "{{gatewayUrl}}/auth/cpf",
+              "host": [
+                "{{gatewayUrl}}"
+              ],
+              "path": [
+                "auth",
+                "cpf"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"cpf\": \"{{cpf}}\"\n}"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "3. APIs protegidas",
+      "item": [
+        {
+          "name": "Sem token -> 401 (API Gateway)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"status 401\", () => pm.response.to.have.status(401));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "X-Correlation-ID",
+                "value": "postman-{{$guid}}"
+              }
+            ],
+            "url": {
+              "raw": "{{gatewayUrl}}/api/ordens-servico",
+              "host": [
+                "{{gatewayUrl}}"
+              ],
+              "path": [
+                "api",
+                "ordens-servico"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Minhas ordens de serviço",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"status 200\", () => pm.response.to.have.status(200));",
+                  "pm.test(\"contém a OS aberta\", () => pm.expect(pm.response.text()).to.include(pm.collectionVariables.get(\"ordemServicoId\")));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "X-Correlation-ID",
+                "value": "postman-{{$guid}}"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{tokenCliente}}"
+              }
+            ],
+            "url": {
+              "raw": "{{gatewayUrl}}/api/ordens-servico",
+              "host": [
+                "{{gatewayUrl}}"
+              ],
+              "path": [
+                "api",
+                "ordens-servico"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Status da minha OS",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"status 200\", () => pm.response.to.have.status(200));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "X-Correlation-ID",
+                "value": "postman-{{$guid}}"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{tokenCliente}}"
+              }
+            ],
+            "url": {
+              "raw": "{{gatewayUrl}}/api/ordens-servico/{{ordemServicoId}}/status",
+              "host": [
+                "{{gatewayUrl}}"
+              ],
+              "path": [
+                "api",
+                "ordens-servico",
+                "{{ordemServicoId}}",
+                "status"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Cliente tentando listar clientes -> 403",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"status 403\", () => pm.response.to.have.status(403));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "X-Correlation-ID",
+                "value": "postman-{{$guid}}"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{tokenCliente}}"
+              }
+            ],
+            "url": {
+              "raw": "{{gatewayUrl}}/api/clientes",
+              "host": [
+                "{{gatewayUrl}}"
+              ],
+              "path": [
+                "api",
+                "clientes"
+              ]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "4. Saúde",
+      "item": [
+        {
+          "name": "Readiness",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"status 200\", () => pm.response.to.have.status(200));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "X-Correlation-ID",
+                "value": "postman-{{$guid}}"
+              }
+            ],
+            "url": {
+              "raw": "{{gatewayUrl}}/health/ready",
+              "host": [
+                "{{gatewayUrl}}"
+              ],
+              "path": [
+                "health",
+                "ready"
+              ]
+            }
+          }
+        }
+      ]
+    }
+  ]
+}

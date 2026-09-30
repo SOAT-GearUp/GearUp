@@ -1,0 +1,40 @@
+# Ambiente homolog — implantado pela pipeline em push na branch homolog.
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+
+namespace: gearup-homolog
+
+resources:
+  - namespace.yaml
+  - ../../base
+
+# A pipeline substitui IMAGEM_ECR e TAG_IMAGEM (tag = SHA do commit).
+images:
+  - name: gearup-api
+    newName: IMAGEM_ECR
+    newTag: TAG_IMAGEM
+
+configMapGenerator:
+  - name: gearup-config
+    literals:
+      - ASPNETCORE_ENVIRONMENT=Homolog
+      - ASPNETCORE_HTTP_PORTS=8080
+      - Seed__AdminUser=admin
+      - Swagger__Habilitado=true
+      - OpenTelemetry__ServiceName=gearup-api
+
+patches:
+  - target:
+      kind: HorizontalPodAutoscaler
+      name: gearup-api-hpa
+    patch: |-
+      - op: replace
+        path: /spec/maxReplicas
+        value: 2
+  - target:
+      kind: Deployment
+      name: gearup-api
+    patch: |-
+      - op: add
+        path: /spec/template/metadata/labels/tags.datadog.com~1env
+        value: homolog

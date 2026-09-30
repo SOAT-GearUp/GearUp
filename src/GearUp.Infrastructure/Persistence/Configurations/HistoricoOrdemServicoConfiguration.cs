@@ -14,5 +14,7 @@ internal sealed class HistoricoOrdemServicoConfiguration : IEntityTypeConfigurat
         b.Property(x => x.Tipo).HasMaxLength(80);
         b.Property(x => x.Descricao).HasMaxLength(500);
         b.HasIndex(x => x.CriadoEm);
+        // Linha do tempo de uma OS em ordem cronológica (tempo por status).
+        b.HasIndex(x => new { x.OrdemServicoId, x.CriadoEm });
     }
 }
