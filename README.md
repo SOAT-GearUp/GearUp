@@ -28,7 +28,7 @@ flowchart LR
     end
 
     SSM[(SSM<br/>banco, JWT, admin)] -->|Secret do Kubernetes| NS
-    CDH & CDP -->|/gearup/amb/api/url| SSM
+    CDH & CDP -->|/gearup/amb/api/host| SSM
     GW[API Gateway<br/>gearup-lambda-auth] -->|/api /health /swagger| NS
     NS -->|EF Core / TLS| RDS[(RDS PostgreSQL)]
     NS -->|OTLP| OTEL[OTel Collector] --> DD[Datadog]

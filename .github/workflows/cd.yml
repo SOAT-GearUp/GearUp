@@ -9,7 +9,7 @@
 #
 # Pré-requisitos: gearup-infra-k8s (cluster, ECR, Collector) e gearup-infra-db
 # (RDS + /gearup/banco/* no SSM) aplicados. Depois deste deploy, rode a
-# pipeline do gearup-lambda-auth, que lê daqui /gearup/<amb>/api/url e
+# pipeline do gearup-lambda-auth, que lê daqui /gearup/<amb>/api/host e
 # /gearup/<amb>/jwt/chave.
 #
 # Secrets: AWS_ACCESS_KEY_ID, AWS_SECRET_ACCESS_KEY, AWS_SESSION_TOKEN
@@ -101,7 +101,7 @@ jobs:
         if: env.ACAO == 'destroy'
         run: |
           kubectl delete namespace "$NAMESPACE" --ignore-not-found --wait=true --timeout=300s
-          aws ssm delete-parameter --name "/gearup/${AMBIENTE}/api/url" 2>/dev/null || true
+          aws ssm delete-parameter --name "/gearup/${AMBIENTE}/api/host" 2>/dev/null || true
           echo "Namespace $NAMESPACE e NLB removidos." >> "$GITHUB_STEP_SUMMARY"
 
       # ------------------------------ Imagem ---------------------------------
@@ -161,7 +161,7 @@ jobs:
           kubectl apply -k "$OVERLAY"
           kubectl rollout status deployment/gearup-api --namespace "$NAMESPACE" --timeout=600s
 
-      - name: Publicar URL interna para o API Gateway
+      - name: Publicar endereço do NLB para o API Gateway
         if: env.ACAO == 'deploy'
         id: publicar
         run: |
@@ -171,22 +171,22 @@ jobs:
             sleep 5
           done
           [ -n "$HOST" ] || { echo "::error::O NLB não recebeu hostname."; exit 1; }
-          # HTTP entre API Gateway e NLB é o trade-off documentado na ADR-002:
-          # o cliente fala HTTPS com o gateway; o trecho gateway -> NLB não tem
-          # certificado (sem domínio próprio no lab). Evolução: VPC Link.
-          aws ssm put-parameter --name "/gearup/${AMBIENTE}/api/url" --type String --overwrite --value "http://${HOST}" >/dev/null # NOSONAR
+          # Só o hostname vai para o SSM; o gearup-lambda-auth monta a URL da
+          # integração do gateway (trecho gateway -> NLB, ver ADR-002).
+          aws ssm put-parameter --name "/gearup/${AMBIENTE}/api/host" --type String --overwrite --value "${HOST}" >/dev/null
 
           GATEWAY=$(aws ssm get-parameter --name "/gearup/${AMBIENTE}/gateway/url" --query Parameter.Value --output text 2>/dev/null || true)
-          echo "url=${GATEWAY:-http://${HOST}}" >> "$GITHUB_OUTPUT" # NOSONAR (ver ADR-002)
-          echo "nlb=http://${HOST}" >> "$GITHUB_OUTPUT" # NOSONAR (ver ADR-002)
+          echo "url=${GATEWAY}" >> "$GITHUB_OUTPUT"
+          echo "nlb=${HOST}" >> "$GITHUB_OUTPUT"
 
       - name: Smoke test
         if: env.ACAO == 'deploy'
         run: |
           # O DNS do NLB leva alguns minutos para propagar na primeira criação.
+          # O NLB só escuta na porta 80 (o TLS termina no API Gateway).
           URL="${{ steps.publicar.outputs.nlb }}/health/ready"
           for i in $(seq 1 40); do
-            status=$(curl -s -o saude.json -w '%{http_code}' "$URL" || true)
+            status=$(curl -s --proto-default http -o saude.json -w '%{http_code}' "$URL" || true)
             [ "$status" = "200" ] && break
             sleep 10
           done
@@ -200,7 +200,7 @@ jobs:
             echo "### Deploy ${AMBIENTE}"
             echo "- Imagem: \`${{ steps.imagem.outputs.imagem }}:${{ steps.imagem.outputs.tag }}\`"
             echo "- Namespace: \`${NAMESPACE}\`"
-            echo "- NLB (interno ao gateway): ${{ steps.publicar.outputs.nlb }}"
+            echo "- NLB (atrás do gateway): ${{ steps.publicar.outputs.nlb }}"
             echo "- API Gateway: ${{ steps.publicar.outputs.url }}"
             echo ""
             echo '```'

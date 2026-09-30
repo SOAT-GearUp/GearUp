@@ -33,7 +33,7 @@ Cada passo é um **merge de Pull Request na branch principal** (ou *Actions → 
 |---|---|---|---|---|
 | 1 | gearup-infra-k8s | Terraform (EKS) → apply | ~15 min | VPC, EKS, nós, ECR, metrics-server, Collector, Datadog Agent, dashboards |
 | 2 | gearup-infra-db | Terraform (RDS) → apply | ~8 min | RDS PostgreSQL + `/gearup/banco/*` |
-| 3 | GearUp | CD → `homolog` e depois `master` | ~6 min cada | imagem no ECR, namespaces, NLBs, `/gearup/<amb>/api/url` e `/jwt/chave` |
+| 3 | GearUp | CD → `homolog` e depois `master` | ~6 min cada | imagem no ECR, namespaces, NLBs, `/gearup/<amb>/api/host` e `/jwt/chave` |
 | 4 | gearup-lambda-auth | CI/CD Lambda → `homolog` e `main` | ~2 min cada | Lambdas, API Gateway, alarmes, `/gearup/<amb>/gateway/url` |
 
 Depois do passo 4, a URL do gateway aparece no resumo do job e em:
@@ -101,6 +101,6 @@ aws ssm get-parameter --name /gearup/homolog/api/senha-admin --with-decryption -
 | Sintoma | Causa provável |
 |---|---|
 | `/auth/cpf` responde 503 `BANCO_INDISPONIVEL` | RDS parado/apagado ou database do ambiente ainda não criado (suba a API primeiro) |
-| Pipeline da Lambda: `ParameterNotFound /gearup/<amb>/api/url` | o CD da API ainda não rodou nesse ambiente |
+| Pipeline da Lambda: `ParameterNotFound /gearup/<amb>/api/host` | o CD da API ainda não rodou nesse ambiente |
 | HPA mostra `<unknown>` | addon metrics-server ainda iniciando (1–2 min) |
 | `/api/*` retorna 403 pelo gateway | token de outro ambiente (as chaves JWT são diferentes) |

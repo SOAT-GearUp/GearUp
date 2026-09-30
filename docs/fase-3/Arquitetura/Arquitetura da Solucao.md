@@ -53,7 +53,7 @@ flowchart LR
         end
 
         ECR[(ECR<br/>gearup-api)]
-        SSM[(SSM Parameter Store<br/>/gearup/banco/*<br/>/gearup/&lt;amb&gt;/jwt/chave<br/>/gearup/&lt;amb&gt;/api/url)]
+        SSM[(SSM Parameter Store<br/>/gearup/banco/*<br/>/gearup/&lt;amb&gt;/jwt/chave<br/>/gearup/&lt;amb&gt;/api/host)]
         CW[CloudWatch<br/>logs + alarmes]
         S3[(S3<br/>gearup-tfstate)]
     end
@@ -93,7 +93,7 @@ Os repositórios **não leem o state do Terraform uns dos outros**. Cada depend�
 | gearup-infra-k8s | cluster `gearup-eks`, ECR `gearup-api`, Collector | nomes fixos | GearUp (CD) |
 | gearup-infra-db | host, porta, usuário e senha do RDS | SSM `/gearup/banco/*` | GearUp (CD), lambda-auth |
 | GearUp (CD) | chave JWT e senha do admin, por ambiente | SSM `/gearup/<amb>/jwt/chave`, `/gearup/<amb>/api/senha-admin` | lambda-auth |
-| GearUp (CD) | URL do NLB da API | SSM `/gearup/<amb>/api/url` | lambda-auth (integração do gateway) |
+| GearUp (CD) | hostname do NLB da API | SSM `/gearup/<amb>/api/host` | lambda-auth (integração do gateway) |
 | gearup-lambda-auth | URL pública do gateway | SSM `/gearup/<amb>/gateway/url` | GearUp (resumo do deploy), documentação |
 
 Detalhes e alternativas descartadas em [ADR-004](../ADR/ADR-004%20-%20Repositorios%20separados%20e%20contratos%20via%20SSM.md).
