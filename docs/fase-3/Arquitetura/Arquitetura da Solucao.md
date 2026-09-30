@@ -9,7 +9,7 @@ Na Fase 3 o GearUp deixa de ser um único repositório com "tudo junto" e passa 
 | [gearup-api](https://github.com/SOAT-GearUp/gearup-api) | API .NET 10 (DDD + Clean Architecture), manifests Kubernetes, documentação | CI em todo push/PR; CD em `homolog` e `master` |
 | [gearup-infra-k8s](https://github.com/SOAT-GearUp/gearup-infra-k8s) | VPC, EKS, ECR, OpenTelemetry Collector, Datadog Agent, dashboards e monitores | plan em PR/`homolog`; apply em `main` |
 | [gearup-infra-db](https://github.com/SOAT-GearUp/gearup-infra-db) | RDS PostgreSQL gerenciado + credenciais no SSM | plan em PR/`homolog`; apply em `main` |
-| [gearup-lambda-auth](https://github.com/SOAT-GearUp/gearup-lambda-auth) | Lambda de autenticação por CPF, Lambda authorizer e API Gateway | deploy por ambiente em `homolog` e `main` |
+| [gearup-lambda-auth](https://github.com/SOAT-GearUp/gearup-lambda-auth) | Lambda de autenticação por CPF e senha, Lambda authorizer e API Gateway | deploy por ambiente em `homolog` e `main` |
 
 Tudo roda em **AWS (us-east-1)**, dentro do AWS Academy Learner Lab. As decisões que moldam a arquitetura — orçamento fixo de US$ 50, proibição de criar IAM, ausência de NAT Gateway — estão registradas nas [RFCs](../RFC) e [ADRs](../ADR).
 

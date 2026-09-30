@@ -1,7 +1,7 @@
 {
   "info": {
-    "name": "GearUp - Fase 3 - Autenticação por CPF via API Gateway",
-    "description": "Fluxo da Fase 3: login de funcionário, cadastro de cliente e abertura de OS, autenticação do cliente por CPF na Lambda e consumo das APIs protegidas. Todas as chamadas passam pelo API Gateway. Defina gatewayUrl (output url_gateway do gearup-lambda-auth) e senhaAdmin (aws ssm get-parameter --name /gearup/homolog/api/senha-admin --with-decryption).",
+    "name": "GearUp - Fase 3 - Autenticação por CPF e senha via API Gateway",
+    "description": "Fluxo da Fase 3: login de funcionário, cadastro de cliente e abertura de OS, criação do usuário do cliente, autenticação do cliente por CPF e senha na Lambda e consumo das APIs protegidas. Todas as chamadas passam pelo API Gateway. Defina gatewayUrl (output url_gateway do gearup-lambda-auth) e senhaAdmin (aws ssm get-parameter --name /gearup/homolog/api/senha-admin --with-decryption).",
     "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
   },
   "variable": [
@@ -12,6 +12,10 @@
     {
       "key": "senhaAdmin",
       "value": ""
+    },
+    {
+      "key": "senhaCliente",
+      "value": "SenhaCliente@123"
     },
     {
       "key": "cpf",
@@ -157,6 +161,51 @@
           }
         },
         {
+          "name": "Criar usuário do cliente (senha para o login por CPF)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"status 201\", () => pm.response.to.have.status(201));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "X-Correlation-ID",
+                "value": "postman-{{$guid}}"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{tokenFuncionario}}"
+              }
+            ],
+            "url": {
+              "raw": "{{gatewayUrl}}/api/usuarios",
+              "host": [
+                "{{gatewayUrl}}"
+              ],
+              "path": [
+                "api",
+                "usuarios"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"usuario\": \"cliente{{cpf}}\",\n  \"senha\": \"{{senhaCliente}}\",\n  \"perfil\": 4,\n  \"clienteId\": \"{{clienteId}}\"\n}"
+            }
+          }
+        },
+        {
           "name": "Cadastrar veículo",
           "event": [
             {
@@ -253,7 +302,7 @@
       ]
     },
     {
-      "name": "2. Cliente (autenticação por CPF na Lambda)",
+      "name": "2. Cliente (autenticação por CPF e senha na Lambda)",
       "item": [
         {
           "name": "CPF inválido -> 400",
@@ -293,7 +342,7 @@
             },
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"cpf\": \"123.456.789-00\"\n}"
+              "raw": "{\n  \"cpf\": \"123.456.789-00\",\n  \"senha\": \"{{senhaCliente}}\"\n}"
             }
           }
         },
@@ -334,12 +383,54 @@
             },
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"cpf\": \"935.411.347-80\"\n}"
+              "raw": "{\n  \"cpf\": \"935.411.347-80\",\n  \"senha\": \"{{senhaCliente}}\"\n}"
             }
           }
         },
         {
-          "name": "Autenticar por CPF -> JWT",
+          "name": "Senha errada -> 401",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"status 401\", () => pm.response.to.have.status(401));",
+                  "pm.test(\"código CREDENCIAIS_INVALIDAS\", () => pm.expect(pm.response.json().code).to.eql(\"CREDENCIAIS_INVALIDAS\"));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "X-Correlation-ID",
+                "value": "postman-{{$guid}}"
+              }
+            ],
+            "url": {
+              "raw": "{{gatewayUrl}}/auth/cpf",
+              "host": [
+                "{{gatewayUrl}}"
+              ],
+              "path": [
+                "auth",
+                "cpf"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"cpf\": \"{{cpf}}\",\n  \"senha\": \"senha-errada\"\n}"
+            }
+          }
+        },
+        {
+          "name": "Autenticar por CPF e senha -> JWT",
           "event": [
             {
               "listen": "test",
@@ -378,7 +469,7 @@
             },
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"cpf\": \"{{cpf}}\"\n}"
+              "raw": "{\n  \"cpf\": \"{{cpf}}\",\n  \"senha\": \"{{senhaCliente}}\"\n}"
             }
           }
         }
