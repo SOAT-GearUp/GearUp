@@ -3,10 +3,10 @@
 #
 # PRÉ-REQUISITO: metrics-server instalado no cluster. Sem ele o HPA mostra
 # `<unknown>/70%` em `kubectl get hpa` e nunca escala:
-#   kubectl apply -f https://github.com/kubernetes-sigs/metrics-server/releases/latest/download/components.yaml
+#   instalado como addon do EKS pelo repositório gearup-infra-k8s.
 #
 # A métrica de `Utilization` é um percentual sobre o `resources.requests` do
-# container (api-deployment.yaml), não sobre a capacidade do nó:
+# container (deployment.yaml), não sobre a capacidade do nó:
 #   70% de 100m de CPU = 70m por pod
 #
 # Por que só CPU: na validação registrada em
@@ -16,15 +16,15 @@
 # carga. Para reativá-la seria preciso subir o request para ~320Mi, definir
 # `DOTNET_gcServer=0` no ConfigMap e mirar em 85%.
 #
-# ORÇAMENTO (Learner Lab): 6 réplicas x 100m/256Mi = 600m de CPU e 1,5Gi de
-# reserva, o que cabe folgado nos 2 nós t3.small já provisionados. Subir o teto
-# além disso empurraria o node group a criar nós novos — custo extra.
+# ORÇAMENTO (Learner Lab): o teto de réplicas é definido por ambiente nos
+# overlays (homolog: 2, production: 4) para caber nos nós já provisionados.
+# Subir além disso empurraria o node group a criar nós novos — custo extra.
 # ---------------------------------------------------------------------------
 apiVersion: autoscaling/v2
 kind: HorizontalPodAutoscaler
 metadata:
   name: gearup-api-hpa
-  namespace: gearup
+
   labels:
     app: gearup-api
 spec:

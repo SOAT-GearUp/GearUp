@@ -1,3 +1,4 @@
+using GearUp.Api.Documentacao;
 using GearUp.Api.ErrorHandling;
 using GearUp.Api.HealthChecks;
 using GearUp.Api.Observability;
@@ -75,7 +76,7 @@ builder.Services.AddHealthChecks()
 
 var app = builder.Build();
 
-if (app.Environment.IsDevelopment())
+if (DocumentacaoApi.Habilitada(app.Environment, app.Configuration))
 {
     app.UseStaticFiles();
     app.UseSwagger();

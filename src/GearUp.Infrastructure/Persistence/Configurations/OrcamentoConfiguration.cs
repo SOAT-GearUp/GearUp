@@ -8,7 +8,8 @@ internal sealed class OrcamentoConfiguration : IEntityTypeConfiguration<Orcament
 {
     public void Configure(EntityTypeBuilder<Orcamento> b)
     {
-        b.ToTable("Orcamentos");
+        b.ToTable("Orcamentos", t =>
+            t.HasCheckConstraint("CK_Orcamentos_Versao", "\"Versao\" > 0"));
         b.HasKey(x => x.Id);
         b.Property(x => x.Id).ValueGeneratedNever();
         b.Ignore(x => x.ValorTotal);

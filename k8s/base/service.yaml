@@ -1,0 +1,26 @@
+# ---------------------------------------------------------------------------
+# Network Load Balancer da API
+#
+# O API Gateway (repositório gearup-lambda-auth) encaminha /api, /health e
+# /swagger para este NLB. A pipeline publica o hostname no SSM em
+# /gearup/<ambiente>/api/url.
+#
+# CUSTO: ~US$ 0,0225/h por NLB (um por ambiente). É apagado junto com o
+# namespace no destroy.
+# ---------------------------------------------------------------------------
+apiVersion: v1
+kind: Service
+metadata:
+  name: gearup-api
+  labels:
+    app: gearup-api
+  annotations:
+    service.beta.kubernetes.io/aws-load-balancer-type: nlb
+spec:
+  type: LoadBalancer
+  selector:
+    app: gearup-api
+  ports:
+    - name: http
+      port: 80
+      targetPort: http

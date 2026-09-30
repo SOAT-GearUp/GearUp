@@ -1,0 +1,209 @@
+# ---------------------------------------------------------------------------
+# CD da API GearUp no EKS
+#
+#   push homolog ...... testes -> imagem no ECR -> deploy em gearup-homolog
+#   push master ....... testes -> imagem no ECR -> deploy em gearup-production
+#   workflow_dispatch . deploy ou destroy (remove o namespace e o NLB) manual
+#
+# A master é protegida: só recebe merge de Pull Request (o CI roda no PR).
+#
+# Pré-requisitos: gearup-infra-k8s (cluster, ECR, Collector) e gearup-infra-db
+# (RDS + /gearup/banco/* no SSM) aplicados. Depois deste deploy, rode a
+# pipeline do gearup-lambda-auth, que lê daqui /gearup/<amb>/api/host e
+# /gearup/<amb>/jwt/chave.
+#
+# Secrets: AWS_ACCESS_KEY_ID, AWS_SECRET_ACCESS_KEY, AWS_SESSION_TOKEN
+# (Learner Lab -> AWS Details -> AWS CLI; expiram a cada sessão).
+# ---------------------------------------------------------------------------
+name: CD
+
+on:
+  push:
+    branches: [master, homolog]
+  workflow_dispatch:
+    inputs:
+      ambiente:
+        description: "Ambiente"
+        type: choice
+        options: [homolog, production]
+        default: homolog
+      acao:
+        description: "Ação"
+        type: choice
+        options: [deploy, destroy]
+        default: deploy
+
+permissions:
+  contents: read
+
+env:
+  AWS_REGION: us-east-1
+  CLUSTER: gearup-eks
+  ECR_REPOSITORIO: gearup-api
+  AMBIENTE: ${{ github.event_name == 'workflow_dispatch' && inputs.ambiente || (github.ref_name == 'master' && 'production' || 'homolog') }}
+
+jobs:
+  testes:
+    name: Build e testes
+    if: github.event_name == 'push' || inputs.acao == 'deploy'
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4.3.1
+      - uses: actions/setup-dotnet@67a3573c9a986a3f9c594539f4ab511d57bb3ce9 # v4.3.1
+        with:
+          dotnet-version: 10.0.x
+      - run: dotnet restore GearUp.slnx
+      - run: dotnet build GearUp.slnx --configuration Release --no-restore
+      - name: Testes (unitários + integração com Testcontainers)
+        run: dotnet test GearUp.slnx --configuration Release --no-build
+
+  deploy:
+    name: Deploy (${{ github.event_name == 'workflow_dispatch' && inputs.ambiente || (github.ref_name == 'master' && 'production' || 'homolog') }})
+    needs: testes
+    if: always() && (needs.testes.result == 'success' || needs.testes.result == 'skipped')
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    environment:
+      name: ${{ github.event_name == 'workflow_dispatch' && inputs.ambiente || (github.ref_name == 'master' && 'production' || 'homolog') }}
+      url: ${{ steps.publicar.outputs.url }}
+    concurrency:
+      group: cd-gearup-${{ github.event_name == 'workflow_dispatch' && inputs.ambiente || (github.ref_name == 'master' && 'production' || 'homolog') }}
+      cancel-in-progress: false
+    env:
+      ACAO: ${{ inputs.acao || 'deploy' }}
+      NAMESPACE: gearup-${{ github.event_name == 'workflow_dispatch' && inputs.ambiente || (github.ref_name == 'master' && 'production' || 'homolog') }}
+    steps:
+      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4.3.1
+
+      - name: Verificar credenciais do Learner Lab
+        env:
+          CHAVE: ${{ secrets.AWS_ACCESS_KEY_ID }}
+        run: |
+          if [ -z "$CHAVE" ]; then
+            echo "::error::Configure AWS_ACCESS_KEY_ID, AWS_SECRET_ACCESS_KEY e AWS_SESSION_TOKEN (Learner Lab -> AWS Details -> AWS CLI). Script: scripts/atualizar-secrets-aws.ps1"
+            exit 1
+          fi
+
+      - uses: aws-actions/configure-aws-credentials@7474bc4690e29a8392af63c5b98e7449536d5c3a # v4.3.1
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-session-token: ${{ secrets.AWS_SESSION_TOKEN }}
+          aws-region: ${{ env.AWS_REGION }}
+
+      - uses: azure/setup-kubectl@776406bce94f63e41d621b960d78ee25c8b76ede # v4.0.1
+
+      - name: Configurar kubeconfig
+        run: aws eks update-kubeconfig --region "$AWS_REGION" --name "$CLUSTER"
+
+      - name: Destroy do ambiente
+        if: env.ACAO == 'destroy'
+        run: |
+          kubectl delete namespace "$NAMESPACE" --ignore-not-found --wait=true --timeout=300s
+          aws ssm delete-parameter --name "/gearup/${AMBIENTE}/api/host" 2>/dev/null || true
+          echo "Namespace $NAMESPACE e NLB removidos." >> "$GITHUB_STEP_SUMMARY"
+
+      # ------------------------------ Imagem ---------------------------------
+      - name: Publicar imagem no ECR
+        if: env.ACAO == 'deploy'
+        id: imagem
+        run: |
+          REGISTRO="$(aws sts get-caller-identity --query Account --output text).dkr.ecr.${AWS_REGION}.amazonaws.com"
+          IMAGEM="${REGISTRO}/${ECR_REPOSITORIO}"
+          TAG="${GITHUB_SHA::12}"
+          echo "imagem=${IMAGEM}" >> "$GITHUB_OUTPUT"
+          echo "tag=${TAG}" >> "$GITHUB_OUTPUT"
+
+          # Tags imutáveis: o merge homolog -> master reaproveita a imagem já testada.
+          if aws ecr describe-images --repository-name "$ECR_REPOSITORIO" --image-ids imageTag="$TAG" >/dev/null 2>&1; then
+            echo "Imagem ${IMAGEM}:${TAG} já existe; reaproveitando."
+            exit 0
+          fi
+          aws ecr get-login-password --region "$AWS_REGION" | docker login --username AWS --password-stdin "$REGISTRO"
+          docker build -f src/GearUp.Api/Dockerfile -t "${IMAGEM}:${TAG}" .
+          docker push "${IMAGEM}:${TAG}"
+
+      # ------------------------------ Segredos -------------------------------
+      # JWT e senha do admin: gerados uma única vez por ambiente e guardados no
+      # SSM (SecureString). A Lambda lê a mesma chave JWT para emitir tokens
+      # que a API aceita. Banco: publicado pelo gearup-infra-db.
+      - name: Montar Secret do Kubernetes a partir do SSM
+        if: env.ACAO == 'deploy'
+        run: |
+          garantir() {
+            if ! aws ssm get-parameter --name "$1" >/dev/null 2>&1; then
+              aws ssm put-parameter --name "$1" --type SecureString --value "$(openssl rand -base64 48 | tr -d '\n')" >/dev/null
+              echo "Parâmetro $1 criado."
+            fi
+          }
+          ler() { aws ssm get-parameter --name "$1" --with-decryption --query Parameter.Value --output text; }
+
+          garantir "/gearup/${AMBIENTE}/jwt/chave"
+          garantir "/gearup/${AMBIENTE}/api/senha-admin"
+
+          DB_HOST=$(ler /gearup/banco/host) || { echo "::error::/gearup/banco/* não encontrado. Aplique o gearup-infra-db antes."; exit 1; }
+          CONEXAO="Host=${DB_HOST};Port=$(ler /gearup/banco/porta);Database=gearup_${AMBIENTE};Username=$(ler /gearup/banco/usuario);Password=$(ler /gearup/banco/senha);SSL Mode=Require"
+
+          kubectl apply -f "k8s/overlays/${AMBIENTE}/namespace.yaml"
+          kubectl create secret generic gearup-secret --namespace "$NAMESPACE" \
+            --from-literal=Jwt__Key="$(ler /gearup/${AMBIENTE}/jwt/chave)" \
+            --from-literal=Seed__AdminPassword="$(ler /gearup/${AMBIENTE}/api/senha-admin)" \
+            --from-literal=ConnectionStrings__GearUpDatabase="$CONEXAO" \
+            --dry-run=client -o yaml | kubectl apply -f -
+
+      # ------------------------------ Deploy ---------------------------------
+      - name: Aplicar manifests (kustomize)
+        if: env.ACAO == 'deploy'
+        run: |
+          OVERLAY="k8s/overlays/${AMBIENTE}"
+          sed -i "s#IMAGEM_ECR#${{ steps.imagem.outputs.imagem }}#; s#TAG_IMAGEM#${{ steps.imagem.outputs.tag }}#" "$OVERLAY/kustomization.yaml"
+          kubectl apply -k "$OVERLAY"
+          kubectl rollout status deployment/gearup-api --namespace "$NAMESPACE" --timeout=600s
+
+      - name: Publicar endereço do NLB para o API Gateway
+        if: env.ACAO == 'deploy'
+        id: publicar
+        run: |
+          for i in $(seq 1 60); do
+            HOST=$(kubectl get svc gearup-api -n "$NAMESPACE" -o jsonpath='{.status.loadBalancer.ingress[0].hostname}')
+            [ -n "$HOST" ] && break
+            sleep 5
+          done
+          [ -n "$HOST" ] || { echo "::error::O NLB não recebeu hostname."; exit 1; }
+          # Só o hostname vai para o SSM; o gearup-lambda-auth monta a URL da
+          # integração do gateway (trecho gateway -> NLB, ver ADR-002).
+          aws ssm put-parameter --name "/gearup/${AMBIENTE}/api/host" --type String --overwrite --value "${HOST}" >/dev/null
+
+          GATEWAY=$(aws ssm get-parameter --name "/gearup/${AMBIENTE}/gateway/url" --query Parameter.Value --output text 2>/dev/null || true)
+          echo "url=${GATEWAY}" >> "$GITHUB_OUTPUT"
+          echo "nlb=${HOST}" >> "$GITHUB_OUTPUT"
+
+      - name: Smoke test
+        if: env.ACAO == 'deploy'
+        run: |
+          # O DNS do NLB leva alguns minutos para propagar na primeira criação.
+          # O NLB só escuta na porta 80 (o TLS termina no API Gateway).
+          URL="${{ steps.publicar.outputs.nlb }}/health/ready"
+          for i in $(seq 1 40); do
+            status=$(curl -s --proto-default http -o saude.json -w '%{http_code}' "$URL" || true)
+            [ "$status" = "200" ] && break
+            sleep 10
+          done
+          cat saude.json 2>/dev/null; echo
+          [ "$status" = "200" ] || { echo "::error::/health/ready respondeu ${status:-sem resposta}"; exit 1; }
+
+      - name: Resumo
+        if: env.ACAO == 'deploy'
+        run: |
+          {
+            echo "### Deploy ${AMBIENTE}"
+            echo "- Imagem: \`${{ steps.imagem.outputs.imagem }}:${{ steps.imagem.outputs.tag }}\`"
+            echo "- Namespace: \`${NAMESPACE}\`"
+            echo "- NLB (atrás do gateway): ${{ steps.publicar.outputs.nlb }}"
+            echo "- API Gateway: ${{ steps.publicar.outputs.url }}"
+            echo ""
+            echo '```'
+            kubectl get deploy,hpa,pods -n "$NAMESPACE"
+            echo '```'
+          } >> "$GITHUB_STEP_SUMMARY"

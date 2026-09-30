@@ -10,7 +10,11 @@ internal sealed class ClienteConfiguration : IEntityTypeConfiguration<Cliente>
 {
     public void Configure(EntityTypeBuilder<Cliente> builder)
     {
-        builder.ToTable("Clientes");
+        // CPF (11) ou CNPJ (14) só com dígitos: a mesma regra do value object
+        // Documento, repetida no banco para proteger contra escrita fora da API.
+        builder.ToTable("Clientes", tabela => tabela.HasCheckConstraint(
+            "CK_Clientes_Documento_Tamanho",
+            "char_length(\"Documento\") IN (11, 14)"));
 
         builder.HasKey(cliente => cliente.Id);
 

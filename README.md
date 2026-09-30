@@ -2,48 +2,56 @@
 
 API REST para gestão de oficina mecânica, construída em .NET 10, PostgreSQL, DDD e Clean Architecture.
 
-O projeto evoluiu na Fase 2 do Tech Challenge para uma arquitetura cloud native, com conteinerização, Kubernetes, infraestrutura como código, pipeline CI/CD e escalabilidade automática. Na Fase 3, a solução passa a incorporar observabilidade com OpenTelemetry e Datadog.
+Na Fase 1 nasceu o domínio (ordens de serviço, orçamentos, estoque); na Fase 2 a aplicação virou cloud native (Docker, Kubernetes, Terraform, CI/CD, HPA). Na **Fase 3** ela opera em nível corporativo: **API Gateway**, **autenticação serverless por CPF**, **banco gerenciado**, **observabilidade com Datadog** e a plataforma separada em **quatro repositórios** com CI/CD e deploy automático de homologação e produção.
 
-## Objetivos da Fase 2
+## Repositórios da plataforma
 
-- Evoluir a aplicação mantendo Clean Architecture, DDD e testes automatizados.
-- Containerizar a API com Docker e manter ambiente local com Docker Compose.
-- Executar a aplicação em Kubernetes local e em AWS EKS.
-- Provisionar infraestrutura AWS com Terraform.
-- Automatizar build, testes, publicação da imagem Docker e deploy no cluster com GitHub Actions.
-- Validar escalabilidade horizontal com HPA baseado em CPU e memória.
+| Repositório | Propósito |
+|---|---|
+| **[GearUp](https://github.com/SOAT-GearUp/GearUp)** (este) | API, testes, manifests Kubernetes, pipeline de deploy no EKS e documentação arquitetural |
+| [gearup-infra-k8s](https://github.com/SOAT-GearUp/gearup-infra-k8s) | Terraform: VPC, EKS, ECR, OpenTelemetry Collector, Datadog Agent, dashboards e monitores |
+| [gearup-infra-db](https://github.com/SOAT-GearUp/gearup-infra-db) | Terraform: RDS PostgreSQL gerenciado e credenciais no SSM |
+| [gearup-lambda-auth](https://github.com/SOAT-GearUp/gearup-lambda-auth) | Lambda de autenticação por CPF, Lambda authorizer e API Gateway |
 
-## Arquitetura da Solução
+## Arquitetura deste repositório
 
-Fluxo principal da arquitetura proposta:
+```mermaid
+flowchart LR
+    DEV[Pull Request] --> CI[CI<br/>build · testes · cobertura ≥ 80% · docker build]
+    CI -->|merge em homolog| CDH[CD homolog]
+    CI -->|merge em master| CDP[CD production]
+    CDH & CDP --> ECR[(ECR<br/>gearup-api:SHA)]
+    CDH & CDP -->|kubectl apply -k<br/>k8s/overlays/amb| EKS
 
-```text
-Desenvolvedor
-   |
-   v
-GitHub / GitHub Actions
-   |
-   |-- CI: restore, build, testes, cobertura e Docker build
-   |-- SonarQube Cloud: análise de qualidade e segurança
-   |-- CD: build da imagem, push no ECR e deploy no EKS
-   v
-Amazon ECR
-   |
-   v
-Amazon EKS
-   |
-   |-- Load Balancer expõe a API
-   |-- Deployment executa pods da GearUp API
-   |-- ConfigMap e Secret configuram a aplicação
-   |-- HPA escala réplicas conforme CPU/memória
-   |-- Metrics Server fornece métricas para o HPA
-   v
-Amazon RDS PostgreSQL
+    subgraph EKS[EKS gearup-eks]
+        NS[namespace gearup-amb<br/>Deployment · HPA · Service NLB]
+    end
+
+    SSM[(SSM<br/>banco, JWT, admin)] -->|Secret do Kubernetes| NS
+    CDH & CDP -->|/gearup/amb/api/host| SSM
+    GW[API Gateway<br/>gearup-lambda-auth] -->|/api /health /swagger| NS
+    NS -->|EF Core / TLS| RDS[(RDS PostgreSQL)]
+    NS -->|OTLP| OTEL[OTel Collector] --> DD[Datadog]
 ```
 
-O provisionamento da infraestrutura AWS é feito com Terraform, criando VPC, subnets, ECR, EKS, node group, RDS PostgreSQL e regras de rede necessárias.
+Visão completa (nuvem, APIs, banco e monitoramento): [Arquitetura da Solução — Fase 3](docs/fase-3/Arquitetura/Arquitetura%20da%20Solucao.md).
 
-## Execução Local
+## Tecnologias
+
+.NET 10 · ASP.NET Core · Entity Framework Core 10 + Npgsql · PostgreSQL 17 (RDS) · JWT HS256 · OpenTelemetry · Docker · Kubernetes (EKS) + Kustomize + HPA · GitHub Actions · xUnit + Testcontainers · SonarQube Cloud · Datadog.
+
+## APIs: Swagger e Postman
+
+| Recurso | Onde |
+|---|---|
+| Swagger (homologação, via gateway) | `https://<gateway-homolog>/swagger/index.html` — URL em `aws ssm get-parameter --name /gearup/homolog/gateway/url` ou no resumo do job de deploy |
+| Swagger local | http://localhost:8080/swagger |
+| Postman — Fase 3 (autenticação por CPF via gateway) | [docs/fase-3/Postman](docs/fase-3/Postman/GearUp%20-%20Fase%203%20-%20Autenticacao%20CPF.postman_collection.json) |
+| Postman — fluxos de negócio | [docs/Postman](docs/Postman) |
+
+> O ambiente AWS roda num Learner Lab e é **desligado ao fim de cada sessão** para não consumir o orçamento; por isso não há um link permanente. O deploy ativo aparece no ambiente `homolog`/`production` da aba *Deployments* do GitHub durante a sessão.
+
+## Execução local
 
 Com Docker Compose:
 
@@ -65,18 +73,21 @@ kubectl apply -f .\k8s\local\api-service.yaml
 kubectl apply -f .\k8s\local\hpa.yaml
 ```
 
-## Deploy AWS
+Testes (os de integração precisam do Docker em execução):
 
-O ambiente AWS usa:
+```powershell
+dotnet test GearUp.slnx
+```
 
-- Amazon EKS para orquestração;
-- Amazon ECR para armazenamento da imagem Docker;
-- Amazon RDS PostgreSQL como banco de dados;
-- Load Balancer para expor a API;
-- HPA para escalabilidade horizontal;
-- GitHub Actions para CI/CD.
+## Deploy na AWS
 
-O deploy automatizado é executado pelo workflow `CD AWS`, que publica a imagem no ECR e aplica os manifests Kubernetes no EKS.
+| Branch | Ambiente | O que acontece |
+|---|---|---|
+| Pull Request | — | workflow **CI**: build, testes, cobertura do domínio ≥ 80%, docker build |
+| `homolog` | homologação | workflow **CD**: testes → imagem no ECR (tag = SHA) → `k8s/overlays/homolog` no namespace `gearup-homolog` → smoke test |
+| `master` (protegida, só via PR) | produção | mesmo fluxo em `gearup-production`, reaproveitando a imagem já testada em homologação |
+
+Pré-requisitos, ordem de deploy entre os repositórios, atualização das credenciais do lab e destroy: [Guia de Deploy e Operação](docs/fase-3/Operacao/Guia%20de%20Deploy%20e%20Operacao.md).
 
 ## Escalabilidade Horizontal
 
@@ -153,6 +164,18 @@ A API utiliza o endereço interno `http://otel-collector:4317`; nenhuma configur
 |---|---|
 | Arquitetura e portabilidade | [OpenTelemetry Collector e Datadog](docs/fase-3/Observabilidade/OpenTelemetry%20Collector%20e%20Datadog.md) |
 | Execução local | [Ambiente local de observabilidade](infra/observability/datadog/README.md) |
+| Dashboards, monitores e correlação de logs no EKS | [Dashboards e Alertas](docs/fase-3/Observabilidade/Dashboards%20e%20Alertas.md) |
+
+## Documentos da Fase 3
+
+| Tipo | Documento |
+|---|---|
+| Diagrama de componentes | [Arquitetura da Solução](docs/fase-3/Arquitetura/Arquitetura%20da%20Solucao.md) |
+| Diagramas de sequência | [Autenticação por CPF e abertura de OS](docs/fase-3/Arquitetura/Diagramas%20de%20Sequencia.md) |
+| RFCs | [001 Nuvem e ambientes](docs/fase-3/RFC/RFC-001%20-%20Nuvem%20e%20estrategia%20de%20ambientes.md) · [002 Banco gerenciado](docs/fase-3/RFC/RFC-002%20-%20Banco%20de%20dados%20gerenciado.md) · [003 Autenticação](docs/fase-3/RFC/RFC-003%20-%20Estrategia%20de%20autenticacao.md) · [004 Observabilidade](docs/fase-3/RFC/RFC-004%20-%20Ferramenta%20de%20observabilidade.md) |
+| ADRs | [002 API Gateway](docs/fase-3/ADR/ADR-002%20-%20Comunicacao%20sincrona%20via%20API%20Gateway.md) · [003 HPA](docs/fase-3/ADR/ADR-003%20-%20Escalabilidade%20com%20HPA.md) · [004 Repositórios e SSM](docs/fase-3/ADR/ADR-004%20-%20Repositorios%20separados%20e%20contratos%20via%20SSM.md) · [005 Rede sem NAT](docs/fase-3/ADR/ADR-005%20-%20Rede%20sem%20NAT%20Gateway.md) |
+| Banco de dados | [Justificativa, diagrama ER e relacionamentos](docs/fase-3/Banco%20de%20Dados/Modelagem%20e%20Justificativa.md) |
+| Operação | [Guia de Deploy e Operação](docs/fase-3/Operacao/Guia%20de%20Deploy%20e%20Operacao.md) |
 
 ## Documentos da Fase 2
 
