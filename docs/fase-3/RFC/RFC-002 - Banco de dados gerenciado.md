@@ -37,7 +37,7 @@ O agregado `OrdemServico` referencia `Cliente` e `Veiculo`; `Orcamento` pertence
 
 ### Por que o schema fica no repositório da aplicação
 
-O `gearup-infra-db` provisiona a **instância**; o **schema** evolui com o código, via migrations versionadas no repositório GearUp e aplicadas pela própria API ao subir (`DatabaseInitializer`). Separar schema do código criaria dois lugares para manter sincronizados a cada mudança de entidade.
+O `gearup-infra-db` provisiona a **instância**; o **schema** evolui com o código, via migrations versionadas no repositório gearup-api e aplicadas pela própria API ao subir (`DatabaseInitializer`). Separar schema do código criaria dois lugares para manter sincronizados a cada mudança de entidade.
 
 ## Riscos
 

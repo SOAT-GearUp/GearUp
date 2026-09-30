@@ -7,7 +7,7 @@
     As credenciais do lab (STS) expiram a cada sessao (max. 4h). Antes de
     rodar qualquer pipeline de deploy, execute este script para atualizar
     AWS_ACCESS_KEY_ID, AWS_SECRET_ACCESS_KEY e AWS_SESSION_TOKEN em:
-      SOAT-GearUp/GearUp, gearup-infra-k8s, gearup-infra-db, gearup-lambda-auth
+      SOAT-GearUp/gearup-api, gearup-infra-k8s, gearup-infra-db, gearup-lambda-auth
 
     As credenciais sao lidas de ~/.aws/credentials (perfil default) - cole ali
     o bloco de "AWS Details -> AWS CLI" do lab. Nada e gravado em arquivo
@@ -28,7 +28,7 @@ param(
     [string]$DatadogAppKey = ''
 )
 
-$repositorios = @('GearUp', 'gearup-infra-k8s', 'gearup-infra-db', 'gearup-lambda-auth')
+$repositorios = @('gearup-api', 'gearup-infra-k8s', 'gearup-infra-db', 'gearup-lambda-auth')
 
 if (-not (Test-Path $ArquivoCredenciais)) {
     Write-Host "Arquivo nao encontrado: $ArquivoCredenciais" -ForegroundColor Red

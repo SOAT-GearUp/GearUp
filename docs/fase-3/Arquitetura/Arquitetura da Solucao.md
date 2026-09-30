@@ -6,7 +6,7 @@ Na Fase 3 o GearUp deixa de ser um único repositório com "tudo junto" e passa 
 
 | Repositório | Responsabilidade | Pipeline |
 |---|---|---|
-| [GearUp](https://github.com/SOAT-GearUp/GearUp) | API .NET 10 (DDD + Clean Architecture), manifests Kubernetes, documentação | CI em todo push/PR; CD em `homolog` e `master` |
+| [gearup-api](https://github.com/SOAT-GearUp/gearup-api) | API .NET 10 (DDD + Clean Architecture), manifests Kubernetes, documentação | CI em todo push/PR; CD em `homolog` e `master` |
 | [gearup-infra-k8s](https://github.com/SOAT-GearUp/gearup-infra-k8s) | VPC, EKS, ECR, OpenTelemetry Collector, Datadog Agent, dashboards e monitores | plan em PR/`homolog`; apply em `main` |
 | [gearup-infra-db](https://github.com/SOAT-GearUp/gearup-infra-db) | RDS PostgreSQL gerenciado + credenciais no SSM | plan em PR/`homolog`; apply em `main` |
 | [gearup-lambda-auth](https://github.com/SOAT-GearUp/gearup-lambda-auth) | Lambda de autenticação por CPF, Lambda authorizer e API Gateway | deploy por ambiente em `homolog` e `main` |
@@ -90,11 +90,11 @@ Os repositórios **não leem o state do Terraform uns dos outros**. Cada depend�
 | Quem publica | O quê | Como é encontrado | Quem consome |
 |---|---|---|---|
 | gearup-infra-k8s | VPC e subnets | tags `Name=gearup-vpc` e `Camada=publica/privada` | infra-db, lambda-auth |
-| gearup-infra-k8s | cluster `gearup-eks`, ECR `gearup-api`, Collector | nomes fixos | GearUp (CD) |
-| gearup-infra-db | host, porta, usuário e senha do RDS | SSM `/gearup/banco/*` | GearUp (CD), lambda-auth |
-| GearUp (CD) | chave JWT e senha do admin, por ambiente | SSM `/gearup/<amb>/jwt/chave`, `/gearup/<amb>/api/senha-admin` | lambda-auth |
-| GearUp (CD) | hostname do NLB da API | SSM `/gearup/<amb>/api/host` | lambda-auth (integração do gateway) |
-| gearup-lambda-auth | URL pública do gateway | SSM `/gearup/<amb>/gateway/url` | GearUp (resumo do deploy), documentação |
+| gearup-infra-k8s | cluster `gearup-eks`, ECR `gearup-api`, Collector | nomes fixos | gearup-api (CD) |
+| gearup-infra-db | host, porta, usuário e senha do RDS | SSM `/gearup/banco/*` | gearup-api (CD), lambda-auth |
+| gearup-api (CD) | chave JWT e senha do admin, por ambiente | SSM `/gearup/<amb>/jwt/chave`, `/gearup/<amb>/api/senha-admin` | lambda-auth |
+| gearup-api (CD) | hostname do NLB da API | SSM `/gearup/<amb>/api/host` | lambda-auth (integração do gateway) |
+| gearup-lambda-auth | URL pública do gateway | SSM `/gearup/<amb>/gateway/url` | gearup-api (resumo do deploy), documentação |
 
 Detalhes e alternativas descartadas em [ADR-004](../ADR/ADR-004%20-%20Repositorios%20separados%20e%20contratos%20via%20SSM.md).
 
@@ -103,17 +103,17 @@ Detalhes e alternativas descartadas em [ADR-004](../ADR/ADR-004%20-%20Repositori
 ```mermaid
 flowchart LR
     A[1. gearup-infra-k8s<br/>~15 min] --> B[2. gearup-infra-db<br/>~8 min]
-    B --> C[3. GearUp<br/>~6 min]
+    B --> C[3. gearup-api<br/>~6 min]
     C --> D[4. gearup-lambda-auth<br/>~2 min]
 ```
 
-O destroy segue a ordem inversa (lambda → GearUp → db → k8s). O passo a passo completo, incluindo a atualização das credenciais do lab, está no [Guia de Operação](../Operacao/Guia%20de%20Deploy%20e%20Operacao.md).
+O destroy segue a ordem inversa (lambda → gearup-api → db → k8s). O passo a passo completo, incluindo a atualização das credenciais do lab, está no [Guia de Operação](../Operacao/Guia%20de%20Deploy%20e%20Operacao.md).
 
 ## Ambientes
 
 | | homolog | production |
 |---|---|---|
-| Branch que dispara o deploy | `homolog` | `master` (GearUp) / `main` (demais) |
+| Branch que dispara o deploy | `homolog` | `master` (gearup-api) / `main` (demais) |
 | Namespace Kubernetes | `gearup-homolog` | `gearup-production` |
 | Database no RDS | `gearup_homolog` | `gearup_production` |
 | API Gateway + Lambdas | pilha própria | pilha própria |
