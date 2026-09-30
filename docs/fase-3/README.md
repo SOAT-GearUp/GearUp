@@ -1,6 +1,6 @@
 # GearUp - Fase 3
 
-Esta fase eleva o GearUp a um nível de operação corporativa: API Gateway, autenticação serverless por CPF, banco de dados gerenciado, observabilidade com dashboards e alertas, e a plataforma separada em quatro repositórios com CI/CD e deploy automático de homologação e produção.
+Esta fase eleva o GearUp a um nível de operação corporativa: API Gateway, autenticação serverless por CPF e senha, banco de dados gerenciado, observabilidade com dashboards e alertas, e a plataforma separada em quatro repositórios com CI/CD e deploy automático de homologação e produção.
 
 ## Repositórios
 
@@ -9,7 +9,7 @@ Esta fase eleva o GearUp a um nível de operação corporativa: API Gateway, aut
 | [gearup-api](https://github.com/SOAT-GearUp/gearup-api) | API, manifests Kubernetes, pipeline de deploy e esta documentação |
 | [gearup-infra-k8s](https://github.com/SOAT-GearUp/gearup-infra-k8s) | VPC, EKS, ECR, Collector, Datadog Agent, dashboards e monitores |
 | [gearup-infra-db](https://github.com/SOAT-GearUp/gearup-infra-db) | RDS PostgreSQL e credenciais no SSM |
-| [gearup-lambda-auth](https://github.com/SOAT-GearUp/gearup-lambda-auth) | Lambda de autenticação por CPF, authorizer e API Gateway |
+| [gearup-lambda-auth](https://github.com/SOAT-GearUp/gearup-lambda-auth) | Lambda de autenticação por CPF e senha, authorizer e API Gateway |
 
 ## Documentação
 

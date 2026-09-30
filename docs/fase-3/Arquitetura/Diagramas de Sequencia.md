@@ -1,8 +1,8 @@
 # Diagramas de Sequência
 
-## 1. Autenticação do cliente por CPF
+## 1. Autenticação do cliente por CPF e senha
 
-O cliente informa apenas o CPF. A Lambda valida o documento, confirma que o cliente existe e está ativo na base e devolve um JWT no mesmo formato do login de funcionários.
+O cliente informa o CPF e a senha. A Lambda valida o documento, confirma que o cliente existe e está ativo, confere a senha do usuário de perfil `Cliente` ligado a ele e devolve um JWT no mesmo formato do login de funcionários.
 
 ```mermaid
 sequenceDiagram
@@ -13,16 +13,16 @@ sequenceDiagram
     participant DB as RDS PostgreSQL
     participant CW as CloudWatch Logs
 
-    Cliente->>GW: POST /auth/cpf {"cpf": "529.982.247-25"}<br/>X-Correlation-ID: abc-123
+    Cliente->>GW: POST /auth/cpf {"cpf": "529.982.247-25", "senha": "***"}<br/>X-Correlation-ID: abc-123
     Note over GW: throttling 20 req/s<br/>rota pública (sem authorizer)
     GW->>L: evento HTTP API 2.0
-    L->>L: valida formato e dígitos verificadores
+    L->>L: valida formato e dígitos verificadores do CPF<br/>e presença da senha
 
-    alt CPF inválido
-        L-->>GW: 400 CPF_INVALIDO
+    alt CPF inválido ou senha ausente
+        L-->>GW: 400 CPF_INVALIDO / SENHA_OBRIGATORIA
         GW-->>Cliente: 400
-    else CPF válido
-        L->>DB: SELECT "Id","Nome","Ativo" FROM "Clientes"<br/>WHERE "Documento" = $1 (TLS, índice único)
+    else dados válidos
+        L->>DB: SELECT cliente + hashes dos usuários ativos de perfil Cliente<br/>FROM "Clientes" LEFT JOIN "Usuarios" WHERE "Documento" = $1<br/>(TLS, índices UX_Clientes_Documento e IX_Usuarios_ClienteId)
         alt banco indisponível
             DB--xL: timeout / erro
             L->>CW: log level=error resultado=erro_banco
@@ -37,14 +37,23 @@ sequenceDiagram
             L-->>GW: 403 CLIENTE_INATIVO
             GW-->>Cliente: 403
         else cliente ativo
-            DB-->>L: Id, Nome, Ativo = true
-            L->>L: assina JWT HS256<br/>iss=GearUp aud=GearUp.Clients<br/>sub=cliente_id role=Cliente exp=60min
-            L->>CW: log level=info resultado=sucesso<br/>cpf=***.982.247-** correlationId=abc-123
-            L-->>GW: 200 {accessToken, expiraEm, cliente}
-            GW-->>Cliente: 200 + X-Correlation-ID: abc-123
+            DB-->>L: Id, Nome, Ativo = true, hashes de senha
+            L->>L: PBKDF2-SHA256 (210.000 iterações)<br/>comparação em tempo constante
+            alt senha errada ou cliente sem usuário
+                L->>CW: log level=warn resultado=credenciais_invalidas
+                L-->>GW: 401 CREDENCIAIS_INVALIDAS (mesma resposta e mesmo tempo)
+                GW-->>Cliente: 401
+            else senha correta
+                L->>L: assina JWT HS256<br/>iss=GearUp aud=GearUp.Clients<br/>sub=cliente_id role=Cliente amr=cpf exp=60min
+                L->>CW: log level=info resultado=sucesso<br/>cpf=***.982.247-** correlationId=abc-123
+                L-->>GW: 200 {accessToken, expiraEm, cliente}
+                GW-->>Cliente: 200 + X-Correlation-ID: abc-123
+            end
         end
     end
 ```
+
+A senha é a do usuário criado pelo atendente em `POST /api/usuarios` (perfil `Cliente`, com `clienteId`). A Lambda só lê o hash; criar e trocar senha continua sendo papel da API.
 
 ## 2. Abertura de ordem de serviço (funcionário)
 

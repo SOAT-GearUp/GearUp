@@ -11,7 +11,7 @@ Na Fase 1 nasceu o domínio (ordens de serviço, orçamentos, estoque); na Fase 
 | **[gearup-api](https://github.com/SOAT-GearUp/gearup-api)** (este) | API, testes, manifests Kubernetes, pipeline de deploy no EKS e documentação arquitetural |
 | [gearup-infra-k8s](https://github.com/SOAT-GearUp/gearup-infra-k8s) | Terraform: VPC, EKS, ECR, OpenTelemetry Collector, Datadog Agent, dashboards e monitores |
 | [gearup-infra-db](https://github.com/SOAT-GearUp/gearup-infra-db) | Terraform: RDS PostgreSQL gerenciado e credenciais no SSM |
-| [gearup-lambda-auth](https://github.com/SOAT-GearUp/gearup-lambda-auth) | Lambda de autenticação por CPF, Lambda authorizer e API Gateway |
+| [gearup-lambda-auth](https://github.com/SOAT-GearUp/gearup-lambda-auth) | Lambda de autenticação por CPF e senha, Lambda authorizer e API Gateway |
 
 ## Arquitetura deste repositório
 
@@ -46,7 +46,7 @@ Visão completa (nuvem, APIs, banco e monitoramento): [Arquitetura da Solução 
 |---|---|
 | Swagger (homologação, via gateway) | `https://<gateway-homolog>/swagger/index.html` — URL em `aws ssm get-parameter --name /gearup/homolog/gateway/url` ou no resumo do job de deploy |
 | Swagger local | http://localhost:8080/swagger |
-| Postman — Fase 3 (autenticação por CPF via gateway) | [docs/fase-3/Postman](docs/fase-3/Postman/GearUp%20-%20Fase%203%20-%20Autenticacao%20CPF.postman_collection.json) |
+| Postman — Fase 3 (autenticação por CPF e senha via gateway) | [docs/fase-3/Postman](docs/fase-3/Postman/GearUp%20-%20Fase%203%20-%20Autenticacao%20CPF.postman_collection.json) |
 | Postman — fluxos de negócio | [docs/Postman](docs/Postman) |
 
 > O ambiente AWS roda num Learner Lab e é **desligado ao fim de cada sessão** para não consumir o orçamento; por isso não há um link permanente. O deploy ativo aparece no ambiente `homolog`/`production` da aba *Deployments* do GitHub durante a sessão.
@@ -171,7 +171,7 @@ A API utiliza o endereço interno `http://otel-collector:4317`; nenhuma configur
 | Tipo | Documento |
 |---|---|
 | Diagrama de componentes | [Arquitetura da Solução](docs/fase-3/Arquitetura/Arquitetura%20da%20Solucao.md) |
-| Diagramas de sequência | [Autenticação por CPF e abertura de OS](docs/fase-3/Arquitetura/Diagramas%20de%20Sequencia.md) |
+| Diagramas de sequência | [Autenticação por CPF e senha e abertura de OS](docs/fase-3/Arquitetura/Diagramas%20de%20Sequencia.md) |
 | RFCs | [001 Nuvem e ambientes](docs/fase-3/RFC/RFC-001%20-%20Nuvem%20e%20estrategia%20de%20ambientes.md) · [002 Banco gerenciado](docs/fase-3/RFC/RFC-002%20-%20Banco%20de%20dados%20gerenciado.md) · [003 Autenticação](docs/fase-3/RFC/RFC-003%20-%20Estrategia%20de%20autenticacao.md) · [004 Observabilidade](docs/fase-3/RFC/RFC-004%20-%20Ferramenta%20de%20observabilidade.md) |
 | ADRs | [002 API Gateway](docs/fase-3/ADR/ADR-002%20-%20Comunicacao%20sincrona%20via%20API%20Gateway.md) · [003 HPA](docs/fase-3/ADR/ADR-003%20-%20Escalabilidade%20com%20HPA.md) · [004 Repositórios e SSM](docs/fase-3/ADR/ADR-004%20-%20Repositorios%20separados%20e%20contratos%20via%20SSM.md) · [005 Rede sem NAT](docs/fase-3/ADR/ADR-005%20-%20Rede%20sem%20NAT%20Gateway.md) |
 | Banco de dados | [Justificativa, diagrama ER e relacionamentos](docs/fase-3/Banco%20de%20Dados/Modelagem%20e%20Justificativa.md) |
