@@ -17,7 +17,7 @@ Passo a passo para subir, demonstrar e desligar a plataforma. Todos os comandos 
 3. Distribua as credenciais para as pipelines dos 4 repositórios:
 
 ```powershell
-cd GearUp
+cd gearup-api
 .\scripts\atualizar-secrets-aws.ps1
 # com Datadog:
 .\scripts\atualizar-secrets-aws.ps1 -DatadogApiKey "<api key>" -DatadogAppKey "<app key>"
@@ -33,7 +33,7 @@ Cada passo é um **merge de Pull Request na branch principal** (ou *Actions → 
 |---|---|---|---|---|
 | 1 | gearup-infra-k8s | Terraform (EKS) → apply | ~15 min | VPC, EKS, nós, ECR, metrics-server, Collector, Datadog Agent, dashboards |
 | 2 | gearup-infra-db | Terraform (RDS) → apply | ~8 min | RDS PostgreSQL + `/gearup/banco/*` |
-| 3 | GearUp | CD → `homolog` e depois `master` | ~6 min cada | imagem no ECR, namespaces, NLBs, `/gearup/<amb>/api/host` e `/jwt/chave` |
+| 3 | gearup-api | CD → `homolog` e depois `master` | ~6 min cada | imagem no ECR, namespaces, NLBs, `/gearup/<amb>/api/host` e `/jwt/chave` |
 | 4 | gearup-lambda-auth | CI/CD Lambda → `homolog` e `main` | ~2 min cada | Lambdas, API Gateway, alarmes, `/gearup/<amb>/gateway/url` |
 
 Depois do passo 4, a URL do gateway aparece no resumo do job e em:
@@ -67,7 +67,7 @@ Ordem **inversa** — a VPC só pode ser apagada depois que nada mais a usa:
 | # | Repositório | Workflow → inputs |
 |---|---|---|
 | 1 | gearup-lambda-auth | CI/CD Lambda → `ambiente=homolog, acao=destroy`; repetir com `production` |
-| 2 | GearUp | CD → `ambiente=homolog, acao=destroy`; repetir com `production` (remove os NLBs) |
+| 2 | gearup-api | CD → `ambiente=homolog, acao=destroy`; repetir com `production` (remove os NLBs) |
 | 3 | gearup-infra-db | Terraform (RDS) → `destroy` |
 | 4 | gearup-infra-k8s | Terraform (EKS) → `destroy` |
 

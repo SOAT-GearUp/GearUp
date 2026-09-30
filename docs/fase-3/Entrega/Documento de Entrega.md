@@ -10,7 +10,7 @@
 | 1 | Lambda (function serverless) | https://github.com/SOAT-GearUp/gearup-lambda-auth |
 | 2 | Infraestrutura Kubernetes (Terraform) | https://github.com/SOAT-GearUp/gearup-infra-k8s |
 | 3 | Infraestrutura do banco gerenciado (Terraform) | https://github.com/SOAT-GearUp/gearup-infra-db |
-| 4 | Aplicação principal em Kubernetes | https://github.com/SOAT-GearUp/GearUp |
+| 4 | Aplicação principal em Kubernetes | https://github.com/SOAT-GearUp/gearup-api |
 
 ## Vídeo de demonstração
 
@@ -20,14 +20,14 @@ _preencher link do YouTube/Vimeo (público ou não listado, até 15 min)_
 
 | Documento | Link |
 |---|---|
-| Índice da Fase 3 | https://github.com/SOAT-GearUp/GearUp/blob/master/docs/fase-3/README.md |
-| Diagrama de componentes | https://github.com/SOAT-GearUp/GearUp/blob/master/docs/fase-3/Arquitetura/Arquitetura%20da%20Solucao.md |
-| Diagramas de sequência | https://github.com/SOAT-GearUp/GearUp/blob/master/docs/fase-3/Arquitetura/Diagramas%20de%20Sequencia.md |
-| RFCs | https://github.com/SOAT-GearUp/GearUp/tree/master/docs/fase-3/RFC |
-| ADRs | https://github.com/SOAT-GearUp/GearUp/tree/master/docs/fase-3/ADR |
-| Banco de dados (justificativa, ER, relacionamentos) | https://github.com/SOAT-GearUp/GearUp/blob/master/docs/fase-3/Banco%20de%20Dados/Modelagem%20e%20Justificativa.md |
-| Observabilidade | https://github.com/SOAT-GearUp/GearUp/blob/master/docs/fase-3/Observabilidade/Dashboards%20e%20Alertas.md |
-| Collection Postman | https://github.com/SOAT-GearUp/GearUp/blob/master/docs/fase-3/Postman/GearUp%20-%20Fase%203%20-%20Autenticacao%20CPF.postman_collection.json |
+| Índice da Fase 3 | https://github.com/SOAT-GearUp/gearup-api/blob/master/docs/fase-3/README.md |
+| Diagrama de componentes | https://github.com/SOAT-GearUp/gearup-api/blob/master/docs/fase-3/Arquitetura/Arquitetura%20da%20Solucao.md |
+| Diagramas de sequência | https://github.com/SOAT-GearUp/gearup-api/blob/master/docs/fase-3/Arquitetura/Diagramas%20de%20Sequencia.md |
+| RFCs | https://github.com/SOAT-GearUp/gearup-api/tree/master/docs/fase-3/RFC |
+| ADRs | https://github.com/SOAT-GearUp/gearup-api/tree/master/docs/fase-3/ADR |
+| Banco de dados (justificativa, ER, relacionamentos) | https://github.com/SOAT-GearUp/gearup-api/blob/master/docs/fase-3/Banco%20de%20Dados/Modelagem%20e%20Justificativa.md |
+| Observabilidade | https://github.com/SOAT-GearUp/gearup-api/blob/master/docs/fase-3/Observabilidade/Dashboards%20e%20Alertas.md |
+| Collection Postman | https://github.com/SOAT-GearUp/gearup-api/blob/master/docs/fase-3/Postman/GearUp%20-%20Fase%203%20-%20Autenticacao%20CPF.postman_collection.json |
 
 ## Acesso do avaliador
 

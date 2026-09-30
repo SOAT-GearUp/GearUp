@@ -8,7 +8,7 @@ Na Fase 1 nasceu o domínio (ordens de serviço, orçamentos, estoque); na Fase 
 
 | Repositório | Propósito |
 |---|---|
-| **[GearUp](https://github.com/SOAT-GearUp/GearUp)** (este) | API, testes, manifests Kubernetes, pipeline de deploy no EKS e documentação arquitetural |
+| **[gearup-api](https://github.com/SOAT-GearUp/gearup-api)** (este) | API, testes, manifests Kubernetes, pipeline de deploy no EKS e documentação arquitetural |
 | [gearup-infra-k8s](https://github.com/SOAT-GearUp/gearup-infra-k8s) | Terraform: VPC, EKS, ECR, OpenTelemetry Collector, Datadog Agent, dashboards e monitores |
 | [gearup-infra-db](https://github.com/SOAT-GearUp/gearup-infra-db) | Terraform: RDS PostgreSQL gerenciado e credenciais no SSM |
 | [gearup-lambda-auth](https://github.com/SOAT-GearUp/gearup-lambda-auth) | Lambda de autenticação por CPF, Lambda authorizer e API Gateway |

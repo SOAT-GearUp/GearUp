@@ -6,7 +6,7 @@ Esta fase eleva o GearUp a um nível de operação corporativa: API Gateway, aut
 
 | Repositório | Conteúdo |
 |---|---|
-| [GearUp](https://github.com/SOAT-GearUp/GearUp) | API, manifests Kubernetes, pipeline de deploy e esta documentação |
+| [gearup-api](https://github.com/SOAT-GearUp/gearup-api) | API, manifests Kubernetes, pipeline de deploy e esta documentação |
 | [gearup-infra-k8s](https://github.com/SOAT-GearUp/gearup-infra-k8s) | VPC, EKS, ECR, Collector, Datadog Agent, dashboards e monitores |
 | [gearup-infra-db](https://github.com/SOAT-GearUp/gearup-infra-db) | RDS PostgreSQL e credenciais no SSM |
 | [gearup-lambda-auth](https://github.com/SOAT-GearUp/gearup-lambda-auth) | Lambda de autenticação por CPF, authorizer e API Gateway |
@@ -29,7 +29,6 @@ Esta fase eleva o GearUp a um nível de operação corporativa: API Gateway, aut
 | Observabilidade: Collector e Datadog | [OpenTelemetry Collector e Datadog](Observabilidade/OpenTelemetry%20Collector%20e%20Datadog.md) |
 | Observabilidade: dashboards e alertas | [Dashboards e Alertas](Observabilidade/Dashboards%20e%20Alertas.md) |
 | Operação no Learner Lab | [Guia de Deploy e Operação](Operacao/Guia%20de%20Deploy%20e%20Operacao.md) |
-| Roteiro do vídeo | [Roteiro de Demonstração](Entrega/Roteiro%20do%20Video.md) |
 | Documento de entrega (base do PDF) | [Documento de Entrega](Entrega/Documento%20de%20Entrega.md) |
 | Postman | [GearUp - Fase 3 - Autenticação CPF](Postman/GearUp%20-%20Fase%203%20-%20Autenticacao%20CPF.postman_collection.json) |
 | Teste local sem fornecedor | [OpenTelemetry Collector em modo debug](../../infra/observability/collector/README.md) |
